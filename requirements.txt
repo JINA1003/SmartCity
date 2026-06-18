@@ -1,0 +1,14 @@
+geopandas
+matplotlib
+numpy
+pandas
+apscheduler
+flask
+shapely
+geodataset
+xmltodict
+folium
+geodatasets
+contextily
+openpyxl
+playwright

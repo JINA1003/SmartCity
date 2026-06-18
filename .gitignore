@@ -292,7 +292,6 @@ crashlytics-build.properties
 
 # End of https://www.toptal.com/developers/gitignore/api/macos,unity,jupyternotebooks,python
 
-<<<<<<< HEAD
 # Auto-generated scenes by play mode tests
 /[Aa]ssets/[Ii]nit[Tt]est[Ss]cene*.unity*
 
@@ -302,6 +301,3 @@ crashlytics-build.properties
 .history
 .vscode
 /data/file
-=======
-.history
->>>>>>> 9174bd6 (feat:Module_1차)
