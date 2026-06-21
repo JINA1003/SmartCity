@@ -12,3 +12,4 @@ geodatasets
 contextily
 openpyxl
 playwright
+jupyter
