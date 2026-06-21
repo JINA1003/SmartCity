@@ -320,3 +320,5 @@ crashlytics-build.properties
 /data/*.prj
 /data/*.shp
 /data/*.shx
+/data/extract/*.json
+
