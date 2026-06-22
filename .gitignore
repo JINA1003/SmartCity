@@ -301,7 +301,6 @@ crashlytics-build.properties
 .history
 .vscode
 /data/file
-/data/extract/crawling_state.json
 
 /data/output
 /data/*.csv
@@ -310,14 +309,4 @@ crashlytics-build.properties
 /data/*.prj
 /data/*.shp
 /data/*.shx
-/data/extract/*.json
-
-/data/extract/crawling_state.json
-
-/data/output
-/data/*.csv
-/data/*.dbf
-/data/*.fix
-/data/*.prj
-/data/*.shp
-/data/*.shx
+/data/extract
