@@ -311,3 +311,12 @@ crashlytics-build.properties
 /data/*.shx
 /data/extract
 
+/data/extract/crawling_state.json
+
+/data/output
+/data/*.csv
+/data/*.dbf
+/data/*.fix
+/data/*.prj
+/data/*.shp
+/data/*.shx
