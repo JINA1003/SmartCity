@@ -2,7 +2,7 @@
 공간 오프셋(base_offset) 및 intensity_multiplier 계산.
 
 ━━━ MVP (현재) ━━━
-  입력: S-DoT 구별 일별 기온 (data/file/sdot_wether_data/)
+  입력: S-DoT 구별 일별 기온 (data/file/sdot_weather_data/)
   해상도: 25개 구 단위
   함수: load_sdot_daily / calc_gu_offset / expand_gu_to_dong
         fit_intensity_multiplier_gu
@@ -31,7 +31,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 DONG_DATA_DIR = ROOT / "data" / "file" / "dong_weather_data"
 AWS_DATA_DIR  = ROOT / "data" / "file" / "aws_weather_data"
-SDOT_DATA_DIR = ROOT / "data" / "file" / "sdot_wether_data"
+SDOT_DATA_DIR = ROOT / "data" / "file" / "sdot_weather_data"
 
 # 일별 집계 결과 (data/extract/aws_hourly_to_daily.py 로 생성)
 # columns: gu, date(YYYY-MM-DD), ta_min, ta_max, ta_mean, ws_mean
@@ -362,7 +362,7 @@ def load_sdot_daily(data_dir: Path | None = None) -> pd.DataFrame:
     """
     S-DoT 구별 일별 기온 로드.
 
-    data/file/sdot_wether_data/ 하위 연도별 폴더의 모든 CSV를 읽어
+    data/file/sdot_weather_data/ 하위 연도별 폴더의 모든 CSV를 읽어
     구별 일별 ta_min / ta_max / ta_mean / ws_mean 으로 집계.
 
     반환 컬럼: gu, date, ta_min, ta_max, ta_mean, ws_mean
@@ -372,7 +372,7 @@ def load_sdot_daily(data_dir: Path | None = None) -> pd.DataFrame:
     if not csv_files:
         raise FileNotFoundError(
             f"S-DoT CSV 파일 없음: {directory}\n"
-            "  data/file/sdot_wether_data/ 하위에 연도별 폴더가 있어야 합니다."
+            "  data/file/sdot_weather_data/ 하위에 연도별 폴더가 있어야 합니다."
         )
 
     frames: list[pd.DataFrame] = []
