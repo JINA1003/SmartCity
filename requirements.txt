@@ -1,15 +1,32 @@
-geopandas
-matplotlib
-numpy
+# Core data
 pandas
-apscheduler
-flask
+numpy
+openpyxl
+
+# Geo / spatial
+geopandas
 shapely
 geodataset
-xmltodict
-folium
 geodatasets
+folium
 contextily
-openpyxl
-playwright
+
+# ML / modeling
+scikit-learn
+xgboost
+shap
+
+# API
+flask
+
+# Visualization
+matplotlib
+seaborn
+
+# Notebooks
 jupyter
+
+# Data extraction / automation
+playwright
+apscheduler
+xmltodict
