@@ -1,0 +1,32 @@
+# Core data
+pandas
+numpy
+openpyxl
+
+# Geo / spatial
+geopandas
+shapely
+geodataset
+geodatasets
+folium
+contextily
+
+# ML / modeling
+scikit-learn
+xgboost
+shap
+
+# API
+flask
+
+# Visualization
+matplotlib
+seaborn
+
+# Notebooks
+jupyter
+
+# Data extraction / automation
+playwright
+apscheduler
+xmltodict

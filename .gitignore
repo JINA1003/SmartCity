@@ -301,3 +301,5 @@ crashlytics-build.properties
 .history
 .vscode
 /data/file
+/data/extract/*.json
+
