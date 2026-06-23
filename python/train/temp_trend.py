@@ -25,7 +25,7 @@ from sklearn.preprocessing import OneHotEncoder
 from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
 
-MODEL_PATH = Path(__file__).parent / "artifacts" / "temp_trend_model.pkl"
+MODEL_PATH = Path(__file__).resolve().parents[1] / "model" / "artifacts" / "temp_trend_model.pkl"
 
 
 def build_features(df: pd.DataFrame) -> pd.DataFrame:

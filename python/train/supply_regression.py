@@ -27,7 +27,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import PolynomialFeatures
 
-MODEL_PATH = Path(__file__).parent / "artifacts" / "supply_model.pkl"
+MODEL_PATH = Path(__file__).resolve().parents[1] / "model" / "artifacts" / "supply_model.pkl"
 
 FEATURE_COLS = ["year", "month", "oni", "cdd", "hdd"]
 

@@ -29,8 +29,8 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 
-MODEL_PATH    = Path(__file__).parent / "artifacts" / "consumption_xgb.pkl"
-ENCODERS_PATH = Path(__file__).parent / "artifacts" / "consumption_encoders.pkl"
+MODEL_PATH    = Path(__file__).resolve().parents[1] / "model" / "artifacts" / "consumption_xgb.pkl"
+ENCODERS_PATH = Path(__file__).resolve().parents[1] / "model" / "artifacts" / "consumption_encoders.pkl"
 
 ROOT        = Path(__file__).resolve().parents[2]
 TEMP_GU_CSV = ROOT / "data" / "output" / "temperature_gu_monthly.csv"
