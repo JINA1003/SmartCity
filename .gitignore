@@ -304,4 +304,3 @@ crashlytics-build.properties
 /data/file
 /data/output
 /data/extract
-/data/extract/*.json
