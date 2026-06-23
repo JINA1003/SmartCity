@@ -34,6 +34,7 @@ def load_consumption() -> pd.DataFrame:
     return (
         df[["year", "month", "district", "usage_type", "consumption_mwh"]]
         .dropna()
+        [lambda d: d["usage_type"] != "합계"]   # 합계 행 제거
         .sort_values(["year", "month", "district"])
         .reset_index(drop=True)
     )

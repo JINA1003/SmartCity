@@ -1,13 +1,14 @@
 """
-블랙아웃 우선순위 순회 시뮬레이션.
+블랙아웃 순회 시뮬레이션.
 
-로직:
-  1. 구 단위 수요감축필요도 합산 → 높은 구부터 순위
-  2. 구 내 용도 단위 지수 → 높은 용도부터 순위
-  3. 경보단계가 '경계' 이상일 때만 블랙아웃 실행
-  4. 목표 감축량(target_mwh)만큼 순회하며 블랙아웃 적용
+순회 기준:
+  1. 구(district) 순서  → 구별 total_consumption_mwh 내림차순
+  2. 구 내 정전 순서   → building_type별 reduction_need_score 내림차순
 
-출력: 블랙아웃 적용된 (district, usage_type) 목록 + 감축량 누계
+경보단계(AlertLevel)별 목표 감축량:
+  경계(ALERT)   : 전체 소비량의 15%
+  심각(CRITICAL): 전체 소비량의 30%
+  그 미만       : 블랙아웃 미실행
 """
 
 from __future__ import annotations
@@ -16,53 +17,85 @@ import pandas as pd
 
 from python.simulation.alert_level import AlertLevel
 
-
 BLACKOUT_MIN_LEVEL = AlertLevel.ALERT
+
+REDUCTION_TARGET_PCT: dict[AlertLevel, float] = {
+    AlertLevel.ALERT:    0.15,
+    AlertLevel.CRITICAL: 0.30,
+}
 
 
 def run_blackout(
-    demand_table: pd.DataFrame,
+    regions: list[dict],
+    building_score_map: dict[str, dict[str, float]],
     alert: AlertLevel,
     target_reduction_mwh: float | None = None,
-) -> pd.DataFrame:
+) -> dict:
     """
-    demand_table: demand_reduction.calc_district_table() 결과
-                  컬럼 — district, usage_type, consumption_mwh,
-                          demand_reduction_index, district_total
+    Parameters
+    ----------
+    regions : _predict_one_month() 결과의 regions 리스트
+    building_score_map : get_building_score_map(year, month) 결과
+        {district: {building_type: reduction_need_score, ...}}
+    alert : AlertLevel
+    target_reduction_mwh : None이면 경보단계에 따라 자동 산정
 
-    target_reduction_mwh: None이면 경보단계에 따라 자동 산정
-                          (심각=30%, 경계=15% 감축 목표)
-    반환: district, usage_type, consumption_mwh, demand_reduction_index,
-           blackout (bool), cumulative_cut_mwh
+    Returns
+    -------
+    {
+      "districts_order":  [...25개 구, 소비량 내림차순...],
+      "districts_affected": int,
+      "blackout_items": [{"gu": ..., "building_type": ..., "reduction_need_score": ...}, ...]
+    }
+    경보단계 미달 시 blackout_items 빈 리스트.
     """
-    df = demand_table.copy()
-    df["blackout"] = False
-    df["cumulative_cut_mwh"] = 0.0
+    # 전체 구를 소비량 내림차순으로 정렬 (경보 여부 무관하게 항상 반환)
+    sorted_regions = sorted(regions, key=lambda r: r["total_consumption_mwh"], reverse=True)
+    districts_order = [r["gu"] for r in sorted_regions]
 
     if alert < BLACKOUT_MIN_LEVEL:
-        return df
+        return {
+            "districts_order":    districts_order,
+            "districts_affected": 0,
+            "blackout_items":     [],
+        }
 
-    total_consumption = df["consumption_mwh"].sum()
+    total_consumption = sum(r["total_consumption_mwh"] for r in regions)
     if target_reduction_mwh is None:
-        target_pct = {AlertLevel.ALERT: 0.15, AlertLevel.CRITICAL: 0.30}.get(alert, 0.0)
-        target_reduction_mwh = total_consumption * target_pct
+        pct = REDUCTION_TARGET_PCT.get(alert, 0.0)
+        target_reduction_mwh = total_consumption * pct
 
+    blackout_items = []
     cumulative = 0.0
-    for idx in df.index:
+    affected_gu: set[str] = set()
+
+    for region in sorted_regions:
         if cumulative >= target_reduction_mwh:
             break
-        df.at[idx, "blackout"] = True
-        cumulative += df.at[idx, "consumption_mwh"]
-        df.at[idx, "cumulative_cut_mwh"] = cumulative
 
-    return df
+        gu = region["gu"]
+        bt_scores = building_score_map.get(gu, {})
 
+        # building_type → reduction_need_score 내림차순
+        for bt, score in sorted(bt_scores.items(), key=lambda x: x[1], reverse=True):
+            if cumulative >= target_reduction_mwh:
+                break
 
-def blackout_summary(result: pd.DataFrame) -> dict:
-    cut = result[result["blackout"]]
+            total_score = sum(bt_scores.values())
+            cut_mwh = (
+                region["total_consumption_mwh"] * (score / total_score)
+                if total_score > 0 else 0.0
+            )
+            cumulative += cut_mwh
+            affected_gu.add(gu)
+            blackout_items.append({
+                "gu":                   gu,
+                "building_type":        bt,
+                "reduction_need_score": round(score, 4),
+            })
+
     return {
-        "blackout_count": int(cut.shape[0]),
-        "total_cut_mwh": float(cut["consumption_mwh"].sum()),
-        "districts_affected": cut["district"].nunique(),
-        "items": cut[["district", "usage_type", "consumption_mwh"]].to_dict("records"),
+        "districts_order":    districts_order,
+        "districts_affected": len(affected_gu),
+        "blackout_items":     blackout_items,
     }

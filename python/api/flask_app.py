@@ -5,53 +5,62 @@ Flask REST API — Unity ↔ Python 브릿지.
   GET  /health
       반환: {"status": "ok"}
 
+  GET  /oni?year=2025&month=8
+      [입력] year, month
+      슬라이더 초기값용. 과거 실측 ONI 반환, 미래면 0.0 반환.
+      반환: {"year": 2025, "month": 8, "oni": 1.37, "is_actual": true}
+
   GET  /predict?year=2030&month=8&oni=1.2
-      [입력] year, month, oni (슬라이더)
+      [입력] year, month, oni (슬라이더값)
       [예측] 전체 25구 결과 한 번에 반환.
+      ONI 슬라이더 변경 시마다 호출 (Unity 측 디바운싱 권장: 300ms).
       반환:
         {
           "input":  {"year": 2030, "month": 8, "oni": 1.2},
           "is_simulated": true,    ← 2026년 이후 또는 ONI 실측과 다를 때 true
-
           "predicted": {
-            "asos_temp": 28.4,     ← [예측] 서울 기준기온 (ASOS 지점)
+            "asos_temp": 28.4,     ← [예측] 서울 기준기온
             "supply": {"supply_mw": 89500.0, "reserve_rate": 12.3},
             "regions": [
               {
                 "gu": "강남구",
-                "ta_gu": 29.8,           ← [예측] 구별 월평균기온
-                "cdd_gu": 178.2,
-                "hdd_gu": 0.0,
+                "ta_gu": 29.8,
                 "total_consumption_mwh": 4821.3,
-                "reduction_need_score": null,   ← 추후 외부 데이터 연결
-                "usage": {"주택용": {"consumption_mwh": 412.3}, ...},
-                "building_type": {}             ← 추후 34종 건물유형 데이터 연결
+                "usage": {                       ← 7개 용도별 소비량
+                  "주택용": {"consumption_mwh": 412.3},
+                  "산업용": {"consumption_mwh": 890.1},
+                  ...
+                },
+                "building_type": {               ← 34종 건물유형별 reduction_need_score
+                  "공장":         {"reduction_need_score": 8.31},
+                  "교육연구시설":  {"reduction_need_score": 0.92},
+                  ...
+                }
               }, ...
             ]
           }
         }
 
-  GET  /predict/annual?year=2030&oni=1.2
-      [입력] year, oni
-      [예측] 1~12월 전체 — 연간 그래프용. 과거 연도도 동일하게 동작.
+  GET  /predict/oni_range?year=2030&month=8
+      [입력] year, month
+      [예측] ONI -2.5 ~ +2.5 (0.1 간격, 총 51개) 각각에 대한 예측값 배열.
+             x축이 ONI인 그래프용: 소비량·공급량·기온·공급예비율 시각화.
       반환:
         {
-          "input": {"year": 2030, "oni": 1.2},
-          "months": [
+          "input": {"year": 2030, "month": 8},
+          "oni_range": [
             {
-              "month": 1,
-              "is_simulated": true,
-              "predicted": {
-                "asos_temp": -1.8,
-                "supply": {"supply_mw": 72000.0, "reserve_rate": 18.2},
-                "regions": [
-                  {"gu": "강남구", "ta_gu": -0.9, "cdd_gu": 0.0,
-                   "hdd_gu": 588.1, "total_consumption_mwh": 4821.3,
-                   "reduction_need_score": null,
-                   "building_type": {}}, ...
-                ]
-              }
-            }, ...12개
+              "oni": -2.5,
+              "asos_temp": 24.1,
+              "supply_mw": 87000.0,
+              "reserve_rate": 14.2,
+              "seoul_total_consumption_mwh": 125400.0,
+              "regions": [
+                {"gu": "강남구", "ta_gu": 25.0, "total_consumption_mwh": 4821.3},
+                ...
+              ]
+            },
+            ...총 51개
           ]
         }
 
@@ -141,45 +150,50 @@ def _asos_cdd_hdd(ta_asos: float, year: int, month: int) -> tuple[float, float]:
 def _predict_one_month(year: int, month: int, oni: float) -> dict:
     """
     단일 (year, month, oni) → 예측 결과 dict.
-    /predict 와 /predict/annual 양쪽에서 공용 사용.
+    /predict 와 /predict/oni_range 양쪽에서 공용 사용.
+    cdd/hdd는 내부 연산에만 사용하고 출력에서 제외.
     """
     from python.train.temp_trend import predict as pred_temp
     from python.train.supply_regression import predict as pred_supply
     from python.train.consumption_xgb import predict_all_districts
     from python.preprocess.gu_offset import predict_gu_temp
+    from python.loader.mapping_loader import get_building_score_map
 
     USAGE_TYPES = ["가로등", "교육용", "농사용", "산업용", "심야", "일반용", "주택용"]
 
-    ta_asos         = pred_temp(year, month, oni, _temp_model)
-    cdd_asos, hdd_asos = _asos_cdd_hdd(ta_asos, year, month)
-    supply_info     = pred_supply(year, month, oni, cdd_asos, hdd_asos, _supply_model)
-    gu_temps        = predict_gu_temp(ta_asos, month, _monthly_offset, multiplier=1.0)
-    cons_df         = predict_all_districts(
+    ta_asos            = pred_temp(year, month, oni, _temp_model)
+    cdd_asos, hdd_asos = _asos_cdd_hdd(ta_asos, year, month)   # 내부 연산용
+    supply_info        = pred_supply(year, month, oni, cdd_asos, hdd_asos, _supply_model)
+    gu_temps           = predict_gu_temp(ta_asos, month, _monthly_offset, multiplier=1.0)
+    cons_df            = predict_all_districts(
         year=year, month=month, oni=oni,
         gu_temps=gu_temps, usage_types=USAGE_TYPES,
         model=_consumption_model, encoders=_consumption_encoders,
     )
 
-    days = calendar.monthrange(year, month)[1]
+    # building_type별 reduction_need_score: 실측 연산값 (가장 가까운 연월 fallback)
+    bldg_score = get_building_score_map(year, month)
+
     regions = []
     for gu, ta_gu in sorted(gu_temps.items()):
-        cdd_gu = round(max(0.0, ta_gu - 24.0) * days, 2)
-        hdd_gu = round(max(0.0, 18.0 - ta_gu) * days, 2)
         gu_rows = cons_df[cons_df["district"] == gu]
+
         usage_dict = {
             row["usage_type"]: {"consumption_mwh": round(float(row["consumption_mwh"]), 2)}
             for _, row in gu_rows.iterrows()
         }
-        total = round(float(gu_rows["consumption_mwh"].sum()), 2)
+        building_type_dict = {
+            bt: {"reduction_need_score": round(sc, 4)}
+            for bt, sc in bldg_score.get(gu, {}).items()
+        }
+        total_mwh = round(float(gu_rows["consumption_mwh"].sum()), 2)
+
         regions.append({
             "gu":                    gu,
             "ta_gu":                 round(ta_gu, 2),
-            "cdd_gu":                cdd_gu,
-            "hdd_gu":                hdd_gu,
-            "total_consumption_mwh": total,
-            "reduction_need_score":  None,   # 추후 외부 데이터 연결
+            "total_consumption_mwh": total_mwh,
             "usage":                 usage_dict,
-            "building_type":         {},     # 추후 34종 건물유형 데이터 연결
+            "building_type":         building_type_dict,
         })
 
     return {
@@ -199,6 +213,33 @@ def _predict_one_month(year: int, month: int, oni: float) -> dict:
 @app.get("/health")
 def health():
     return jsonify({"status": "ok"})
+
+
+@app.get("/oni")
+def get_oni():
+    """
+    슬라이더 초기값 조회.  GET /oni?year=2025&month=8
+
+    - 과거(실측 ONI 존재): 실측값 반환, is_actual=true
+    - 미래(데이터 없음):   0.0 반환,  is_actual=false
+    Unity는 이 값으로 슬라이더를 초기 세팅한 뒤
+    사용자가 조정하면 /predict 호출.
+    """
+    try:
+        year  = int(request.args["year"])
+        month = int(request.args["month"])
+    except (KeyError, ValueError) as e:
+        return jsonify({"error": f"파라미터 오류: {e}"}), 400
+
+    actual = _get_oni_actual()
+    oni_val   = actual.get((year, month))
+    is_actual = oni_val is not None
+    return jsonify({
+        "year":      year,
+        "month":     month,
+        "oni":       round(oni_val, 2) if is_actual else 0.0,
+        "is_actual": is_actual,
+    })
 
 
 @app.get("/predict")
@@ -222,57 +263,60 @@ def predict():
     })
 
 
-@app.get("/predict/annual")
-def predict_annual():
+@app.get("/predict/oni_range")
+def predict_oni_range():
     """
-    연간 그래프용. GET /predict/annual?year=2030&oni=1.2
+    ONI 범위 그래프용. GET /predict/oni_range?year=2030&month=8
 
-    해당 연도 1~12월 전체를 한 번에 반환.
-    - 과거 연도(2005~2025)도 동작: ONI를 실측과 다르게 주면 반사실적 시나리오
-    - is_simulated: 해당 연도+ONI 조합이 실측 기록과 다를 때 true
-    - 구별 usage 상세는 포함하지 않음 (그래프용 집계치만)
+    ONI -2.5 ~ +2.5 (0.1 간격, 51개 포인트)에 대한 예측값 배열.
+    x축=ONI 그래프: 소비량·공급량·기온·공급예비율 변화 시각화.
     """
     _lazy_load()
     try:
-        year = int(request.args["year"])
-        oni  = float(request.args["oni"])
+        year  = int(request.args["year"])
+        month = int(request.args["month"])
     except (KeyError, ValueError) as e:
         return jsonify({"error": f"파라미터 오류: {e}"}), 400
 
-    months_data = []
-    for m in range(1, 13):
-        predicted = _predict_one_month(year, m, oni)
-        # 연간 그래프용: usage 상세는 제외, 구별 집계치 + stub 필드만
-        regions_summary = [
-            {
-                "gu":                    reg["gu"],
-                "ta_gu":                 reg["ta_gu"],
-                "cdd_gu":                reg["cdd_gu"],
-                "hdd_gu":                reg["hdd_gu"],
-                "total_consumption_mwh": reg["total_consumption_mwh"],
-                "reduction_need_score":  reg["reduction_need_score"],
-                "building_type":         reg["building_type"],
-            }
-            for reg in predicted["regions"]
-        ]
-        months_data.append({
-            "month":        m,
-            "is_simulated": _is_simulated(year, m, oni),
-            "predicted": {
-                "asos_temp": predicted["asos_temp"],
-                "supply":    predicted["supply"],
-                "regions":   regions_summary,
-            },
+    import numpy as np
+    oni_values = [round(v, 1) for v in np.arange(-2.5, 2.6, 0.1)]
+
+    oni_range_data = []
+    for oni_val in oni_values:
+        r = _predict_one_month(year, month, oni_val)
+        seoul_total = round(sum(reg["total_consumption_mwh"] for reg in r["regions"]), 2)
+        oni_range_data.append({
+            "oni":                          oni_val,
+            "asos_temp":                    r["asos_temp"],
+            "supply_mw":                    r["supply"]["supply_mw"],
+            "reserve_rate":                 r["supply"]["reserve_rate"],
+            "seoul_total_consumption_mwh":  seoul_total,
+            "regions": [
+                {
+                    "gu":                    reg["gu"],
+                    "ta_gu":                 reg["ta_gu"],
+                    "total_consumption_mwh": reg["total_consumption_mwh"],
+                }
+                for reg in r["regions"]
+            ],
         })
 
     return jsonify({
-        "input":  {"year": year, "oni": oni},
-        "months": months_data,
+        "input":     {"year": year, "month": month},
+        "oni_range": oni_range_data,
     })
 
 
 @app.post("/blackout_simulation")
 def blackout_simulation():
+    """
+    POST /blackout_simulation  body: {year, month, oni}
+
+    순회 기준:
+      1. 구별 total_consumption_mwh 내림차순
+      2. 구 내 building_type별 reduction_need_score 내림차순
+    경보단계 '경계' 이상일 때만 블랙아웃 실행.
+    """
     _lazy_load()
     data = request.get_json(force=True)
 
@@ -283,36 +327,25 @@ def blackout_simulation():
     except (KeyError, ValueError) as e:
         return jsonify({"error": f"파라미터 오류: {e}"}), 400
 
-    from python.train.temp_trend import predict as pred_temp
-    from python.train.supply_regression import predict as pred_supply
-    from python.train.consumption_xgb import predict_all_districts
-    from python.preprocess.gu_offset import predict_gu_temp
     from python.simulation.alert_level import get_alert_level
-    from python.simulation.demand_reduction import calc_district_table
     from python.simulation.blackout import run_blackout, blackout_summary
+    from python.loader.mapping_loader import get_building_score_map
 
-    import pandas as pd
+    predicted   = _predict_one_month(year, month, oni)
+    supply_info = predicted["supply"]
+    alert       = get_alert_level(supply_info["reserve_rate"])
 
-    ta_asos         = pred_temp(year, month, oni, _temp_model)
-    cdd_asos, hdd_asos = _asos_cdd_hdd(ta_asos, year, month)
-    supply_info     = pred_supply(year, month, oni, cdd_asos, hdd_asos, _supply_model)
-    alert           = get_alert_level(supply_info["reserve_rate"])
+    bldg_score = get_building_score_map(year, month)
+    result     = run_blackout(predicted["regions"], bldg_score, alert)
 
-    gu_temps = predict_gu_temp(ta_asos, month, _monthly_offset, multiplier=1.0)
-    cons_df  = predict_all_districts(
-        year=year, month=month, oni=oni,
-        gu_temps=gu_temps, usage_types=["가로등", "교육용", "농사용", "산업용", "심야", "일반용", "주택용"],
-        model=_consumption_model, encoders=_consumption_encoders,
-    )
-    cons_df = cons_df.rename(columns={"district": "district"})
-
-    demand_table = calc_district_table(cons_df, alert)
-    result       = run_blackout(demand_table, alert)
-    summary      = blackout_summary(result)
-    summary["alert_level"] = int(alert)
-    summary["alert_label"] = alert.label_ko
-
-    return jsonify(summary)
+    return jsonify({
+        "input":              {"year": year, "month": month, "oni": oni},
+        "alert_level":        int(alert),
+        "alert_label":        alert.label_ko,
+        "districts_affected": result["districts_affected"],
+        "districts_order":    result["districts_order"],
+        "blackout_items":     result["blackout_items"],
+    })
 
 
 if __name__ == "__main__":
