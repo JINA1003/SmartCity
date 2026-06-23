@@ -328,7 +328,7 @@ def blackout_simulation():
         return jsonify({"error": f"파라미터 오류: {e}"}), 400
 
     from python.simulation.alert_level import get_alert_level
-    from python.simulation.blackout import run_blackout, blackout_summary
+    from python.simulation.blackout import run_blackout
     from python.loader.mapping_loader import get_building_score_map
 
     predicted   = _predict_one_month(year, month, oni)
