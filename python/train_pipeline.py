@@ -120,10 +120,10 @@ def main() -> None:
              r2030["supply_mw"], r2030["reserve_rate"])
 
     log.info("=== 완료 ===")
-    log.info("  모델1: python/model/artifacts/temp_trend_model.pkl")
+    log.info("  모델1: python/train/artifacts/temp_trend_model.pkl")
     log.info("  모델2: data/output/gu_offset_params.pkl")
-    log.info("  모델3: python/model/artifacts/consumption_xgb.pkl")
-    log.info("  모델4: python/model/artifacts/supply_model.pkl")
+    log.info("  모델3: python/train/artifacts/consumption_xgb.pkl + consumption_encoders.pkl")
+    log.info("  모델4: python/train/artifacts/supply_model.pkl")
 
 
 if __name__ == "__main__":
