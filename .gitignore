@@ -300,5 +300,7 @@ crashlytics-build.properties
 
 .history
 .vscode
+
 /data/file
-/data/extract/crawling_state.json
+/data/output
+/data/extract
