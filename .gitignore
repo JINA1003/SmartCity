@@ -300,6 +300,7 @@ crashlytics-build.properties
 
 .history
 .vscode
-/data/file
-/data/extract/*.json
 
+/data/file
+/data/output
+/data/extract
