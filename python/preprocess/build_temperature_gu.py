@@ -22,27 +22,17 @@
 
 from __future__ import annotations
 
-import sys
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 
-if __package__:
-    from .asos_daily import load_hourly, to_daily
-    from .gu_offset import (
-        load_sdot_gu_daily,
-        calc_monthly_offset,
-        calc_dynamic_multiplier,
-    )
-else:
-    sys.path.insert(0, str(Path(__file__).resolve().parent))
-    from asos_daily import load_hourly, to_daily
-    from gu_offset import (
-        load_sdot_gu_daily,
-        calc_monthly_offset,
-        calc_dynamic_multiplier,
-    )
+from python.loader.asos_daily import load_hourly, to_daily
+from python.preprocess.gu_offset import (
+    load_sdot_gu_daily,
+    calc_monthly_offset,
+    calc_dynamic_multiplier,
+)
 
 ROOT      = Path(__file__).resolve().parents[2]
 COOL_BASE = 24.0
