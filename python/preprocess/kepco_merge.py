@@ -143,7 +143,11 @@ def load_single_xlsx(path: Path) -> pd.DataFrame:
             if usage is None:
                 continue
 
-            year = int(row[year_col]) if year_col and pd.notna(row[year_col]) else year_hint
+            if year_col and pd.notna(row[year_col]):
+                year_raw = str(row[year_col]).replace("년", "").strip()
+                year = int(year_raw) if year_raw.isdigit() else year_hint
+            else:
+                year = year_hint
             if year is None:
                 continue
 

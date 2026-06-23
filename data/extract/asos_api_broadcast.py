@@ -2,7 +2,7 @@
 ASOS 시간자료 API 수집 (풍속, 기온, 습도).
 
 API: https://apis.data.go.kr/1360000/AsosHourlyInfoService/getWthrDataList
-기간: 2006-01 ~ 2026-05 (시간별)
+기간: 2005-01 ~ 2026-05 (시간별)
 지점: 108 (서울 종관기상관측, 고정)
 
 저장: data/file/asos_weather_data/asos_108_hourly.csv
@@ -54,7 +54,7 @@ if not SERVICE_KEY:
 API_BASE = "https://apis.data.go.kr/1360000/AsosHourlyInfoService/getWthrDataList"
 
 STN_ID = "108"  # 서울 종관기상관측 (변경하지 않음)
-START_DT = datetime(2006, 1, 1, 0)
+START_DT = datetime(2005, 1, 1, 0)
 END_DT = datetime(2026, 5, 31, 23)
 
 # API 응답에서 추출·저장할 컬럼
