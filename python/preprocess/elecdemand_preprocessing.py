@@ -8,6 +8,7 @@
 출력:
 - data/output/kepco_preprocessed.csv
 - data/output/kepco_final_20052026.csv
+- data/output/kepco_mapping_final_20052026.csv
 """
 
 import os
@@ -23,36 +24,25 @@ SUPPLY_RATE_PATH = "data/output/epsis_supply_rate_final_20052026.csv"
 
 PREPROCESSED_PATH = "data/output/kepco_preprocessed.csv"
 FINAL_PATH = "data/output/kepco_final_20052026.csv"
+MAPPING_FINAL_PATH = "data/output/kepco_mapping_final_20052026.csv"
 
 
 # =========================
 # 1. 파일 필터링
 # =========================
 def is_valid(file_name: str) -> bool:
-
-    # 임시파일 제외
     if file_name.startswith("~$"):
         return False
 
-    # 엑셀만 허용
     if not file_name.endswith((".xlsx", ".xls")):
         return False
 
-    # -------------------------
-    # 1) 2021 파일 처리
-    # -------------------------
     if ("2021" in file_name) or file_name.startswith("21"):
         return "202112" in file_name
 
-    # -------------------------
-    # 2) 2026 파일 처리
-    # -------------------------
     if "2026" in file_name:
         return "202604" in file_name
 
-    # -------------------------
-    # 3) 홈페이지 게시용 파일
-    # -------------------------
     if "홈페이지" in file_name:
         m = re.search(r"(\d{6})", file_name)
         if not m:
@@ -61,9 +51,6 @@ def is_valid(file_name: str) -> bool:
         month = int(m.group(1)[4:])
         return month == 12
 
-    # -------------------------
-    # 4) 2004년 파일 제거
-    # -------------------------
     if "2004" in file_name:
         return False
 
@@ -82,18 +69,14 @@ def process_file(file_path: str) -> pd.DataFrame:
     df = df_raw.iloc[header_row_idx + 1:].reset_index(drop=True)
     df.columns = df.columns.astype(str).str.strip()
 
-    # 파일의 연도 확인
     year = int(
         str(df.iloc[0]["연도"])
         .replace("년", "")
         .strip()
     )
 
-    # 월 컬럼 설정
     if year == 2026:
-        months = [
-            "1월", "2월", "3월", "4월"
-        ]
+        months = ["1월", "2월", "3월", "4월"]
     else:
         months = [
             "1월", "2월", "3월", "4월", "5월", "6월",
@@ -109,10 +92,8 @@ def process_file(file_path: str) -> pd.DataFrame:
         value_name="전력사용량"
     )
 
-    # 서울만 필터링
     df_long = df_long[df_long["시도"].str.startswith("서울", na=False)].copy()
 
-    # 계약종별 정리
     df_long["계약종별"] = (
         df_long["계약종별"]
         .astype(str)
@@ -120,23 +101,17 @@ def process_file(file_path: str) -> pd.DataFrame:
         .str.strip()
     )
 
-    # 총계 -> 합계 통일
     df_long["계약종별"] = df_long["계약종별"].replace("총계", "합계")
-
-    # 컬럼명 변경
     df_long = df_long.rename(columns={"계약종별": "전력용도"})
 
-    # 음수 제거
     df_long = df_long[df_long["전력사용량"] >= 0].copy()
 
-    # 월 정리
     df_long["월"] = (
         df_long["월"]
         .str.replace("월", "", regex=False)
         .astype(int)
     )
 
-    # 연도 정리
     df_long["연도"] = (
         df_long["연도"]
         .astype(str)
@@ -145,7 +120,6 @@ def process_file(file_path: str) -> pd.DataFrame:
         .astype(int)
     )
 
-    # 2014년 이후 단위 변환
     if int(df_long["연도"].iloc[0]) >= 2014:
         df_long["전력사용량"] = df_long["전력사용량"] / 1000
 
@@ -246,7 +220,6 @@ def add_reduction_need(df: pd.DataFrame, rate_path: str) -> pd.DataFrame:
 
     idx_df["공급위험도"] = 1 - idx_df["공급예비율(%)"] / 100
 
-    # 합계 행은 정규화 계산에서 제외
     idx_df["용도정규화사용률"] = 0.0
 
     mask = idx_df["전력용도"] != "합계"
@@ -288,10 +261,171 @@ def rename_columns(df: pd.DataFrame) -> pd.DataFrame:
 
 
 # =========================
-# 7. 실행
+# 7. 건축용도 - 전력용도 매핑 생성
+# =========================
+def create_building_mapping() -> dict:
+    return {
+        "단독주택": "주택용",
+        "공동주택": "주택용",
+        "다가구주택": "주택용",
+
+        "제1종근린생활시설": "일반용",
+        "제2종근린생활시설": "일반용",
+        "업무시설": "일반용",
+        "의료시설": "일반용",
+        "노유자시설": "일반용",
+        "종교시설": "일반용",
+        "문화및집회시설": "일반용",
+        "판매시설": "일반용",
+        "판매및영업시설": "일반용",
+        "위락시설": "일반용",
+        "관광휴게시설": "일반용",
+        "숙박시설": "일반용",
+        "운동시설": "일반용",
+        "근린생활시설": "일반용",
+        "공공용시설": "일반용",
+        "장례식장": "일반용",
+        "교육연구및복지시설": "일반용",
+        "방송통신시설": "일반용",
+        "운수시설": "일반용",
+        "수련시설": "일반용",
+        "교정및군사시설": "일반용",
+
+        "교육연구시설": "교육용",
+
+        "공장": "산업용",
+        "창고시설": "산업용",
+        "자동차관련시설": "산업용",
+        "위험물저장및처리시설": "산업용",
+        "동.식물 관련시설": "산업용",
+        "발전시설": "산업용",
+        "분뇨.쓰레기처리시설": "산업용",
+        "묘지관련시설": "산업용",
+        "가설건축물": "산업용",
+    }
+
+
+# =========================
+# 8. 건축용도별 가중치 생성
+# =========================
+def create_weight_map() -> dict:
+    return {
+        # 국가 핵심시설
+        "의료시설": 0.0,
+        "발전시설": 0.0,
+        "방송통신시설": 0.0,
+        "운수시설": 0.0,
+        "공공용시설": 0.0,
+        "교정및군사시설": 0.0,
+
+        # 주거
+        "단독주택": 0.8,
+        "공동주택": 0.8,
+        "다가구주택": 0.8,
+        "노유자시설": 0.4,
+
+        # 교육
+        "교육연구시설": 0.6,
+        "교육연구및복지시설": 0.6,
+
+        # 업무/문화
+        "업무시설": 0.8,
+        "종교시설": 0.8,
+        "문화및집회시설": 0.8,
+        "운동시설": 0.8,
+        "수련시설": 0.8,
+
+        # 상업
+        "판매시설": 0.8,
+        "판매및영업시설": 0.8,
+        "위락시설": 0.9,
+        "관광휴게시설": 0.8,
+        "숙박시설": 0.8,
+        "제1종근린생활시설": 0.7,
+        "제2종근린생활시설": 0.7,
+        "근린생활시설": 0.7,
+
+        # 산업
+        "공장": 0.8,
+        "창고시설": 0.9,
+        "자동차관련시설": 0.8,
+        "위험물저장및처리시설": 0.3,
+        "장례식장": 0.8,
+        "동.식물 관련시설": 0.6,
+        "분뇨.쓰레기처리시설": 0.3,
+        "묘지관련시설": 0.8,
+        "가설건축물": 1.0,
+    }
+
+
+# =========================
+# 9. 전력 데이터에 건축용도 추가
+# =========================
+def add_building_type(df: pd.DataFrame) -> pd.DataFrame:
+    mapping = create_building_mapping()
+
+    mapping_df = pd.DataFrame(
+        [(v, k) for k, v in mapping.items()],
+        columns=["usage_type", "building_type"]
+    )
+
+    df["sigungu"] = df["sigungu"].astype(str).str.strip()
+    df["usage_type"] = df["usage_type"].astype(str).str.strip()
+
+    return df.merge(
+        mapping_df,
+        on="usage_type",
+        how="left"
+    )
+
+
+# =========================
+# 10. 단전 우선순위 점수 계산
+# =========================
+def add_reduction_score(df: pd.DataFrame) -> pd.DataFrame:
+    weight_map = create_weight_map()
+
+    df["weight"] = (
+        df["building_type"]
+        .map(weight_map)
+        .fillna(0)
+    )
+
+    df["reduction_need_score"] = (
+        df["reduction_need_draft"] * df["weight"] * 100
+    )
+
+    return df
+
+
+# =========================
+# 11. 매핑 최종 컬럼 정리
+# =========================
+def select_mapping_columns(df: pd.DataFrame) -> pd.DataFrame:
+    return df[
+        [
+            "year",
+            "month",
+            "sigungu",
+            "usage_type",
+            "building_type",
+            "power_mwh",
+            "usage_ratio",
+            "capacity_mw",
+            "peak_mw",
+            "reserve_mw",
+            "reserve_rate",
+            "reduction_need_score"
+        ]
+    ]
+
+
+# =========================
+# 12. 실행
 # =========================
 if __name__ == "__main__":
 
+    # 1. 전력 데이터 전처리
     df = preprocess_kepco_folder(
         folder_path=INPUT_FOLDER,
         output_path=PREPROCESSED_PATH
@@ -300,13 +434,16 @@ if __name__ == "__main__":
     print("전처리된 데이터 저장 완료")
     print(f"저장위치: {PREPROCESSED_PATH}")
 
+    # 2. 전력사용율 계산
     df = add_usage_ratio(df)
 
+    # 3. 수요 감축 필요도 계산
     idx_df = add_reduction_need(
         df=df,
         rate_path=SUPPLY_RATE_PATH
     )
 
+    # 4. 기본 최종 데이터 저장
     idx_df = rename_columns(idx_df)
 
     os.makedirs(os.path.dirname(FINAL_PATH), exist_ok=True)
@@ -320,3 +457,20 @@ if __name__ == "__main__":
     print("수요 감축 필요도 계산 완료")
     print("최종 데이터 저장 완료")
     print(f"저장위치: {FINAL_PATH}")
+
+    # 5. 건축용도 매핑
+    kepco_mapped = add_building_type(idx_df)
+
+    # 6. 단전 우선순위 점수 계산
+    kepco_mapped = add_reduction_score(kepco_mapped)
+
+    # 7. 최종 매핑 데이터 저장
+    kepco_mapped_final = select_mapping_columns(kepco_mapped)
+
+    kepco_mapped_final.to_csv(
+        MAPPING_FINAL_PATH,
+        index=False,
+        encoding="utf-8-sig"
+    )
+
+    print(f"kepco mapping 데이터 저장 완료: {MAPPING_FINAL_PATH}")
