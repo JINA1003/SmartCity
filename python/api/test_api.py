@@ -204,37 +204,39 @@ def run_tests() -> int:
     # ================================================================
     _section("5. /blackout_simulation  (순차 정전 시뮬레이션)")
 
-    # 5-1. 경보 발생 케이스 (oni=-2.5 → reserve_rate≈4.4% → 심각)
+    # 5-1. 심각 케이스 (oni=-2.5 → reserve_rate≈4.4% → 심각)
     payload = {"year": 2030, "month": 8, "oni": -2.5}
     status, d, elapsed = _call_post(client, "/blackout_simulation", payload)
-    _log("/blackout_simulation 경보 케이스 (2030-08 oni=-2.5)", elapsed)
+    _log("/blackout_simulation 심각 케이스 (2030-08 oni=-2.5)", elapsed)
     if status != 200:
-        _fail("/blackout_simulation", f"status={status}"); failures += 1
+        _fail("/blackout_simulation 심각", f"status={status}"); failures += 1
     else:
         all_items = [item for entry in d.get("districts_order", []) for item in entry["blackout_items"]]
-        _ok(f"alert_level={d.get('alert_level')} ({d.get('alert_label')})")
+        _ok(f"alert_level={d.get('alert_level')} ({d.get('alert_label')}) | supply_mw={d.get('supply_mw')} | reserve_rate={d.get('reserve_rate')}%")
         _ok(f"districts_order 수={len(d.get('districts_order', []))} (기대=25)")
         _ok(f"blackout_items 총 수={len(all_items)}")
         if all_items:
             first_gu_entry = next(e for e in d.get("districts_order", []) if e["blackout_items"])
             first_item = first_gu_entry["blackout_items"][0]
-            _ok(f"1순위 gu={first_gu_entry['gu']} | building_type={first_item['building_type']} | score={first_item['reduction_need_score']}")
+            _ok(f"1순위 gu={first_gu_entry['gu']} (ta={first_gu_entry['ta_gu']}℃) | "
+                f"building_type={first_item['building_type']} | score={first_item['reduction_need_score']}")
         else:
-            _fail("/blackout_simulation", "경보 케이스인데 blackout_items 비어있음"); failures += 1
+            _fail("/blackout_simulation 심각", "blackout_items 비어있음"); failures += 1
         if len(d.get("districts_order", [])) != 25:
-            _fail("/blackout_simulation", f"districts_order 수={len(d.get('districts_order',[]))}"); failures += 1
+            _fail("/blackout_simulation 심각", f"districts_order 수={len(d.get('districts_order',[]))}"); failures += 1
 
-        _save("05_blackout_alert.json", d)
+        _save("05_blackout_critical.json", d)
 
-    # 5-2. 경보 미달 케이스
+    # 5-2. 정상 케이스 (경보 미달 → blackout_items 빈 리스트)
     payload2 = {"year": 2015, "month": 3, "oni": 0.0}
     status, d2, elapsed = _call_post(client, "/blackout_simulation", payload2)
-    _log("/blackout_simulation 경보 미달 (2015-03 oni=0.0)", elapsed)
+    _log("/blackout_simulation 정상 케이스 (2015-03 oni=0.0)", elapsed)
     if status == 200:
-        _ok(f"경보 미달: alert={d2.get('alert_label')} | blackout_items={len(d2.get('blackout_items',[]))} (0이어야 정상)")
+        all_normal = [item for entry in d2.get("districts_order", []) for item in entry["blackout_items"]]
+        _ok(f"정상: alert={d2.get('alert_label')} | reserve_rate={d2.get('reserve_rate')}% | blackout_items={len(all_normal)} (0이어야 정상)")
         _save("05_blackout_normal.json", d2)
     else:
-        _fail("/blackout_simulation 경보미달", f"status={status}"); failures += 1
+        _fail("/blackout_simulation 정상", f"status={status}"); failures += 1
 
     # ================================================================
     # 결과
