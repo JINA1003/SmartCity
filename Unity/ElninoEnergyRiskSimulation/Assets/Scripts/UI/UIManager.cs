@@ -8,15 +8,33 @@ public class UIManagers : MonoBehaviour
 {
     public static UIManagers Instance { get; private set; }
 
+   
 
     // [Header("상단 정보 패널")]
     // public TMP_Text Text_Date_Info;                    // 현재 날짜
     // public TMP_Text Text_Emergency;              // 비상 단계 텍스트
     // public TMP_Text Text_ONIType;                // ONI 종류 (엘니뇨, 라니냐)
 
-    // [Header("구별 에너지 패널")]
-    // public TMP_Text Text_DistrictEnergy;         // 선택된 구 이름
-    // public TMP_Text Text_EnergyConsumption;      // 현재 전력 사용량
+[Header("구별 에너지 패널")]
+    public GameObject Panel_Gu_Energy;
+
+    // 구 이름
+    public TMP_Text Text_District_Energy;
+
+    // 총 전력 사용량
+    public TMP_Text Text_Energy_Consumption_Value;
+
+    // 사용량 비율
+    public TMP_Text Text_Energy_Consumption_Value2;
+
+    // 용도별 전력 사용량
+    public TMP_Text ResidentialMwh; //주택
+    public TMP_Text CommercialMwh; //일반
+    public TMP_Text EducationMwh; //교육
+    public TMP_Text IndustrialMwh; //상업
+    public TMP_Text AgricultureMwh; //농사
+    public TMP_Text StreetlightMwh; //가로등
+    public TMP_Text MidnightMwh;     //심야
 
     // [Header("수요 감축 필요도 패널")]
     // public TMP_Text Text_Residential;            // 주거용 감축 필요량
@@ -111,4 +129,17 @@ public class UIManagers : MonoBehaviour
     {
         return Slider_ONI.value;
     }
+
+    public void ShowGuEnergyPanel(DistrictData data, float usagePercent)
+    {
+        
+
+
+
+    }
+
+
+
+
+
 }
