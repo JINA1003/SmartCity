@@ -304,3 +304,8 @@ crashlytics-build.properties
 /data/file
 /data/output
 /data/extract
+
+/python/model/artifacts
+/python/api/test_results
+
+Unity/ElninoEnergyRiskSimulation/Assets/StreamingAssets
