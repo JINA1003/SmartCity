@@ -334,7 +334,7 @@ GameObject:
   - component: {fileID: 4582761293865692489}
   - component: {fileID: 8238066977355229797}
   m_Layer: 5
-  m_Name: Residential (1)
+  m_Name: EducationMwh
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -387,7 +387,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uC8FC\uAC70\uC6A9 10GW"
+  m_text: "\uAD50\uC721\uC6A9 10GW"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: c84b1b71e661d4c9ebdc333514d4eb89, type: 2}
   m_sharedMaterial: {fileID: 8693179986950378603, guid: c84b1b71e661d4c9ebdc333514d4eb89, type: 2}
@@ -471,7 +471,7 @@ GameObject:
   - component: {fileID: 6152983380394558388}
   - component: {fileID: 5862543367395027689}
   m_Layer: 5
-  m_Name: Commercial (1)
+  m_Name: AgricultureMwh
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -524,7 +524,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uC0C1\uC5C5\uC6A9 10GW"
+  m_text: "\uB18D\uC0AC\uC6A9 10GW"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: c84b1b71e661d4c9ebdc333514d4eb89, type: 2}
   m_sharedMaterial: {fileID: 8693179986950378603, guid: c84b1b71e661d4c9ebdc333514d4eb89, type: 2}
@@ -1092,7 +1092,7 @@ GameObject:
   - component: {fileID: 5492509576568916021}
   - component: {fileID: 2603821108008578242}
   m_Layer: 5
-  m_Name: Commercial
+  m_Name: CommercialMwh
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1145,7 +1145,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uC0C1\uC5C5\uC6A9 10GW"
+  m_text: "\uC77C\uBC18\uC6A9 10GW"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: c84b1b71e661d4c9ebdc333514d4eb89, type: 2}
   m_sharedMaterial: {fileID: 8693179986950378603, guid: c84b1b71e661d4c9ebdc333514d4eb89, type: 2}
@@ -1366,7 +1366,7 @@ GameObject:
   - component: {fileID: 7751914321372801202}
   - component: {fileID: 5027108309195380418}
   m_Layer: 5
-  m_Name: Residential (2)
+  m_Name: IndustrialMwh
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1419,7 +1419,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uC8FC\uAC70\uC6A9 10GW"
+  m_text: "\uC0B0\uC5C5\uC6A9 10GW"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: c84b1b71e661d4c9ebdc333514d4eb89, type: 2}
   m_sharedMaterial: {fileID: 8693179986950378603, guid: c84b1b71e661d4c9ebdc333514d4eb89, type: 2}
@@ -1899,7 +1899,7 @@ GameObject:
   - component: {fileID: 8797002024392396426}
   - component: {fileID: 3277843751302339932}
   m_Layer: 5
-  m_Name: Residential
+  m_Name: ResidentialMwh
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1952,7 +1952,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uC8FC\uAC70\uC6A9 10GW"
+  m_text: "\uC8FC\uD0DD\uC6A9 10GW"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: c84b1b71e661d4c9ebdc333514d4eb89, type: 2}
   m_sharedMaterial: {fileID: 8693179986950378603, guid: c84b1b71e661d4c9ebdc333514d4eb89, type: 2}
@@ -3015,7 +3015,7 @@ GameObject:
   - component: {fileID: 2966956016661418332}
   - component: {fileID: 475174526042906466}
   m_Layer: 5
-  m_Name: Commercial (2)
+  m_Name: StreetlightMwh
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3068,7 +3068,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uC0C1\uC5C5\uC6A9 10GW"
+  m_text: "\uAC00\uB85C\uB4F1\uC6A9 10GW"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: c84b1b71e661d4c9ebdc333514d4eb89, type: 2}
   m_sharedMaterial: {fileID: 8693179986950378603, guid: c84b1b71e661d4c9ebdc333514d4eb89, type: 2}
@@ -3364,7 +3364,7 @@ GameObject:
   - component: {fileID: 4113465405120246749}
   - component: {fileID: 3185121268050358269}
   m_Layer: 5
-  m_Name: Commercial (3)
+  m_Name: MidnightMwh
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3417,7 +3417,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uC0C1\uC5C5\uC6A9 10GW"
+  m_text: "\uC2EC\uC57C\uC6A9 10GW"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: c84b1b71e661d4c9ebdc333514d4eb89, type: 2}
   m_sharedMaterial: {fileID: 8693179986950378603, guid: c84b1b71e661d4c9ebdc333514d4eb89, type: 2}
