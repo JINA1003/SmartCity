@@ -1,0 +1,697 @@
+{
+  "input": {
+    "year": 2030,
+    "month": 8,
+    "oni": -2.5
+  },
+  "alert_level": 4,
+  "alert_label": "심각",
+  "districts_affected": 5,
+  "districts_order": [
+    {
+      "gu": "강남구",
+      "blackout_items": [
+        {
+          "building_type": "위락시설",
+          "reduction_need_score": 81.27
+        },
+        {
+          "building_type": "업무시설",
+          "reduction_need_score": 72.24
+        },
+        {
+          "building_type": "종교시설",
+          "reduction_need_score": 72.24
+        },
+        {
+          "building_type": "문화및집회시설",
+          "reduction_need_score": 72.24
+        },
+        {
+          "building_type": "판매시설",
+          "reduction_need_score": 72.24
+        },
+        {
+          "building_type": "판매및영업시설",
+          "reduction_need_score": 72.24
+        },
+        {
+          "building_type": "관광휴게시설",
+          "reduction_need_score": 72.24
+        },
+        {
+          "building_type": "숙박시설",
+          "reduction_need_score": 72.24
+        },
+        {
+          "building_type": "운동시설",
+          "reduction_need_score": 72.24
+        },
+        {
+          "building_type": "장례식장",
+          "reduction_need_score": 72.24
+        },
+        {
+          "building_type": "수련시설",
+          "reduction_need_score": 72.24
+        },
+        {
+          "building_type": "제1종근린생활시설",
+          "reduction_need_score": 63.21
+        },
+        {
+          "building_type": "제2종근린생활시설",
+          "reduction_need_score": 63.21
+        },
+        {
+          "building_type": "근린생활시설",
+          "reduction_need_score": 63.21
+        },
+        {
+          "building_type": "교육연구및복지시설",
+          "reduction_need_score": 54.18
+        },
+        {
+          "building_type": "노유자시설",
+          "reduction_need_score": 36.12
+        },
+        {
+          "building_type": "단독주택",
+          "reduction_need_score": 22.9071
+        },
+        {
+          "building_type": "공동주택",
+          "reduction_need_score": 22.9071
+        },
+        {
+          "building_type": "다가구주택",
+          "reduction_need_score": 22.9071
+        },
+        {
+          "building_type": "가설건축물",
+          "reduction_need_score": 8.3123
+        },
+        {
+          "building_type": "창고시설",
+          "reduction_need_score": 7.4811
+        },
+        {
+          "building_type": "공장",
+          "reduction_need_score": 6.6499
+        },
+        {
+          "building_type": "자동차관련시설",
+          "reduction_need_score": 6.6499
+        },
+        {
+          "building_type": "묘지관련시설",
+          "reduction_need_score": 6.6499
+        },
+        {
+          "building_type": "동.식물 관련시설",
+          "reduction_need_score": 4.9874
+        },
+        {
+          "building_type": "위험물저장및처리시설",
+          "reduction_need_score": 2.4937
+        },
+        {
+          "building_type": "분뇨.쓰레기처리시설",
+          "reduction_need_score": 2.4937
+        },
+        {
+          "building_type": "교육연구시설",
+          "reduction_need_score": 0.92
+        },
+        {
+          "building_type": "발전시설",
+          "reduction_need_score": 0.0
+        },
+        {
+          "building_type": "의료시설",
+          "reduction_need_score": 0.0
+        },
+        {
+          "building_type": "공공용시설",
+          "reduction_need_score": 0.0
+        },
+        {
+          "building_type": "방송통신시설",
+          "reduction_need_score": 0.0
+        },
+        {
+          "building_type": "운수시설",
+          "reduction_need_score": 0.0
+        },
+        {
+          "building_type": "교정및군사시설",
+          "reduction_need_score": 0.0
+        }
+      ]
+    },
+    {
+      "gu": "서초구",
+      "blackout_items": [
+        {
+          "building_type": "위락시설",
+          "reduction_need_score": 81.27
+        },
+        {
+          "building_type": "업무시설",
+          "reduction_need_score": 72.24
+        },
+        {
+          "building_type": "종교시설",
+          "reduction_need_score": 72.24
+        },
+        {
+          "building_type": "문화및집회시설",
+          "reduction_need_score": 72.24
+        },
+        {
+          "building_type": "판매시설",
+          "reduction_need_score": 72.24
+        },
+        {
+          "building_type": "판매및영업시설",
+          "reduction_need_score": 72.24
+        },
+        {
+          "building_type": "관광휴게시설",
+          "reduction_need_score": 72.24
+        },
+        {
+          "building_type": "숙박시설",
+          "reduction_need_score": 72.24
+        },
+        {
+          "building_type": "운동시설",
+          "reduction_need_score": 72.24
+        },
+        {
+          "building_type": "장례식장",
+          "reduction_need_score": 72.24
+        },
+        {
+          "building_type": "수련시설",
+          "reduction_need_score": 72.24
+        },
+        {
+          "building_type": "제1종근린생활시설",
+          "reduction_need_score": 63.21
+        },
+        {
+          "building_type": "제2종근린생활시설",
+          "reduction_need_score": 63.21
+        },
+        {
+          "building_type": "근린생활시설",
+          "reduction_need_score": 63.21
+        },
+        {
+          "building_type": "교육연구및복지시설",
+          "reduction_need_score": 54.18
+        },
+        {
+          "building_type": "노유자시설",
+          "reduction_need_score": 36.12
+        },
+        {
+          "building_type": "단독주택",
+          "reduction_need_score": 27.3034
+        },
+        {
+          "building_type": "공동주택",
+          "reduction_need_score": 27.3034
+        },
+        {
+          "building_type": "다가구주택",
+          "reduction_need_score": 27.3034
+        },
+        {
+          "building_type": "가설건축물",
+          "reduction_need_score": 18.2962
+        },
+        {
+          "building_type": "창고시설",
+          "reduction_need_score": 16.4665
+        },
+        {
+          "building_type": "공장",
+          "reduction_need_score": 14.6369
+        },
+        {
+          "building_type": "자동차관련시설",
+          "reduction_need_score": 14.6369
+        },
+        {
+          "building_type": "묘지관련시설",
+          "reduction_need_score": 14.6369
+        },
+        {
+          "building_type": "동.식물 관련시설",
+          "reduction_need_score": 10.9777
+        },
+        {
+          "building_type": "위험물저장및처리시설",
+          "reduction_need_score": 5.4888
+        },
+        {
+          "building_type": "분뇨.쓰레기처리시설",
+          "reduction_need_score": 5.4888
+        },
+        {
+          "building_type": "교육연구시설",
+          "reduction_need_score": 1.6111
+        },
+        {
+          "building_type": "발전시설",
+          "reduction_need_score": 0.0
+        },
+        {
+          "building_type": "의료시설",
+          "reduction_need_score": 0.0
+        },
+        {
+          "building_type": "공공용시설",
+          "reduction_need_score": 0.0
+        },
+        {
+          "building_type": "방송통신시설",
+          "reduction_need_score": 0.0
+        },
+        {
+          "building_type": "운수시설",
+          "reduction_need_score": 0.0
+        },
+        {
+          "building_type": "교정및군사시설",
+          "reduction_need_score": 0.0
+        }
+      ]
+    },
+    {
+      "gu": "송파구",
+      "blackout_items": [
+        {
+          "building_type": "위락시설",
+          "reduction_need_score": 81.27
+        },
+        {
+          "building_type": "업무시설",
+          "reduction_need_score": 72.24
+        },
+        {
+          "building_type": "종교시설",
+          "reduction_need_score": 72.24
+        },
+        {
+          "building_type": "문화및집회시설",
+          "reduction_need_score": 72.24
+        },
+        {
+          "building_type": "판매시설",
+          "reduction_need_score": 72.24
+        },
+        {
+          "building_type": "판매및영업시설",
+          "reduction_need_score": 72.24
+        },
+        {
+          "building_type": "관광휴게시설",
+          "reduction_need_score": 72.24
+        },
+        {
+          "building_type": "숙박시설",
+          "reduction_need_score": 72.24
+        },
+        {
+          "building_type": "운동시설",
+          "reduction_need_score": 72.24
+        },
+        {
+          "building_type": "장례식장",
+          "reduction_need_score": 72.24
+        },
+        {
+          "building_type": "수련시설",
+          "reduction_need_score": 72.24
+        },
+        {
+          "building_type": "제1종근린생활시설",
+          "reduction_need_score": 63.21
+        },
+        {
+          "building_type": "제2종근린생활시설",
+          "reduction_need_score": 63.21
+        },
+        {
+          "building_type": "근린생활시설",
+          "reduction_need_score": 63.21
+        },
+        {
+          "building_type": "교육연구및복지시설",
+          "reduction_need_score": 54.18
+        },
+        {
+          "building_type": "단독주택",
+          "reduction_need_score": 47.3978
+        },
+        {
+          "building_type": "공동주택",
+          "reduction_need_score": 47.3978
+        },
+        {
+          "building_type": "다가구주택",
+          "reduction_need_score": 47.3978
+        },
+        {
+          "building_type": "노유자시설",
+          "reduction_need_score": 36.12
+        },
+        {
+          "building_type": "가설건축물",
+          "reduction_need_score": 12.471
+        },
+        {
+          "building_type": "창고시설",
+          "reduction_need_score": 11.2239
+        },
+        {
+          "building_type": "공장",
+          "reduction_need_score": 9.9768
+        },
+        {
+          "building_type": "자동차관련시설",
+          "reduction_need_score": 9.9768
+        },
+        {
+          "building_type": "묘지관련시설",
+          "reduction_need_score": 9.9768
+        },
+        {
+          "building_type": "동.식물 관련시설",
+          "reduction_need_score": 7.4826
+        },
+        {
+          "building_type": "위험물저장및처리시설",
+          "reduction_need_score": 3.7413
+        },
+        {
+          "building_type": "분뇨.쓰레기처리시설",
+          "reduction_need_score": 3.7413
+        },
+        {
+          "building_type": "교육연구시설",
+          "reduction_need_score": 2.5987
+        },
+        {
+          "building_type": "발전시설",
+          "reduction_need_score": 0.0
+        },
+        {
+          "building_type": "의료시설",
+          "reduction_need_score": 0.0
+        },
+        {
+          "building_type": "공공용시설",
+          "reduction_need_score": 0.0
+        },
+        {
+          "building_type": "방송통신시설",
+          "reduction_need_score": 0.0
+        },
+        {
+          "building_type": "운수시설",
+          "reduction_need_score": 0.0
+        },
+        {
+          "building_type": "교정및군사시설",
+          "reduction_need_score": 0.0
+        }
+      ]
+    },
+    {
+      "gu": "영등포구",
+      "blackout_items": [
+        {
+          "building_type": "위락시설",
+          "reduction_need_score": 81.27
+        },
+        {
+          "building_type": "업무시설",
+          "reduction_need_score": 72.24
+        },
+        {
+          "building_type": "종교시설",
+          "reduction_need_score": 72.24
+        },
+        {
+          "building_type": "문화및집회시설",
+          "reduction_need_score": 72.24
+        },
+        {
+          "building_type": "판매시설",
+          "reduction_need_score": 72.24
+        },
+        {
+          "building_type": "판매및영업시설",
+          "reduction_need_score": 72.24
+        },
+        {
+          "building_type": "관광휴게시설",
+          "reduction_need_score": 72.24
+        },
+        {
+          "building_type": "숙박시설",
+          "reduction_need_score": 72.24
+        },
+        {
+          "building_type": "운동시설",
+          "reduction_need_score": 72.24
+        },
+        {
+          "building_type": "장례식장",
+          "reduction_need_score": 72.24
+        },
+        {
+          "building_type": "수련시설",
+          "reduction_need_score": 72.24
+        },
+        {
+          "building_type": "제1종근린생활시설",
+          "reduction_need_score": 63.21
+        },
+        {
+          "building_type": "제2종근린생활시설",
+          "reduction_need_score": 63.21
+        },
+        {
+          "building_type": "근린생활시설",
+          "reduction_need_score": 63.21
+        },
+        {
+          "building_type": "교육연구및복지시설",
+          "reduction_need_score": 54.18
+        },
+        {
+          "building_type": "노유자시설",
+          "reduction_need_score": 36.12
+        },
+        {
+          "building_type": "단독주택",
+          "reduction_need_score": 25.4608
+        },
+        {
+          "building_type": "공동주택",
+          "reduction_need_score": 25.4608
+        },
+        {
+          "building_type": "다가구주택",
+          "reduction_need_score": 25.4608
+        },
+        {
+          "building_type": "가설건축물",
+          "reduction_need_score": 10.9795
+        },
+        {
+          "building_type": "창고시설",
+          "reduction_need_score": 9.8815
+        },
+        {
+          "building_type": "공장",
+          "reduction_need_score": 8.7836
+        },
+        {
+          "building_type": "자동차관련시설",
+          "reduction_need_score": 8.7836
+        },
+        {
+          "building_type": "묘지관련시설",
+          "reduction_need_score": 8.7836
+        },
+        {
+          "building_type": "동.식물 관련시설",
+          "reduction_need_score": 6.5877
+        },
+        {
+          "building_type": "위험물저장및처리시설",
+          "reduction_need_score": 3.2938
+        },
+        {
+          "building_type": "분뇨.쓰레기처리시설",
+          "reduction_need_score": 3.2938
+        },
+        {
+          "building_type": "교육연구시설",
+          "reduction_need_score": 0.806
+        },
+        {
+          "building_type": "발전시설",
+          "reduction_need_score": 0.0
+        },
+        {
+          "building_type": "의료시설",
+          "reduction_need_score": 0.0
+        },
+        {
+          "building_type": "공공용시설",
+          "reduction_need_score": 0.0
+        },
+        {
+          "building_type": "방송통신시설",
+          "reduction_need_score": 0.0
+        },
+        {
+          "building_type": "운수시설",
+          "reduction_need_score": 0.0
+        },
+        {
+          "building_type": "교정및군사시설",
+          "reduction_need_score": 0.0
+        }
+      ]
+    },
+    {
+      "gu": "강서구",
+      "blackout_items": [
+        {
+          "building_type": "위락시설",
+          "reduction_need_score": 81.27
+        },
+        {
+          "building_type": "업무시설",
+          "reduction_need_score": 72.24
+        },
+        {
+          "building_type": "종교시설",
+          "reduction_need_score": 72.24
+        },
+        {
+          "building_type": "문화및집회시설",
+          "reduction_need_score": 72.24
+        },
+        {
+          "building_type": "판매시설",
+          "reduction_need_score": 72.24
+        },
+        {
+          "building_type": "판매및영업시설",
+          "reduction_need_score": 72.24
+        },
+        {
+          "building_type": "관광휴게시설",
+          "reduction_need_score": 72.24
+        },
+        {
+          "building_type": "숙박시설",
+          "reduction_need_score": 72.24
+        },
+        {
+          "building_type": "운동시설",
+          "reduction_need_score": 72.24
+        }
+      ]
+    },
+    {
+      "gu": "중구",
+      "blackout_items": []
+    },
+    {
+      "gu": "마포구",
+      "blackout_items": []
+    },
+    {
+      "gu": "성동구",
+      "blackout_items": []
+    },
+    {
+      "gu": "강동구",
+      "blackout_items": []
+    },
+    {
+      "gu": "구로구",
+      "blackout_items": []
+    },
+    {
+      "gu": "관악구",
+      "blackout_items": []
+    },
+    {
+      "gu": "양천구",
+      "blackout_items": []
+    },
+    {
+      "gu": "종로구",
+      "blackout_items": []
+    },
+    {
+      "gu": "금천구",
+      "blackout_items": []
+    },
+    {
+      "gu": "광진구",
+      "blackout_items": []
+    },
+    {
+      "gu": "용산구",
+      "blackout_items": []
+    },
+    {
+      "gu": "노원구",
+      "blackout_items": []
+    },
+    {
+      "gu": "은평구",
+      "blackout_items": []
+    },
+    {
+      "gu": "성북구",
+      "blackout_items": []
+    },
+    {
+      "gu": "동대문구",
+      "blackout_items": []
+    },
+    {
+      "gu": "동작구",
+      "blackout_items": []
+    },
+    {
+      "gu": "서대문구",
+      "blackout_items": []
+    },
+    {
+      "gu": "중랑구",
+      "blackout_items": []
+    },
+    {
+      "gu": "강북구",
+      "blackout_items": []
+    },
+    {
+      "gu": "도봉구",
+      "blackout_items": []
+    }
+  ]
+}

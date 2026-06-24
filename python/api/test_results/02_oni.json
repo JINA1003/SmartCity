@@ -1,0 +1,29 @@
+[
+  {
+    "input": {
+      "year": 2023,
+      "month": 8
+    },
+    "output": {
+      "oni": 1.37
+    }
+  },
+  {
+    "input": {
+      "year": 2015,
+      "month": 1
+    },
+    "output": {
+      "oni": 0.69
+    }
+  },
+  {
+    "input": {
+      "year": 2030,
+      "month": 8
+    },
+    "output": {
+      "oni": 0.0
+    }
+  }
+]

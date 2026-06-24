@@ -1,0 +1,3317 @@
+{
+  "input": {
+    "year": 2023,
+    "month": 8,
+    "oni": 1.37
+  },
+  "is_simulated": false,
+  "predicted": {
+    "asos_temp": 27.58,
+    "supply": {
+      "supply_mw": 105256.9,
+      "reserve_rate": 12.86
+    },
+    "regions": [
+      {
+        "gu": "강남구",
+        "ta_gu": 28.76,
+        "total_consumption_mwh": 508904.88,
+        "usage": {
+          "가로등": {
+            "consumption_mwh": 2650.71
+          },
+          "교육용": {
+            "consumption_mwh": 6080.96
+          },
+          "농사용": {
+            "consumption_mwh": 1660.19
+          },
+          "산업용": {
+            "consumption_mwh": 22251.77
+          },
+          "심야": {
+            "consumption_mwh": 10772.77
+          },
+          "일반용": {
+            "consumption_mwh": 342672.41
+          },
+          "주택용": {
+            "consumption_mwh": 122816.07
+          }
+        },
+        "building_type": {
+          "위락시설": {
+            "reduction_need_score": 79.74
+          },
+          "업무시설": {
+            "reduction_need_score": 70.88
+          },
+          "종교시설": {
+            "reduction_need_score": 70.88
+          },
+          "문화및집회시설": {
+            "reduction_need_score": 70.88
+          },
+          "판매시설": {
+            "reduction_need_score": 70.88
+          },
+          "판매및영업시설": {
+            "reduction_need_score": 70.88
+          },
+          "관광휴게시설": {
+            "reduction_need_score": 70.88
+          },
+          "숙박시설": {
+            "reduction_need_score": 70.88
+          },
+          "운동시설": {
+            "reduction_need_score": 70.88
+          },
+          "장례식장": {
+            "reduction_need_score": 70.88
+          },
+          "수련시설": {
+            "reduction_need_score": 70.88
+          },
+          "제1종근린생활시설": {
+            "reduction_need_score": 62.02
+          },
+          "제2종근린생활시설": {
+            "reduction_need_score": 62.02
+          },
+          "근린생활시설": {
+            "reduction_need_score": 62.02
+          },
+          "교육연구및복지시설": {
+            "reduction_need_score": 53.16
+          },
+          "노유자시설": {
+            "reduction_need_score": 35.44
+          },
+          "단독주택": {
+            "reduction_need_score": 24.794
+          },
+          "공동주택": {
+            "reduction_need_score": 24.794
+          },
+          "다가구주택": {
+            "reduction_need_score": 24.794
+          },
+          "가설건축물": {
+            "reduction_need_score": 5.7066
+          },
+          "창고시설": {
+            "reduction_need_score": 5.1359
+          },
+          "공장": {
+            "reduction_need_score": 4.5653
+          },
+          "자동차관련시설": {
+            "reduction_need_score": 4.5653
+          },
+          "묘지관련시설": {
+            "reduction_need_score": 4.5653
+          },
+          "동.식물 관련시설": {
+            "reduction_need_score": 3.424
+          },
+          "위험물저장및처리시설": {
+            "reduction_need_score": 1.712
+          },
+          "분뇨.쓰레기처리시설": {
+            "reduction_need_score": 1.712
+          },
+          "교육연구시설": {
+            "reduction_need_score": 0.5832
+          },
+          "발전시설": {
+            "reduction_need_score": 0.0
+          },
+          "의료시설": {
+            "reduction_need_score": 0.0
+          },
+          "공공용시설": {
+            "reduction_need_score": 0.0
+          },
+          "방송통신시설": {
+            "reduction_need_score": 0.0
+          },
+          "운수시설": {
+            "reduction_need_score": 0.0
+          },
+          "교정및군사시설": {
+            "reduction_need_score": 0.0
+          }
+        }
+      },
+      {
+        "gu": "강동구",
+        "ta_gu": 28.62,
+        "total_consumption_mwh": 182959.59,
+        "usage": {
+          "가로등": {
+            "consumption_mwh": 946.0
+          },
+          "교육용": {
+            "consumption_mwh": 4722.95
+          },
+          "농사용": {
+            "consumption_mwh": 575.57
+          },
+          "산업용": {
+            "consumption_mwh": 15381.65
+          },
+          "심야": {
+            "consumption_mwh": 2648.6
+          },
+          "일반용": {
+            "consumption_mwh": 82128.76
+          },
+          "주택용": {
+            "consumption_mwh": 76556.08
+          }
+        },
+        "building_type": {
+          "위락시설": {
+            "reduction_need_score": 77.9312
+          },
+          "단독주택": {
+            "reduction_need_score": 70.88
+          },
+          "공동주택": {
+            "reduction_need_score": 70.88
+          },
+          "다가구주택": {
+            "reduction_need_score": 70.88
+          },
+          "업무시설": {
+            "reduction_need_score": 69.2722
+          },
+          "종교시설": {
+            "reduction_need_score": 69.2722
+          },
+          "문화및집회시설": {
+            "reduction_need_score": 69.2722
+          },
+          "판매시설": {
+            "reduction_need_score": 69.2722
+          },
+          "판매및영업시설": {
+            "reduction_need_score": 69.2722
+          },
+          "관광휴게시설": {
+            "reduction_need_score": 69.2722
+          },
+          "숙박시설": {
+            "reduction_need_score": 69.2722
+          },
+          "운동시설": {
+            "reduction_need_score": 69.2722
+          },
+          "장례식장": {
+            "reduction_need_score": 69.2722
+          },
+          "수련시설": {
+            "reduction_need_score": 69.2722
+          },
+          "제1종근린생활시설": {
+            "reduction_need_score": 60.6132
+          },
+          "제2종근린생활시설": {
+            "reduction_need_score": 60.6132
+          },
+          "근린생활시설": {
+            "reduction_need_score": 60.6132
+          },
+          "교육연구및복지시설": {
+            "reduction_need_score": 51.9541
+          },
+          "노유자시설": {
+            "reduction_need_score": 34.6361
+          },
+          "가설건축물": {
+            "reduction_need_score": 15.7481
+          },
+          "창고시설": {
+            "reduction_need_score": 14.1733
+          },
+          "공장": {
+            "reduction_need_score": 12.5985
+          },
+          "자동차관련시설": {
+            "reduction_need_score": 12.5985
+          },
+          "묘지관련시설": {
+            "reduction_need_score": 12.5985
+          },
+          "동.식물 관련시설": {
+            "reduction_need_score": 9.4489
+          },
+          "위험물저장및처리시설": {
+            "reduction_need_score": 4.7244
+          },
+          "분뇨.쓰레기처리시설": {
+            "reduction_need_score": 4.7244
+          },
+          "교육연구시설": {
+            "reduction_need_score": 1.5762
+          },
+          "발전시설": {
+            "reduction_need_score": 0.0
+          },
+          "의료시설": {
+            "reduction_need_score": 0.0
+          },
+          "공공용시설": {
+            "reduction_need_score": 0.0
+          },
+          "방송통신시설": {
+            "reduction_need_score": 0.0
+          },
+          "운수시설": {
+            "reduction_need_score": 0.0
+          },
+          "교정및군사시설": {
+            "reduction_need_score": 0.0
+          }
+        }
+      },
+      {
+        "gu": "강북구",
+        "ta_gu": 28.22,
+        "total_consumption_mwh": 109039.48,
+        "usage": {
+          "가로등": {
+            "consumption_mwh": -1635.57
+          },
+          "교육용": {
+            "consumption_mwh": 2146.04
+          },
+          "농사용": {
+            "consumption_mwh": -2202.14
+          },
+          "산업용": {
+            "consumption_mwh": 6038.13
+          },
+          "심야": {
+            "consumption_mwh": -669.92
+          },
+          "일반용": {
+            "consumption_mwh": 52550.35
+          },
+          "주택용": {
+            "consumption_mwh": 52812.59
+          }
+        },
+        "building_type": {
+          "위락시설": {
+            "reduction_need_score": 71.3321
+          },
+          "단독주택": {
+            "reduction_need_score": 70.88
+          },
+          "공동주택": {
+            "reduction_need_score": 70.88
+          },
+          "다가구주택": {
+            "reduction_need_score": 70.88
+          },
+          "업무시설": {
+            "reduction_need_score": 63.4063
+          },
+          "종교시설": {
+            "reduction_need_score": 63.4063
+          },
+          "문화및집회시설": {
+            "reduction_need_score": 63.4063
+          },
+          "판매시설": {
+            "reduction_need_score": 63.4063
+          },
+          "판매및영업시설": {
+            "reduction_need_score": 63.4063
+          },
+          "관광휴게시설": {
+            "reduction_need_score": 63.4063
+          },
+          "숙박시설": {
+            "reduction_need_score": 63.4063
+          },
+          "운동시설": {
+            "reduction_need_score": 63.4063
+          },
+          "장례식장": {
+            "reduction_need_score": 63.4063
+          },
+          "수련시설": {
+            "reduction_need_score": 63.4063
+          },
+          "제1종근린생활시설": {
+            "reduction_need_score": 55.4805
+          },
+          "제2종근린생활시설": {
+            "reduction_need_score": 55.4805
+          },
+          "근린생활시설": {
+            "reduction_need_score": 55.4805
+          },
+          "교육연구및복지시설": {
+            "reduction_need_score": 47.5547
+          },
+          "노유자시설": {
+            "reduction_need_score": 31.7032
+          },
+          "가설건축물": {
+            "reduction_need_score": 8.737
+          },
+          "창고시설": {
+            "reduction_need_score": 7.8633
+          },
+          "공장": {
+            "reduction_need_score": 6.9896
+          },
+          "자동차관련시설": {
+            "reduction_need_score": 6.9896
+          },
+          "묘지관련시설": {
+            "reduction_need_score": 6.9896
+          },
+          "동.식물 관련시설": {
+            "reduction_need_score": 5.2422
+          },
+          "위험물저장및처리시설": {
+            "reduction_need_score": 2.6211
+          },
+          "분뇨.쓰레기처리시설": {
+            "reduction_need_score": 2.6211
+          },
+          "교육연구시설": {
+            "reduction_need_score": 2.3747
+          },
+          "발전시설": {
+            "reduction_need_score": 0.0
+          },
+          "의료시설": {
+            "reduction_need_score": 0.0
+          },
+          "공공용시설": {
+            "reduction_need_score": 0.0
+          },
+          "방송통신시설": {
+            "reduction_need_score": 0.0
+          },
+          "운수시설": {
+            "reduction_need_score": 0.0
+          },
+          "교정및군사시설": {
+            "reduction_need_score": 0.0
+          }
+        }
+      },
+      {
+        "gu": "강서구",
+        "ta_gu": 28.76,
+        "total_consumption_mwh": 288305.75,
+        "usage": {
+          "가로등": {
+            "consumption_mwh": 3979.19
+          },
+          "교육용": {
+            "consumption_mwh": 8634.18
+          },
+          "농사용": {
+            "consumption_mwh": 3901.2
+          },
+          "산업용": {
+            "consumption_mwh": 29221.93
+          },
+          "심야": {
+            "consumption_mwh": 7252.33
+          },
+          "일반용": {
+            "consumption_mwh": 137128.62
+          },
+          "주택용": {
+            "consumption_mwh": 98188.3
+          }
+        },
+        "building_type": {
+          "위락시설": {
+            "reduction_need_score": 79.74
+          },
+          "업무시설": {
+            "reduction_need_score": 70.88
+          },
+          "종교시설": {
+            "reduction_need_score": 70.88
+          },
+          "문화및집회시설": {
+            "reduction_need_score": 70.88
+          },
+          "판매시설": {
+            "reduction_need_score": 70.88
+          },
+          "판매및영업시설": {
+            "reduction_need_score": 70.88
+          },
+          "관광휴게시설": {
+            "reduction_need_score": 70.88
+          },
+          "숙박시설": {
+            "reduction_need_score": 70.88
+          },
+          "운동시설": {
+            "reduction_need_score": 70.88
+          },
+          "장례식장": {
+            "reduction_need_score": 70.88
+          },
+          "수련시설": {
+            "reduction_need_score": 70.88
+          },
+          "제1종근린생활시설": {
+            "reduction_need_score": 62.02
+          },
+          "제2종근린생활시설": {
+            "reduction_need_score": 62.02
+          },
+          "근린생활시설": {
+            "reduction_need_score": 62.02
+          },
+          "교육연구및복지시설": {
+            "reduction_need_score": 53.16
+          },
+          "단독주택": {
+            "reduction_need_score": 45.9475
+          },
+          "공동주택": {
+            "reduction_need_score": 45.9475
+          },
+          "다가구주택": {
+            "reduction_need_score": 45.9475
+          },
+          "노유자시설": {
+            "reduction_need_score": 35.44
+          },
+          "가설건축물": {
+            "reduction_need_score": 17.0464
+          },
+          "창고시설": {
+            "reduction_need_score": 15.3418
+          },
+          "공장": {
+            "reduction_need_score": 13.6371
+          },
+          "자동차관련시설": {
+            "reduction_need_score": 13.6371
+          },
+          "묘지관련시설": {
+            "reduction_need_score": 13.6371
+          },
+          "동.식물 관련시설": {
+            "reduction_need_score": 10.2278
+          },
+          "위험물저장및처리시설": {
+            "reduction_need_score": 5.1139
+          },
+          "분뇨.쓰레기처리시설": {
+            "reduction_need_score": 5.1139
+          },
+          "교육연구시설": {
+            "reduction_need_score": 1.2724
+          },
+          "발전시설": {
+            "reduction_need_score": 0.0
+          },
+          "의료시설": {
+            "reduction_need_score": 0.0
+          },
+          "공공용시설": {
+            "reduction_need_score": 0.0
+          },
+          "방송통신시설": {
+            "reduction_need_score": 0.0
+          },
+          "운수시설": {
+            "reduction_need_score": 0.0
+          },
+          "교정및군사시설": {
+            "reduction_need_score": 0.0
+          }
+        }
+      },
+      {
+        "gu": "관악구",
+        "ta_gu": 28.89,
+        "total_consumption_mwh": 189975.55,
+        "usage": {
+          "가로등": {
+            "consumption_mwh": 2067.56
+          },
+          "교육용": {
+            "consumption_mwh": 14047.3
+          },
+          "농사용": {
+            "consumption_mwh": 859.92
+          },
+          "산업용": {
+            "consumption_mwh": 8692.6
+          },
+          "심야": {
+            "consumption_mwh": 1206.47
+          },
+          "일반용": {
+            "consumption_mwh": 84326.41
+          },
+          "주택용": {
+            "consumption_mwh": 78775.28
+          }
+        },
+        "building_type": {
+          "위락시설": {
+            "reduction_need_score": 76.5907
+          },
+          "단독주택": {
+            "reduction_need_score": 70.88
+          },
+          "공동주택": {
+            "reduction_need_score": 70.88
+          },
+          "다가구주택": {
+            "reduction_need_score": 70.88
+          },
+          "업무시설": {
+            "reduction_need_score": 68.0806
+          },
+          "종교시설": {
+            "reduction_need_score": 68.0806
+          },
+          "문화및집회시설": {
+            "reduction_need_score": 68.0806
+          },
+          "판매시설": {
+            "reduction_need_score": 68.0806
+          },
+          "판매및영업시설": {
+            "reduction_need_score": 68.0806
+          },
+          "관광휴게시설": {
+            "reduction_need_score": 68.0806
+          },
+          "숙박시설": {
+            "reduction_need_score": 68.0806
+          },
+          "운동시설": {
+            "reduction_need_score": 68.0806
+          },
+          "장례식장": {
+            "reduction_need_score": 68.0806
+          },
+          "수련시설": {
+            "reduction_need_score": 68.0806
+          },
+          "제1종근린생활시설": {
+            "reduction_need_score": 59.5705
+          },
+          "제2종근린생활시설": {
+            "reduction_need_score": 59.5705
+          },
+          "근린생활시설": {
+            "reduction_need_score": 59.5705
+          },
+          "교육연구및복지시설": {
+            "reduction_need_score": 51.0605
+          },
+          "노유자시설": {
+            "reduction_need_score": 34.0403
+          },
+          "교육연구시설": {
+            "reduction_need_score": 12.8435
+          },
+          "가설건축물": {
+            "reduction_need_score": 3.6254
+          },
+          "창고시설": {
+            "reduction_need_score": 3.2628
+          },
+          "공장": {
+            "reduction_need_score": 2.9003
+          },
+          "자동차관련시설": {
+            "reduction_need_score": 2.9003
+          },
+          "묘지관련시설": {
+            "reduction_need_score": 2.9003
+          },
+          "동.식물 관련시설": {
+            "reduction_need_score": 2.1752
+          },
+          "위험물저장및처리시설": {
+            "reduction_need_score": 1.0876
+          },
+          "분뇨.쓰레기처리시설": {
+            "reduction_need_score": 1.0876
+          },
+          "발전시설": {
+            "reduction_need_score": 0.0
+          },
+          "의료시설": {
+            "reduction_need_score": 0.0
+          },
+          "공공용시설": {
+            "reduction_need_score": 0.0
+          },
+          "방송통신시설": {
+            "reduction_need_score": 0.0
+          },
+          "운수시설": {
+            "reduction_need_score": 0.0
+          },
+          "교정및군사시설": {
+            "reduction_need_score": 0.0
+          }
+        }
+      },
+      {
+        "gu": "광진구",
+        "ta_gu": 29.08,
+        "total_consumption_mwh": 189706.72,
+        "usage": {
+          "가로등": {
+            "consumption_mwh": 988.02
+          },
+          "교육용": {
+            "consumption_mwh": 7236.38
+          },
+          "농사용": {
+            "consumption_mwh": 495.06
+          },
+          "산업용": {
+            "consumption_mwh": 32234.93
+          },
+          "심야": {
+            "consumption_mwh": 3226.79
+          },
+          "일반용": {
+            "consumption_mwh": 81288.96
+          },
+          "주택용": {
+            "consumption_mwh": 64236.57
+          }
+        },
+        "building_type": {
+          "위락시설": {
+            "reduction_need_score": 79.74
+          },
+          "업무시설": {
+            "reduction_need_score": 70.88
+          },
+          "종교시설": {
+            "reduction_need_score": 70.88
+          },
+          "문화및집회시설": {
+            "reduction_need_score": 70.88
+          },
+          "판매시설": {
+            "reduction_need_score": 70.88
+          },
+          "판매및영업시설": {
+            "reduction_need_score": 70.88
+          },
+          "관광휴게시설": {
+            "reduction_need_score": 70.88
+          },
+          "숙박시설": {
+            "reduction_need_score": 70.88
+          },
+          "운동시설": {
+            "reduction_need_score": 70.88
+          },
+          "장례식장": {
+            "reduction_need_score": 70.88
+          },
+          "수련시설": {
+            "reduction_need_score": 70.88
+          },
+          "단독주택": {
+            "reduction_need_score": 66.1233
+          },
+          "공동주택": {
+            "reduction_need_score": 66.1233
+          },
+          "다가구주택": {
+            "reduction_need_score": 66.1233
+          },
+          "제1종근린생활시설": {
+            "reduction_need_score": 62.02
+          },
+          "제2종근린생활시설": {
+            "reduction_need_score": 62.02
+          },
+          "근린생활시설": {
+            "reduction_need_score": 62.02
+          },
+          "교육연구및복지시설": {
+            "reduction_need_score": 53.16
+          },
+          "가설건축물": {
+            "reduction_need_score": 47.2286
+          },
+          "창고시설": {
+            "reduction_need_score": 42.5057
+          },
+          "공장": {
+            "reduction_need_score": 37.7828
+          },
+          "자동차관련시설": {
+            "reduction_need_score": 37.7828
+          },
+          "묘지관련시설": {
+            "reduction_need_score": 37.7828
+          },
+          "노유자시설": {
+            "reduction_need_score": 35.44
+          },
+          "동.식물 관련시설": {
+            "reduction_need_score": 28.3371
+          },
+          "위험물저장및처리시설": {
+            "reduction_need_score": 14.1686
+          },
+          "분뇨.쓰레기처리시설": {
+            "reduction_need_score": 14.1686
+          },
+          "교육연구시설": {
+            "reduction_need_score": 6.0553
+          },
+          "발전시설": {
+            "reduction_need_score": 0.0
+          },
+          "의료시설": {
+            "reduction_need_score": 0.0
+          },
+          "공공용시설": {
+            "reduction_need_score": 0.0
+          },
+          "방송통신시설": {
+            "reduction_need_score": 0.0
+          },
+          "운수시설": {
+            "reduction_need_score": 0.0
+          },
+          "교정및군사시설": {
+            "reduction_need_score": 0.0
+          }
+        }
+      },
+      {
+        "gu": "구로구",
+        "ta_gu": 29.18,
+        "total_consumption_mwh": 204627.91,
+        "usage": {
+          "가로등": {
+            "consumption_mwh": 275.43
+          },
+          "교육용": {
+            "consumption_mwh": 4421.4
+          },
+          "농사용": {
+            "consumption_mwh": -525.82
+          },
+          "산업용": {
+            "consumption_mwh": 32010.56
+          },
+          "심야": {
+            "consumption_mwh": 2905.69
+          },
+          "일반용": {
+            "consumption_mwh": 93685.6
+          },
+          "주택용": {
+            "consumption_mwh": 71855.04
+          }
+        },
+        "building_type": {
+          "위락시설": {
+            "reduction_need_score": 79.74
+          },
+          "업무시설": {
+            "reduction_need_score": 70.88
+          },
+          "종교시설": {
+            "reduction_need_score": 70.88
+          },
+          "문화및집회시설": {
+            "reduction_need_score": 70.88
+          },
+          "판매시설": {
+            "reduction_need_score": 70.88
+          },
+          "판매및영업시설": {
+            "reduction_need_score": 70.88
+          },
+          "관광휴게시설": {
+            "reduction_need_score": 70.88
+          },
+          "숙박시설": {
+            "reduction_need_score": 70.88
+          },
+          "운동시설": {
+            "reduction_need_score": 70.88
+          },
+          "장례식장": {
+            "reduction_need_score": 70.88
+          },
+          "수련시설": {
+            "reduction_need_score": 70.88
+          },
+          "제1종근린생활시설": {
+            "reduction_need_score": 62.02
+          },
+          "제2종근린생활시설": {
+            "reduction_need_score": 62.02
+          },
+          "근린생활시설": {
+            "reduction_need_score": 62.02
+          },
+          "단독주택": {
+            "reduction_need_score": 56.0132
+          },
+          "공동주택": {
+            "reduction_need_score": 56.0132
+          },
+          "다가구주택": {
+            "reduction_need_score": 56.0132
+          },
+          "교육연구및복지시설": {
+            "reduction_need_score": 53.16
+          },
+          "노유자시설": {
+            "reduction_need_score": 35.44
+          },
+          "가설건축물": {
+            "reduction_need_score": 27.6461
+          },
+          "창고시설": {
+            "reduction_need_score": 24.8815
+          },
+          "공장": {
+            "reduction_need_score": 22.1169
+          },
+          "자동차관련시설": {
+            "reduction_need_score": 22.1169
+          },
+          "묘지관련시설": {
+            "reduction_need_score": 22.1169
+          },
+          "동.식물 관련시설": {
+            "reduction_need_score": 16.5877
+          },
+          "위험물저장및처리시설": {
+            "reduction_need_score": 8.2938
+          },
+          "분뇨.쓰레기처리시설": {
+            "reduction_need_score": 8.2938
+          },
+          "교육연구시설": {
+            "reduction_need_score": 1.5043
+          },
+          "발전시설": {
+            "reduction_need_score": 0.0
+          },
+          "의료시설": {
+            "reduction_need_score": 0.0
+          },
+          "공공용시설": {
+            "reduction_need_score": 0.0
+          },
+          "방송통신시설": {
+            "reduction_need_score": 0.0
+          },
+          "운수시설": {
+            "reduction_need_score": 0.0
+          },
+          "교정및군사시설": {
+            "reduction_need_score": 0.0
+          }
+        }
+      },
+      {
+        "gu": "금천구",
+        "ta_gu": 29.07,
+        "total_consumption_mwh": 185490.08,
+        "usage": {
+          "가로등": {
+            "consumption_mwh": -714.21
+          },
+          "교육용": {
+            "consumption_mwh": 3406.07
+          },
+          "농사용": {
+            "consumption_mwh": -911.41
+          },
+          "산업용": {
+            "consumption_mwh": 24531.19
+          },
+          "심야": {
+            "consumption_mwh": 2234.0
+          },
+          "일반용": {
+            "consumption_mwh": 104509.79
+          },
+          "주택용": {
+            "consumption_mwh": 52434.64
+          }
+        },
+        "building_type": {
+          "위락시설": {
+            "reduction_need_score": 79.74
+          },
+          "업무시설": {
+            "reduction_need_score": 70.88
+          },
+          "종교시설": {
+            "reduction_need_score": 70.88
+          },
+          "문화및집회시설": {
+            "reduction_need_score": 70.88
+          },
+          "판매시설": {
+            "reduction_need_score": 70.88
+          },
+          "판매및영업시설": {
+            "reduction_need_score": 70.88
+          },
+          "관광휴게시설": {
+            "reduction_need_score": 70.88
+          },
+          "숙박시설": {
+            "reduction_need_score": 70.88
+          },
+          "운동시설": {
+            "reduction_need_score": 70.88
+          },
+          "장례식장": {
+            "reduction_need_score": 70.88
+          },
+          "수련시설": {
+            "reduction_need_score": 70.88
+          },
+          "제1종근린생활시설": {
+            "reduction_need_score": 62.02
+          },
+          "제2종근린생활시설": {
+            "reduction_need_score": 62.02
+          },
+          "근린생활시설": {
+            "reduction_need_score": 62.02
+          },
+          "교육연구및복지시설": {
+            "reduction_need_score": 53.16
+          },
+          "노유자시설": {
+            "reduction_need_score": 35.44
+          },
+          "단독주택": {
+            "reduction_need_score": 26.8643
+          },
+          "공동주택": {
+            "reduction_need_score": 26.8643
+          },
+          "다가구주택": {
+            "reduction_need_score": 26.8643
+          },
+          "가설건축물": {
+            "reduction_need_score": 15.8917
+          },
+          "창고시설": {
+            "reduction_need_score": 14.3025
+          },
+          "공장": {
+            "reduction_need_score": 12.7134
+          },
+          "자동차관련시설": {
+            "reduction_need_score": 12.7134
+          },
+          "묘지관련시설": {
+            "reduction_need_score": 12.7134
+          },
+          "동.식물 관련시설": {
+            "reduction_need_score": 9.535
+          },
+          "위험물저장및처리시설": {
+            "reduction_need_score": 4.7675
+          },
+          "분뇨.쓰레기처리시설": {
+            "reduction_need_score": 4.7675
+          },
+          "교육연구시설": {
+            "reduction_need_score": 0.5143
+          },
+          "발전시설": {
+            "reduction_need_score": 0.0
+          },
+          "의료시설": {
+            "reduction_need_score": 0.0
+          },
+          "공공용시설": {
+            "reduction_need_score": 0.0
+          },
+          "방송통신시설": {
+            "reduction_need_score": 0.0
+          },
+          "운수시설": {
+            "reduction_need_score": 0.0
+          },
+          "교정및군사시설": {
+            "reduction_need_score": 0.0
+          }
+        }
+      },
+      {
+        "gu": "노원구",
+        "ta_gu": 28.53,
+        "total_consumption_mwh": 163487.19,
+        "usage": {
+          "가로등": {
+            "consumption_mwh": 1180.6
+          },
+          "교육용": {
+            "consumption_mwh": 7136.86
+          },
+          "농사용": {
+            "consumption_mwh": 68.52
+          },
+          "산업용": {
+            "consumption_mwh": 9034.98
+          },
+          "심야": {
+            "consumption_mwh": -344.45
+          },
+          "일반용": {
+            "consumption_mwh": 69876.84
+          },
+          "주택용": {
+            "consumption_mwh": 76533.83
+          }
+        },
+        "building_type": {
+          "단독주택": {
+            "reduction_need_score": 70.88
+          },
+          "공동주택": {
+            "reduction_need_score": 70.88
+          },
+          "다가구주택": {
+            "reduction_need_score": 70.88
+          },
+          "위락시설": {
+            "reduction_need_score": 63.6968
+          },
+          "업무시설": {
+            "reduction_need_score": 56.6194
+          },
+          "종교시설": {
+            "reduction_need_score": 56.6194
+          },
+          "문화및집회시설": {
+            "reduction_need_score": 56.6194
+          },
+          "판매시설": {
+            "reduction_need_score": 56.6194
+          },
+          "판매및영업시설": {
+            "reduction_need_score": 56.6194
+          },
+          "관광휴게시설": {
+            "reduction_need_score": 56.6194
+          },
+          "숙박시설": {
+            "reduction_need_score": 56.6194
+          },
+          "운동시설": {
+            "reduction_need_score": 56.6194
+          },
+          "장례식장": {
+            "reduction_need_score": 56.6194
+          },
+          "수련시설": {
+            "reduction_need_score": 56.6194
+          },
+          "제1종근린생활시설": {
+            "reduction_need_score": 49.542
+          },
+          "제2종근린생활시설": {
+            "reduction_need_score": 49.542
+          },
+          "근린생활시설": {
+            "reduction_need_score": 49.542
+          },
+          "교육연구및복지시설": {
+            "reduction_need_score": 42.4646
+          },
+          "노유자시설": {
+            "reduction_need_score": 28.3097
+          },
+          "가설건축물": {
+            "reduction_need_score": 7.1911
+          },
+          "교육연구시설": {
+            "reduction_need_score": 6.8361
+          },
+          "창고시설": {
+            "reduction_need_score": 6.472
+          },
+          "공장": {
+            "reduction_need_score": 5.7529
+          },
+          "자동차관련시설": {
+            "reduction_need_score": 5.7529
+          },
+          "묘지관련시설": {
+            "reduction_need_score": 5.7529
+          },
+          "동.식물 관련시설": {
+            "reduction_need_score": 4.3146
+          },
+          "위험물저장및처리시설": {
+            "reduction_need_score": 2.1573
+          },
+          "분뇨.쓰레기처리시설": {
+            "reduction_need_score": 2.1573
+          },
+          "발전시설": {
+            "reduction_need_score": 0.0
+          },
+          "의료시설": {
+            "reduction_need_score": 0.0
+          },
+          "공공용시설": {
+            "reduction_need_score": 0.0
+          },
+          "방송통신시설": {
+            "reduction_need_score": 0.0
+          },
+          "운수시설": {
+            "reduction_need_score": 0.0
+          },
+          "교정및군사시설": {
+            "reduction_need_score": 0.0
+          }
+        }
+      },
+      {
+        "gu": "도봉구",
+        "ta_gu": 28.47,
+        "total_consumption_mwh": 105719.03,
+        "usage": {
+          "가로등": {
+            "consumption_mwh": -1858.27
+          },
+          "교육용": {
+            "consumption_mwh": 2470.71
+          },
+          "농사용": {
+            "consumption_mwh": -3194.77
+          },
+          "산업용": {
+            "consumption_mwh": 8016.2
+          },
+          "심야": {
+            "consumption_mwh": -1914.27
+          },
+          "일반용": {
+            "consumption_mwh": 46310.48
+          },
+          "주택용": {
+            "consumption_mwh": 55888.95
+          }
+        },
+        "building_type": {
+          "단독주택": {
+            "reduction_need_score": 70.88
+          },
+          "공동주택": {
+            "reduction_need_score": 70.88
+          },
+          "다가구주택": {
+            "reduction_need_score": 70.88
+          },
+          "위락시설": {
+            "reduction_need_score": 56.3256
+          },
+          "업무시설": {
+            "reduction_need_score": 50.0672
+          },
+          "종교시설": {
+            "reduction_need_score": 50.0672
+          },
+          "문화및집회시설": {
+            "reduction_need_score": 50.0672
+          },
+          "판매시설": {
+            "reduction_need_score": 50.0672
+          },
+          "판매및영업시설": {
+            "reduction_need_score": 50.0672
+          },
+          "관광휴게시설": {
+            "reduction_need_score": 50.0672
+          },
+          "숙박시설": {
+            "reduction_need_score": 50.0672
+          },
+          "운동시설": {
+            "reduction_need_score": 50.0672
+          },
+          "장례식장": {
+            "reduction_need_score": 50.0672
+          },
+          "수련시설": {
+            "reduction_need_score": 50.0672
+          },
+          "제1종근린생활시설": {
+            "reduction_need_score": 43.8088
+          },
+          "제2종근린생활시설": {
+            "reduction_need_score": 43.8088
+          },
+          "근린생활시설": {
+            "reduction_need_score": 43.8088
+          },
+          "교육연구및복지시설": {
+            "reduction_need_score": 37.5504
+          },
+          "노유자시설": {
+            "reduction_need_score": 25.0336
+          },
+          "가설건축물": {
+            "reduction_need_score": 8.661
+          },
+          "창고시설": {
+            "reduction_need_score": 7.7949
+          },
+          "공장": {
+            "reduction_need_score": 6.9288
+          },
+          "자동차관련시설": {
+            "reduction_need_score": 6.9288
+          },
+          "묘지관련시설": {
+            "reduction_need_score": 6.9288
+          },
+          "동.식물 관련시설": {
+            "reduction_need_score": 5.1966
+          },
+          "위험물저장및처리시설": {
+            "reduction_need_score": 2.5983
+          },
+          "분뇨.쓰레기처리시설": {
+            "reduction_need_score": 2.5983
+          },
+          "교육연구시설": {
+            "reduction_need_score": 2.5521
+          },
+          "발전시설": {
+            "reduction_need_score": 0.0
+          },
+          "의료시설": {
+            "reduction_need_score": 0.0
+          },
+          "공공용시설": {
+            "reduction_need_score": 0.0
+          },
+          "방송통신시설": {
+            "reduction_need_score": 0.0
+          },
+          "운수시설": {
+            "reduction_need_score": 0.0
+          },
+          "교정및군사시설": {
+            "reduction_need_score": 0.0
+          }
+        }
+      },
+      {
+        "gu": "동대문구",
+        "ta_gu": 28.97,
+        "total_consumption_mwh": 164681.05,
+        "usage": {
+          "가로등": {
+            "consumption_mwh": 544.87
+          },
+          "교육용": {
+            "consumption_mwh": 6683.47
+          },
+          "농사용": {
+            "consumption_mwh": 299.22
+          },
+          "산업용": {
+            "consumption_mwh": 14106.81
+          },
+          "심야": {
+            "consumption_mwh": 1494.78
+          },
+          "일반용": {
+            "consumption_mwh": 75280.63
+          },
+          "주택용": {
+            "consumption_mwh": 66271.26
+          }
+        },
+        "building_type": {
+          "위락시설": {
+            "reduction_need_score": 79.74
+          },
+          "업무시설": {
+            "reduction_need_score": 70.88
+          },
+          "종교시설": {
+            "reduction_need_score": 70.88
+          },
+          "문화및집회시설": {
+            "reduction_need_score": 70.88
+          },
+          "판매시설": {
+            "reduction_need_score": 70.88
+          },
+          "판매및영업시설": {
+            "reduction_need_score": 70.88
+          },
+          "관광휴게시설": {
+            "reduction_need_score": 70.88
+          },
+          "숙박시설": {
+            "reduction_need_score": 70.88
+          },
+          "운동시설": {
+            "reduction_need_score": 70.88
+          },
+          "장례식장": {
+            "reduction_need_score": 70.88
+          },
+          "수련시설": {
+            "reduction_need_score": 70.88
+          },
+          "단독주택": {
+            "reduction_need_score": 70.6112
+          },
+          "공동주택": {
+            "reduction_need_score": 70.6112
+          },
+          "다가구주택": {
+            "reduction_need_score": 70.6112
+          },
+          "제1종근린생활시설": {
+            "reduction_need_score": 62.02
+          },
+          "제2종근린생활시설": {
+            "reduction_need_score": 62.02
+          },
+          "근린생활시설": {
+            "reduction_need_score": 62.02
+          },
+          "교육연구및복지시설": {
+            "reduction_need_score": 53.16
+          },
+          "노유자시설": {
+            "reduction_need_score": 35.44
+          },
+          "가설건축물": {
+            "reduction_need_score": 21.18
+          },
+          "창고시설": {
+            "reduction_need_score": 19.062
+          },
+          "공장": {
+            "reduction_need_score": 16.944
+          },
+          "자동차관련시설": {
+            "reduction_need_score": 16.944
+          },
+          "묘지관련시설": {
+            "reduction_need_score": 16.944
+          },
+          "동.식물 관련시설": {
+            "reduction_need_score": 12.708
+          },
+          "교육연구시설": {
+            "reduction_need_score": 6.6951
+          },
+          "위험물저장및처리시설": {
+            "reduction_need_score": 6.354
+          },
+          "분뇨.쓰레기처리시설": {
+            "reduction_need_score": 6.354
+          },
+          "발전시설": {
+            "reduction_need_score": 0.0
+          },
+          "의료시설": {
+            "reduction_need_score": 0.0
+          },
+          "공공용시설": {
+            "reduction_need_score": 0.0
+          },
+          "방송통신시설": {
+            "reduction_need_score": 0.0
+          },
+          "운수시설": {
+            "reduction_need_score": 0.0
+          },
+          "교정및군사시설": {
+            "reduction_need_score": 0.0
+          }
+        }
+      },
+      {
+        "gu": "동작구",
+        "ta_gu": 28.82,
+        "total_consumption_mwh": 143094.75,
+        "usage": {
+          "가로등": {
+            "consumption_mwh": -9.55
+          },
+          "교육용": {
+            "consumption_mwh": 5657.83
+          },
+          "농사용": {
+            "consumption_mwh": -1014.96
+          },
+          "산업용": {
+            "consumption_mwh": 8376.92
+          },
+          "심야": {
+            "consumption_mwh": -1025.19
+          },
+          "일반용": {
+            "consumption_mwh": 67635.09
+          },
+          "주택용": {
+            "consumption_mwh": 63474.6
+          }
+        },
+        "building_type": {
+          "위락시설": {
+            "reduction_need_score": 71.3157
+          },
+          "단독주택": {
+            "reduction_need_score": 70.88
+          },
+          "공동주택": {
+            "reduction_need_score": 70.88
+          },
+          "다가구주택": {
+            "reduction_need_score": 70.88
+          },
+          "업무시설": {
+            "reduction_need_score": 63.3917
+          },
+          "종교시설": {
+            "reduction_need_score": 63.3917
+          },
+          "문화및집회시설": {
+            "reduction_need_score": 63.3917
+          },
+          "판매시설": {
+            "reduction_need_score": 63.3917
+          },
+          "판매및영업시설": {
+            "reduction_need_score": 63.3917
+          },
+          "관광휴게시설": {
+            "reduction_need_score": 63.3917
+          },
+          "숙박시설": {
+            "reduction_need_score": 63.3917
+          },
+          "운동시설": {
+            "reduction_need_score": 63.3917
+          },
+          "장례식장": {
+            "reduction_need_score": 63.3917
+          },
+          "수련시설": {
+            "reduction_need_score": 63.3917
+          },
+          "제1종근린생활시설": {
+            "reduction_need_score": 55.4677
+          },
+          "제2종근린생활시설": {
+            "reduction_need_score": 55.4677
+          },
+          "근린생활시설": {
+            "reduction_need_score": 55.4677
+          },
+          "교육연구및복지시설": {
+            "reduction_need_score": 47.5438
+          },
+          "노유자시설": {
+            "reduction_need_score": 31.6959
+          },
+          "가설건축물": {
+            "reduction_need_score": 7.0431
+          },
+          "창고시설": {
+            "reduction_need_score": 6.3388
+          },
+          "교육연구시설": {
+            "reduction_need_score": 5.6968
+          },
+          "공장": {
+            "reduction_need_score": 5.6345
+          },
+          "자동차관련시설": {
+            "reduction_need_score": 5.6345
+          },
+          "묘지관련시설": {
+            "reduction_need_score": 5.6345
+          },
+          "동.식물 관련시설": {
+            "reduction_need_score": 4.2259
+          },
+          "위험물저장및처리시설": {
+            "reduction_need_score": 2.1129
+          },
+          "분뇨.쓰레기처리시설": {
+            "reduction_need_score": 2.1129
+          },
+          "발전시설": {
+            "reduction_need_score": 0.0
+          },
+          "의료시설": {
+            "reduction_need_score": 0.0
+          },
+          "공공용시설": {
+            "reduction_need_score": 0.0
+          },
+          "방송통신시설": {
+            "reduction_need_score": 0.0
+          },
+          "운수시설": {
+            "reduction_need_score": 0.0
+          },
+          "교정및군사시설": {
+            "reduction_need_score": 0.0
+          }
+        }
+      },
+      {
+        "gu": "마포구",
+        "ta_gu": 29.15,
+        "total_consumption_mwh": 244954.5,
+        "usage": {
+          "가로등": {
+            "consumption_mwh": 2039.2
+          },
+          "교육용": {
+            "consumption_mwh": 7567.78
+          },
+          "농사용": {
+            "consumption_mwh": 1457.7
+          },
+          "산업용": {
+            "consumption_mwh": 18064.28
+          },
+          "심야": {
+            "consumption_mwh": 5633.68
+          },
+          "일반용": {
+            "consumption_mwh": 132278.52
+          },
+          "주택용": {
+            "consumption_mwh": 77913.35
+          }
+        },
+        "building_type": {
+          "위락시설": {
+            "reduction_need_score": 79.74
+          },
+          "업무시설": {
+            "reduction_need_score": 70.88
+          },
+          "종교시설": {
+            "reduction_need_score": 70.88
+          },
+          "문화및집회시설": {
+            "reduction_need_score": 70.88
+          },
+          "판매시설": {
+            "reduction_need_score": 70.88
+          },
+          "판매및영업시설": {
+            "reduction_need_score": 70.88
+          },
+          "관광휴게시설": {
+            "reduction_need_score": 70.88
+          },
+          "숙박시설": {
+            "reduction_need_score": 70.88
+          },
+          "운동시설": {
+            "reduction_need_score": 70.88
+          },
+          "장례식장": {
+            "reduction_need_score": 70.88
+          },
+          "수련시설": {
+            "reduction_need_score": 70.88
+          },
+          "제1종근린생활시설": {
+            "reduction_need_score": 62.02
+          },
+          "제2종근린생활시설": {
+            "reduction_need_score": 62.02
+          },
+          "근린생활시설": {
+            "reduction_need_score": 62.02
+          },
+          "교육연구및복지시설": {
+            "reduction_need_score": 53.16
+          },
+          "단독주택": {
+            "reduction_need_score": 39.043
+          },
+          "공동주택": {
+            "reduction_need_score": 39.043
+          },
+          "다가구주택": {
+            "reduction_need_score": 39.043
+          },
+          "노유자시설": {
+            "reduction_need_score": 35.44
+          },
+          "가설건축물": {
+            "reduction_need_score": 12.3522
+          },
+          "창고시설": {
+            "reduction_need_score": 11.1169
+          },
+          "공장": {
+            "reduction_need_score": 9.8817
+          },
+          "자동차관련시설": {
+            "reduction_need_score": 9.8817
+          },
+          "묘지관련시설": {
+            "reduction_need_score": 9.8817
+          },
+          "동.식물 관련시설": {
+            "reduction_need_score": 7.4113
+          },
+          "위험물저장및처리시설": {
+            "reduction_need_score": 3.7056
+          },
+          "분뇨.쓰레기처리시설": {
+            "reduction_need_score": 3.7056
+          },
+          "교육연구시설": {
+            "reduction_need_score": 2.0375
+          },
+          "발전시설": {
+            "reduction_need_score": 0.0
+          },
+          "의료시설": {
+            "reduction_need_score": 0.0
+          },
+          "공공용시설": {
+            "reduction_need_score": 0.0
+          },
+          "방송통신시설": {
+            "reduction_need_score": 0.0
+          },
+          "운수시설": {
+            "reduction_need_score": 0.0
+          },
+          "교정및군사시설": {
+            "reduction_need_score": 0.0
+          }
+        }
+      },
+      {
+        "gu": "서대문구",
+        "ta_gu": 28.66,
+        "total_consumption_mwh": 143873.27,
+        "usage": {
+          "가로등": {
+            "consumption_mwh": 562.29
+          },
+          "교육용": {
+            "consumption_mwh": 12412.88
+          },
+          "농사용": {
+            "consumption_mwh": -613.33
+          },
+          "산업용": {
+            "consumption_mwh": 5902.21
+          },
+          "심야": {
+            "consumption_mwh": -859.71
+          },
+          "일반용": {
+            "consumption_mwh": 68562.31
+          },
+          "주택용": {
+            "consumption_mwh": 57906.61
+          }
+        },
+        "building_type": {
+          "위락시설": {
+            "reduction_need_score": 79.74
+          },
+          "업무시설": {
+            "reduction_need_score": 70.88
+          },
+          "종교시설": {
+            "reduction_need_score": 70.88
+          },
+          "문화및집회시설": {
+            "reduction_need_score": 70.88
+          },
+          "판매시설": {
+            "reduction_need_score": 70.88
+          },
+          "판매및영업시설": {
+            "reduction_need_score": 70.88
+          },
+          "관광휴게시설": {
+            "reduction_need_score": 70.88
+          },
+          "숙박시설": {
+            "reduction_need_score": 70.88
+          },
+          "운동시설": {
+            "reduction_need_score": 70.88
+          },
+          "장례식장": {
+            "reduction_need_score": 70.88
+          },
+          "수련시설": {
+            "reduction_need_score": 70.88
+          },
+          "단독주택": {
+            "reduction_need_score": 65.793
+          },
+          "공동주택": {
+            "reduction_need_score": 65.793
+          },
+          "다가구주택": {
+            "reduction_need_score": 65.793
+          },
+          "제1종근린생활시설": {
+            "reduction_need_score": 62.02
+          },
+          "제2종근린생활시설": {
+            "reduction_need_score": 62.02
+          },
+          "근린생활시설": {
+            "reduction_need_score": 62.02
+          },
+          "교육연구및복지시설": {
+            "reduction_need_score": 53.16
+          },
+          "노유자시설": {
+            "reduction_need_score": 35.44
+          },
+          "교육연구시설": {
+            "reduction_need_score": 16.1714
+          },
+          "가설건축물": {
+            "reduction_need_score": 4.2576
+          },
+          "창고시설": {
+            "reduction_need_score": 3.8318
+          },
+          "공장": {
+            "reduction_need_score": 3.406
+          },
+          "자동차관련시설": {
+            "reduction_need_score": 3.406
+          },
+          "묘지관련시설": {
+            "reduction_need_score": 3.406
+          },
+          "동.식물 관련시설": {
+            "reduction_need_score": 2.5545
+          },
+          "위험물저장및처리시설": {
+            "reduction_need_score": 1.2773
+          },
+          "분뇨.쓰레기처리시설": {
+            "reduction_need_score": 1.2773
+          },
+          "발전시설": {
+            "reduction_need_score": 0.0
+          },
+          "의료시설": {
+            "reduction_need_score": 0.0
+          },
+          "공공용시설": {
+            "reduction_need_score": 0.0
+          },
+          "방송통신시설": {
+            "reduction_need_score": 0.0
+          },
+          "운수시설": {
+            "reduction_need_score": 0.0
+          },
+          "교정및군사시설": {
+            "reduction_need_score": 0.0
+          }
+        }
+      },
+      {
+        "gu": "서초구",
+        "ta_gu": 28.71,
+        "total_consumption_mwh": 353262.84,
+        "usage": {
+          "가로등": {
+            "consumption_mwh": 3385.27
+          },
+          "교육용": {
+            "consumption_mwh": 8344.97
+          },
+          "농사용": {
+            "consumption_mwh": 2318.9
+          },
+          "산업용": {
+            "consumption_mwh": 42224.89
+          },
+          "심야": {
+            "consumption_mwh": 7786.67
+          },
+          "일반용": {
+            "consumption_mwh": 199855.02
+          },
+          "주택용": {
+            "consumption_mwh": 89347.13
+          }
+        },
+        "building_type": {
+          "위락시설": {
+            "reduction_need_score": 79.74
+          },
+          "업무시설": {
+            "reduction_need_score": 70.88
+          },
+          "종교시설": {
+            "reduction_need_score": 70.88
+          },
+          "문화및집회시설": {
+            "reduction_need_score": 70.88
+          },
+          "판매시설": {
+            "reduction_need_score": 70.88
+          },
+          "판매및영업시설": {
+            "reduction_need_score": 70.88
+          },
+          "관광휴게시설": {
+            "reduction_need_score": 70.88
+          },
+          "숙박시설": {
+            "reduction_need_score": 70.88
+          },
+          "운동시설": {
+            "reduction_need_score": 70.88
+          },
+          "장례식장": {
+            "reduction_need_score": 70.88
+          },
+          "수련시설": {
+            "reduction_need_score": 70.88
+          },
+          "제1종근린생활시설": {
+            "reduction_need_score": 62.02
+          },
+          "제2종근린생활시설": {
+            "reduction_need_score": 62.02
+          },
+          "근린생활시설": {
+            "reduction_need_score": 62.02
+          },
+          "교육연구및복지시설": {
+            "reduction_need_score": 53.16
+          },
+          "노유자시설": {
+            "reduction_need_score": 35.44
+          },
+          "단독주택": {
+            "reduction_need_score": 31.285
+          },
+          "공동주택": {
+            "reduction_need_score": 31.285
+          },
+          "다가구주택": {
+            "reduction_need_score": 31.285
+          },
+          "가설건축물": {
+            "reduction_need_score": 18.1942
+          },
+          "창고시설": {
+            "reduction_need_score": 16.3748
+          },
+          "공장": {
+            "reduction_need_score": 14.5554
+          },
+          "자동차관련시설": {
+            "reduction_need_score": 14.5554
+          },
+          "묘지관련시설": {
+            "reduction_need_score": 14.5554
+          },
+          "동.식물 관련시설": {
+            "reduction_need_score": 10.9165
+          },
+          "위험물저장및처리시설": {
+            "reduction_need_score": 5.4583
+          },
+          "분뇨.쓰레기처리시설": {
+            "reduction_need_score": 5.4583
+          },
+          "교육연구시설": {
+            "reduction_need_score": 1.05
+          },
+          "발전시설": {
+            "reduction_need_score": 0.0
+          },
+          "의료시설": {
+            "reduction_need_score": 0.0
+          },
+          "공공용시설": {
+            "reduction_need_score": 0.0
+          },
+          "방송통신시설": {
+            "reduction_need_score": 0.0
+          },
+          "운수시설": {
+            "reduction_need_score": 0.0
+          },
+          "교정및군사시설": {
+            "reduction_need_score": 0.0
+          }
+        }
+      },
+      {
+        "gu": "성동구",
+        "ta_gu": 29.24,
+        "total_consumption_mwh": 227659.02,
+        "usage": {
+          "가로등": {
+            "consumption_mwh": 2081.83
+          },
+          "교육용": {
+            "consumption_mwh": 8760.02
+          },
+          "농사용": {
+            "consumption_mwh": 2214.42
+          },
+          "산업용": {
+            "consumption_mwh": 70914.45
+          },
+          "심야": {
+            "consumption_mwh": 4122.57
+          },
+          "일반용": {
+            "consumption_mwh": 78922.71
+          },
+          "주택용": {
+            "consumption_mwh": 60643.02
+          }
+        },
+        "building_type": {
+          "가설건축물": {
+            "reduction_need_score": 88.6
+          },
+          "창고시설": {
+            "reduction_need_score": 79.74
+          },
+          "위락시설": {
+            "reduction_need_score": 75.1349
+          },
+          "공장": {
+            "reduction_need_score": 70.88
+          },
+          "자동차관련시설": {
+            "reduction_need_score": 70.88
+          },
+          "묘지관련시설": {
+            "reduction_need_score": 70.88
+          },
+          "업무시설": {
+            "reduction_need_score": 66.7866
+          },
+          "종교시설": {
+            "reduction_need_score": 66.7866
+          },
+          "문화및집회시설": {
+            "reduction_need_score": 66.7866
+          },
+          "판매시설": {
+            "reduction_need_score": 66.7866
+          },
+          "판매및영업시설": {
+            "reduction_need_score": 66.7866
+          },
+          "관광휴게시설": {
+            "reduction_need_score": 66.7866
+          },
+          "숙박시설": {
+            "reduction_need_score": 66.7866
+          },
+          "운동시설": {
+            "reduction_need_score": 66.7866
+          },
+          "장례식장": {
+            "reduction_need_score": 66.7866
+          },
+          "수련시설": {
+            "reduction_need_score": 66.7866
+          },
+          "제1종근린생활시설": {
+            "reduction_need_score": 58.4382
+          },
+          "제2종근린생활시설": {
+            "reduction_need_score": 58.4382
+          },
+          "근린생활시설": {
+            "reduction_need_score": 58.4382
+          },
+          "동.식물 관련시설": {
+            "reduction_need_score": 53.16
+          },
+          "교육연구및복지시설": {
+            "reduction_need_score": 50.0899
+          },
+          "단독주택": {
+            "reduction_need_score": 45.0486
+          },
+          "공동주택": {
+            "reduction_need_score": 45.0486
+          },
+          "다가구주택": {
+            "reduction_need_score": 45.0486
+          },
+          "노유자시설": {
+            "reduction_need_score": 33.3933
+          },
+          "위험물저장및처리시설": {
+            "reduction_need_score": 26.58
+          },
+          "분뇨.쓰레기처리시설": {
+            "reduction_need_score": 26.58
+          },
+          "교육연구시설": {
+            "reduction_need_score": 4.8936
+          },
+          "발전시설": {
+            "reduction_need_score": 0.0
+          },
+          "의료시설": {
+            "reduction_need_score": 0.0
+          },
+          "공공용시설": {
+            "reduction_need_score": 0.0
+          },
+          "방송통신시설": {
+            "reduction_need_score": 0.0
+          },
+          "운수시설": {
+            "reduction_need_score": 0.0
+          },
+          "교정및군사시설": {
+            "reduction_need_score": 0.0
+          }
+        }
+      },
+      {
+        "gu": "성북구",
+        "ta_gu": 28.79,
+        "total_consumption_mwh": 160573.72,
+        "usage": {
+          "가로등": {
+            "consumption_mwh": 1179.64
+          },
+          "교육용": {
+            "consumption_mwh": 11308.78
+          },
+          "농사용": {
+            "consumption_mwh": 355.13
+          },
+          "산업용": {
+            "consumption_mwh": 11201.45
+          },
+          "심야": {
+            "consumption_mwh": 544.37
+          },
+          "일반용": {
+            "consumption_mwh": 65286.1
+          },
+          "주택용": {
+            "consumption_mwh": 70698.25
+          }
+        },
+        "building_type": {
+          "단독주택": {
+            "reduction_need_score": 70.88
+          },
+          "공동주택": {
+            "reduction_need_score": 70.88
+          },
+          "다가구주택": {
+            "reduction_need_score": 70.88
+          },
+          "위락시설": {
+            "reduction_need_score": 59.5611
+          },
+          "업무시설": {
+            "reduction_need_score": 52.9432
+          },
+          "종교시설": {
+            "reduction_need_score": 52.9432
+          },
+          "문화및집회시설": {
+            "reduction_need_score": 52.9432
+          },
+          "판매시설": {
+            "reduction_need_score": 52.9432
+          },
+          "판매및영업시설": {
+            "reduction_need_score": 52.9432
+          },
+          "관광휴게시설": {
+            "reduction_need_score": 52.9432
+          },
+          "숙박시설": {
+            "reduction_need_score": 52.9432
+          },
+          "운동시설": {
+            "reduction_need_score": 52.9432
+          },
+          "장례식장": {
+            "reduction_need_score": 52.9432
+          },
+          "수련시설": {
+            "reduction_need_score": 52.9432
+          },
+          "제1종근린생활시설": {
+            "reduction_need_score": 46.3253
+          },
+          "제2종근린생활시설": {
+            "reduction_need_score": 46.3253
+          },
+          "근린생활시설": {
+            "reduction_need_score": 46.3253
+          },
+          "교육연구및복지시설": {
+            "reduction_need_score": 39.7074
+          },
+          "노유자시설": {
+            "reduction_need_score": 26.4716
+          },
+          "교육연구시설": {
+            "reduction_need_score": 11.7394
+          },
+          "가설건축물": {
+            "reduction_need_score": 11.4584
+          },
+          "창고시설": {
+            "reduction_need_score": 10.3126
+          },
+          "공장": {
+            "reduction_need_score": 9.1667
+          },
+          "자동차관련시설": {
+            "reduction_need_score": 9.1667
+          },
+          "묘지관련시설": {
+            "reduction_need_score": 9.1667
+          },
+          "동.식물 관련시설": {
+            "reduction_need_score": 6.8751
+          },
+          "위험물저장및처리시설": {
+            "reduction_need_score": 3.4375
+          },
+          "분뇨.쓰레기처리시설": {
+            "reduction_need_score": 3.4375
+          },
+          "발전시설": {
+            "reduction_need_score": 0.0
+          },
+          "의료시설": {
+            "reduction_need_score": 0.0
+          },
+          "공공용시설": {
+            "reduction_need_score": 0.0
+          },
+          "방송통신시설": {
+            "reduction_need_score": 0.0
+          },
+          "운수시설": {
+            "reduction_need_score": 0.0
+          },
+          "교정및군사시설": {
+            "reduction_need_score": 0.0
+          }
+        }
+      },
+      {
+        "gu": "송파구",
+        "ta_gu": 29.1,
+        "total_consumption_mwh": 318672.69,
+        "usage": {
+          "가로등": {
+            "consumption_mwh": 3635.9
+          },
+          "교육용": {
+            "consumption_mwh": 8071.89
+          },
+          "농사용": {
+            "consumption_mwh": 2628.71
+          },
+          "산업용": {
+            "consumption_mwh": 21254.58
+          },
+          "심야": {
+            "consumption_mwh": 9409.18
+          },
+          "일반용": {
+            "consumption_mwh": 161722.81
+          },
+          "주택용": {
+            "consumption_mwh": 111949.62
+          }
+        },
+        "building_type": {
+          "위락시설": {
+            "reduction_need_score": 79.74
+          },
+          "업무시설": {
+            "reduction_need_score": 70.88
+          },
+          "종교시설": {
+            "reduction_need_score": 70.88
+          },
+          "문화및집회시설": {
+            "reduction_need_score": 70.88
+          },
+          "판매시설": {
+            "reduction_need_score": 70.88
+          },
+          "판매및영업시설": {
+            "reduction_need_score": 70.88
+          },
+          "관광휴게시설": {
+            "reduction_need_score": 70.88
+          },
+          "숙박시설": {
+            "reduction_need_score": 70.88
+          },
+          "운동시설": {
+            "reduction_need_score": 70.88
+          },
+          "장례식장": {
+            "reduction_need_score": 70.88
+          },
+          "수련시설": {
+            "reduction_need_score": 70.88
+          },
+          "제1종근린생활시설": {
+            "reduction_need_score": 62.02
+          },
+          "제2종근린생활시설": {
+            "reduction_need_score": 62.02
+          },
+          "근린생활시설": {
+            "reduction_need_score": 62.02
+          },
+          "교육연구및복지시설": {
+            "reduction_need_score": 53.16
+          },
+          "단독주택": {
+            "reduction_need_score": 50.9478
+          },
+          "공동주택": {
+            "reduction_need_score": 50.9478
+          },
+          "다가구주택": {
+            "reduction_need_score": 50.9478
+          },
+          "노유자시설": {
+            "reduction_need_score": 35.44
+          },
+          "가설건축물": {
+            "reduction_need_score": 10.7518
+          },
+          "창고시설": {
+            "reduction_need_score": 9.6766
+          },
+          "공장": {
+            "reduction_need_score": 8.6014
+          },
+          "자동차관련시설": {
+            "reduction_need_score": 8.6014
+          },
+          "묘지관련시설": {
+            "reduction_need_score": 8.6014
+          },
+          "동.식물 관련시설": {
+            "reduction_need_score": 6.4511
+          },
+          "위험물저장및처리시설": {
+            "reduction_need_score": 3.2255
+          },
+          "분뇨.쓰레기처리시설": {
+            "reduction_need_score": 3.2255
+          },
+          "교육연구시설": {
+            "reduction_need_score": 1.6505
+          },
+          "발전시설": {
+            "reduction_need_score": 0.0
+          },
+          "의료시설": {
+            "reduction_need_score": 0.0
+          },
+          "공공용시설": {
+            "reduction_need_score": 0.0
+          },
+          "방송통신시설": {
+            "reduction_need_score": 0.0
+          },
+          "운수시설": {
+            "reduction_need_score": 0.0
+          },
+          "교정및군사시설": {
+            "reduction_need_score": 0.0
+          }
+        }
+      },
+      {
+        "gu": "양천구",
+        "ta_gu": 29.08,
+        "total_consumption_mwh": 197526.22,
+        "usage": {
+          "가로등": {
+            "consumption_mwh": -605.5
+          },
+          "교육용": {
+            "consumption_mwh": 3136.11
+          },
+          "농사용": {
+            "consumption_mwh": -1515.72
+          },
+          "산업용": {
+            "consumption_mwh": 8276.39
+          },
+          "심야": {
+            "consumption_mwh": 2509.22
+          },
+          "일반용": {
+            "consumption_mwh": 106872.51
+          },
+          "주택용": {
+            "consumption_mwh": 78853.22
+          }
+        },
+        "building_type": {
+          "위락시설": {
+            "reduction_need_score": 79.74
+          },
+          "업무시설": {
+            "reduction_need_score": 70.88
+          },
+          "종교시설": {
+            "reduction_need_score": 70.88
+          },
+          "문화및집회시설": {
+            "reduction_need_score": 70.88
+          },
+          "판매시설": {
+            "reduction_need_score": 70.88
+          },
+          "판매및영업시설": {
+            "reduction_need_score": 70.88
+          },
+          "관광휴게시설": {
+            "reduction_need_score": 70.88
+          },
+          "숙박시설": {
+            "reduction_need_score": 70.88
+          },
+          "운동시설": {
+            "reduction_need_score": 70.88
+          },
+          "장례식장": {
+            "reduction_need_score": 70.88
+          },
+          "수련시설": {
+            "reduction_need_score": 70.88
+          },
+          "제1종근린생활시설": {
+            "reduction_need_score": 62.02
+          },
+          "제2종근린생활시설": {
+            "reduction_need_score": 62.02
+          },
+          "근린생활시설": {
+            "reduction_need_score": 62.02
+          },
+          "단독주택": {
+            "reduction_need_score": 57.9925
+          },
+          "공동주택": {
+            "reduction_need_score": 57.9925
+          },
+          "다가구주택": {
+            "reduction_need_score": 57.9925
+          },
+          "교육연구및복지시설": {
+            "reduction_need_score": 53.16
+          },
+          "노유자시설": {
+            "reduction_need_score": 35.44
+          },
+          "가설건축물": {
+            "reduction_need_score": 4.1008
+          },
+          "창고시설": {
+            "reduction_need_score": 3.6907
+          },
+          "공장": {
+            "reduction_need_score": 3.2806
+          },
+          "자동차관련시설": {
+            "reduction_need_score": 3.2806
+          },
+          "묘지관련시설": {
+            "reduction_need_score": 3.2806
+          },
+          "동.식물 관련시설": {
+            "reduction_need_score": 2.4605
+          },
+          "교육연구시설": {
+            "reduction_need_score": 1.4347
+          },
+          "위험물저장및처리시설": {
+            "reduction_need_score": 1.2302
+          },
+          "분뇨.쓰레기처리시설": {
+            "reduction_need_score": 1.2302
+          },
+          "발전시설": {
+            "reduction_need_score": 0.0
+          },
+          "의료시설": {
+            "reduction_need_score": 0.0
+          },
+          "공공용시설": {
+            "reduction_need_score": 0.0
+          },
+          "방송통신시설": {
+            "reduction_need_score": 0.0
+          },
+          "운수시설": {
+            "reduction_need_score": 0.0
+          },
+          "교정및군사시설": {
+            "reduction_need_score": 0.0
+          }
+        }
+      },
+      {
+        "gu": "영등포구",
+        "ta_gu": 29.25,
+        "total_consumption_mwh": 297662.09,
+        "usage": {
+          "가로등": {
+            "consumption_mwh": 1848.73
+          },
+          "교육용": {
+            "consumption_mwh": 5371.42
+          },
+          "농사용": {
+            "consumption_mwh": 921.95
+          },
+          "산업용": {
+            "consumption_mwh": 22669.18
+          },
+          "심야": {
+            "consumption_mwh": 13051.39
+          },
+          "일반용": {
+            "consumption_mwh": 172784.16
+          },
+          "주택용": {
+            "consumption_mwh": 81015.29
+          }
+        },
+        "building_type": {
+          "위락시설": {
+            "reduction_need_score": 79.74
+          },
+          "업무시설": {
+            "reduction_need_score": 70.88
+          },
+          "종교시설": {
+            "reduction_need_score": 70.88
+          },
+          "문화및집회시설": {
+            "reduction_need_score": 70.88
+          },
+          "판매시설": {
+            "reduction_need_score": 70.88
+          },
+          "판매및영업시설": {
+            "reduction_need_score": 70.88
+          },
+          "관광휴게시설": {
+            "reduction_need_score": 70.88
+          },
+          "숙박시설": {
+            "reduction_need_score": 70.88
+          },
+          "운동시설": {
+            "reduction_need_score": 70.88
+          },
+          "장례식장": {
+            "reduction_need_score": 70.88
+          },
+          "수련시설": {
+            "reduction_need_score": 70.88
+          },
+          "제1종근린생활시설": {
+            "reduction_need_score": 62.02
+          },
+          "제2종근린생활시설": {
+            "reduction_need_score": 62.02
+          },
+          "근린생활시설": {
+            "reduction_need_score": 62.02
+          },
+          "교육연구및복지시설": {
+            "reduction_need_score": 53.16
+          },
+          "노유자시설": {
+            "reduction_need_score": 35.44
+          },
+          "단독주택": {
+            "reduction_need_score": 30.0089
+          },
+          "공동주택": {
+            "reduction_need_score": 30.0089
+          },
+          "다가구주택": {
+            "reduction_need_score": 30.0089
+          },
+          "가설건축물": {
+            "reduction_need_score": 9.6369
+          },
+          "창고시설": {
+            "reduction_need_score": 8.6732
+          },
+          "공장": {
+            "reduction_need_score": 7.7095
+          },
+          "자동차관련시설": {
+            "reduction_need_score": 7.7095
+          },
+          "묘지관련시설": {
+            "reduction_need_score": 7.7095
+          },
+          "동.식물 관련시설": {
+            "reduction_need_score": 5.7822
+          },
+          "위험물저장및처리시설": {
+            "reduction_need_score": 2.8911
+          },
+          "분뇨.쓰레기처리시설": {
+            "reduction_need_score": 2.8911
+          },
+          "교육연구시설": {
+            "reduction_need_score": 0.5495
+          },
+          "발전시설": {
+            "reduction_need_score": 0.0
+          },
+          "의료시설": {
+            "reduction_need_score": 0.0
+          },
+          "공공용시설": {
+            "reduction_need_score": 0.0
+          },
+          "방송통신시설": {
+            "reduction_need_score": 0.0
+          },
+          "운수시설": {
+            "reduction_need_score": 0.0
+          },
+          "교정및군사시설": {
+            "reduction_need_score": 0.0
+          }
+        }
+      },
+      {
+        "gu": "용산구",
+        "ta_gu": 29.16,
+        "total_consumption_mwh": 181686.58,
+        "usage": {
+          "가로등": {
+            "consumption_mwh": 641.33
+          },
+          "교육용": {
+            "consumption_mwh": 4989.49
+          },
+          "농사용": {
+            "consumption_mwh": -43.11
+          },
+          "산업용": {
+            "consumption_mwh": 14349.71
+          },
+          "심야": {
+            "consumption_mwh": 3585.51
+          },
+          "일반용": {
+            "consumption_mwh": 99027.94
+          },
+          "주택용": {
+            "consumption_mwh": 59135.72
+          }
+        },
+        "building_type": {
+          "위락시설": {
+            "reduction_need_score": 79.74
+          },
+          "업무시설": {
+            "reduction_need_score": 70.88
+          },
+          "종교시설": {
+            "reduction_need_score": 70.88
+          },
+          "문화및집회시설": {
+            "reduction_need_score": 70.88
+          },
+          "판매시설": {
+            "reduction_need_score": 70.88
+          },
+          "판매및영업시설": {
+            "reduction_need_score": 70.88
+          },
+          "관광휴게시설": {
+            "reduction_need_score": 70.88
+          },
+          "숙박시설": {
+            "reduction_need_score": 70.88
+          },
+          "운동시설": {
+            "reduction_need_score": 70.88
+          },
+          "장례식장": {
+            "reduction_need_score": 70.88
+          },
+          "수련시설": {
+            "reduction_need_score": 70.88
+          },
+          "제1종근린생활시설": {
+            "reduction_need_score": 62.02
+          },
+          "제2종근린생활시설": {
+            "reduction_need_score": 62.02
+          },
+          "근린생활시설": {
+            "reduction_need_score": 62.02
+          },
+          "교육연구및복지시설": {
+            "reduction_need_score": 53.16
+          },
+          "단독주택": {
+            "reduction_need_score": 39.1092
+          },
+          "공동주택": {
+            "reduction_need_score": 39.1092
+          },
+          "다가구주택": {
+            "reduction_need_score": 39.1092
+          },
+          "노유자시설": {
+            "reduction_need_score": 35.44
+          },
+          "가설건축물": {
+            "reduction_need_score": 9.3156
+          },
+          "창고시설": {
+            "reduction_need_score": 8.384
+          },
+          "공장": {
+            "reduction_need_score": 7.4524
+          },
+          "자동차관련시설": {
+            "reduction_need_score": 7.4524
+          },
+          "묘지관련시설": {
+            "reduction_need_score": 7.4524
+          },
+          "동.식물 관련시설": {
+            "reduction_need_score": 5.5893
+          },
+          "교육연구시설": {
+            "reduction_need_score": 2.8337
+          },
+          "위험물저장및처리시설": {
+            "reduction_need_score": 2.7947
+          },
+          "분뇨.쓰레기처리시설": {
+            "reduction_need_score": 2.7947
+          },
+          "발전시설": {
+            "reduction_need_score": 0.0
+          },
+          "의료시설": {
+            "reduction_need_score": 0.0
+          },
+          "공공용시설": {
+            "reduction_need_score": 0.0
+          },
+          "방송통신시설": {
+            "reduction_need_score": 0.0
+          },
+          "운수시설": {
+            "reduction_need_score": 0.0
+          },
+          "교정및군사시설": {
+            "reduction_need_score": 0.0
+          }
+        }
+      },
+      {
+        "gu": "은평구",
+        "ta_gu": 28.56,
+        "total_consumption_mwh": 164371.25,
+        "usage": {
+          "가로등": {
+            "consumption_mwh": 94.64
+          },
+          "교육용": {
+            "consumption_mwh": 4160.74
+          },
+          "농사용": {
+            "consumption_mwh": -321.13
+          },
+          "산업용": {
+            "consumption_mwh": 14844.33
+          },
+          "심야": {
+            "consumption_mwh": 2236.84
+          },
+          "일반용": {
+            "consumption_mwh": 68983.05
+          },
+          "주택용": {
+            "consumption_mwh": 74372.77
+          }
+        },
+        "building_type": {
+          "단독주택": {
+            "reduction_need_score": 70.88
+          },
+          "공동주택": {
+            "reduction_need_score": 70.88
+          },
+          "다가구주택": {
+            "reduction_need_score": 70.88
+          },
+          "위락시설": {
+            "reduction_need_score": 55.4234
+          },
+          "업무시설": {
+            "reduction_need_score": 49.2652
+          },
+          "종교시설": {
+            "reduction_need_score": 49.2652
+          },
+          "문화및집회시설": {
+            "reduction_need_score": 49.2652
+          },
+          "판매시설": {
+            "reduction_need_score": 49.2652
+          },
+          "판매및영업시설": {
+            "reduction_need_score": 49.2652
+          },
+          "관광휴게시설": {
+            "reduction_need_score": 49.2652
+          },
+          "숙박시설": {
+            "reduction_need_score": 49.2652
+          },
+          "운동시설": {
+            "reduction_need_score": 49.2652
+          },
+          "장례식장": {
+            "reduction_need_score": 49.2652
+          },
+          "수련시설": {
+            "reduction_need_score": 49.2652
+          },
+          "제1종근린생활시설": {
+            "reduction_need_score": 43.1071
+          },
+          "제2종근린생활시설": {
+            "reduction_need_score": 43.1071
+          },
+          "근린생활시설": {
+            "reduction_need_score": 43.1071
+          },
+          "교육연구및복지시설": {
+            "reduction_need_score": 36.9489
+          },
+          "노유자시설": {
+            "reduction_need_score": 24.6326
+          },
+          "가설건축물": {
+            "reduction_need_score": 21.6246
+          },
+          "창고시설": {
+            "reduction_need_score": 19.4622
+          },
+          "공장": {
+            "reduction_need_score": 17.2997
+          },
+          "자동차관련시설": {
+            "reduction_need_score": 17.2997
+          },
+          "묘지관련시설": {
+            "reduction_need_score": 17.2997
+          },
+          "동.식물 관련시설": {
+            "reduction_need_score": 12.9748
+          },
+          "위험물저장및처리시설": {
+            "reduction_need_score": 6.4874
+          },
+          "분뇨.쓰레기처리시설": {
+            "reduction_need_score": 6.4874
+          },
+          "교육연구시설": {
+            "reduction_need_score": 1.8031
+          },
+          "발전시설": {
+            "reduction_need_score": 0.0
+          },
+          "의료시설": {
+            "reduction_need_score": 0.0
+          },
+          "공공용시설": {
+            "reduction_need_score": 0.0
+          },
+          "방송통신시설": {
+            "reduction_need_score": 0.0
+          },
+          "운수시설": {
+            "reduction_need_score": 0.0
+          },
+          "교정및군사시설": {
+            "reduction_need_score": 0.0
+          }
+        }
+      },
+      {
+        "gu": "종로구",
+        "ta_gu": 28.92,
+        "total_consumption_mwh": 184178.02,
+        "usage": {
+          "가로등": {
+            "consumption_mwh": 831.91
+          },
+          "교육용": {
+            "consumption_mwh": 6260.98
+          },
+          "농사용": {
+            "consumption_mwh": 249.53
+          },
+          "산업용": {
+            "consumption_mwh": 10504.53
+          },
+          "심야": {
+            "consumption_mwh": 5030.36
+          },
+          "일반용": {
+            "consumption_mwh": 121368.18
+          },
+          "주택용": {
+            "consumption_mwh": 39932.52
+          }
+        },
+        "building_type": {
+          "위락시설": {
+            "reduction_need_score": 79.74
+          },
+          "업무시설": {
+            "reduction_need_score": 70.88
+          },
+          "종교시설": {
+            "reduction_need_score": 70.88
+          },
+          "문화및집회시설": {
+            "reduction_need_score": 70.88
+          },
+          "판매시설": {
+            "reduction_need_score": 70.88
+          },
+          "판매및영업시설": {
+            "reduction_need_score": 70.88
+          },
+          "관광휴게시설": {
+            "reduction_need_score": 70.88
+          },
+          "숙박시설": {
+            "reduction_need_score": 70.88
+          },
+          "운동시설": {
+            "reduction_need_score": 70.88
+          },
+          "장례식장": {
+            "reduction_need_score": 70.88
+          },
+          "수련시설": {
+            "reduction_need_score": 70.88
+          },
+          "제1종근린생활시설": {
+            "reduction_need_score": 62.02
+          },
+          "제2종근린생활시설": {
+            "reduction_need_score": 62.02
+          },
+          "근린생활시설": {
+            "reduction_need_score": 62.02
+          },
+          "교육연구및복지시설": {
+            "reduction_need_score": 53.16
+          },
+          "노유자시설": {
+            "reduction_need_score": 35.44
+          },
+          "단독주택": {
+            "reduction_need_score": 17.8383
+          },
+          "공동주택": {
+            "reduction_need_score": 17.8383
+          },
+          "다가구주택": {
+            "reduction_need_score": 17.8383
+          },
+          "가설건축물": {
+            "reduction_need_score": 4.4279
+          },
+          "교육연구시설": {
+            "reduction_need_score": 4.181
+          },
+          "창고시설": {
+            "reduction_need_score": 3.9851
+          },
+          "공장": {
+            "reduction_need_score": 3.5423
+          },
+          "자동차관련시설": {
+            "reduction_need_score": 3.5423
+          },
+          "묘지관련시설": {
+            "reduction_need_score": 3.5423
+          },
+          "동.식물 관련시설": {
+            "reduction_need_score": 2.6567
+          },
+          "위험물저장및처리시설": {
+            "reduction_need_score": 1.3284
+          },
+          "분뇨.쓰레기처리시설": {
+            "reduction_need_score": 1.3284
+          },
+          "발전시설": {
+            "reduction_need_score": 0.0
+          },
+          "의료시설": {
+            "reduction_need_score": 0.0
+          },
+          "공공용시설": {
+            "reduction_need_score": 0.0
+          },
+          "방송통신시설": {
+            "reduction_need_score": 0.0
+          },
+          "운수시설": {
+            "reduction_need_score": 0.0
+          },
+          "교정및군사시설": {
+            "reduction_need_score": 0.0
+          }
+        }
+      },
+      {
+        "gu": "중구",
+        "ta_gu": 29.06,
+        "total_consumption_mwh": 265022.03,
+        "usage": {
+          "가로등": {
+            "consumption_mwh": 2125.13
+          },
+          "교육용": {
+            "consumption_mwh": 6339.36
+          },
+          "농사용": {
+            "consumption_mwh": 1439.97
+          },
+          "산업용": {
+            "consumption_mwh": 22378.01
+          },
+          "심야": {
+            "consumption_mwh": 11047.79
+          },
+          "일반용": {
+            "consumption_mwh": 186167.66
+          },
+          "주택용": {
+            "consumption_mwh": 35524.12
+          }
+        },
+        "building_type": {
+          "위락시설": {
+            "reduction_need_score": 79.74
+          },
+          "업무시설": {
+            "reduction_need_score": 70.88
+          },
+          "종교시설": {
+            "reduction_need_score": 70.88
+          },
+          "문화및집회시설": {
+            "reduction_need_score": 70.88
+          },
+          "판매시설": {
+            "reduction_need_score": 70.88
+          },
+          "판매및영업시설": {
+            "reduction_need_score": 70.88
+          },
+          "관광휴게시설": {
+            "reduction_need_score": 70.88
+          },
+          "숙박시설": {
+            "reduction_need_score": 70.88
+          },
+          "운동시설": {
+            "reduction_need_score": 70.88
+          },
+          "장례식장": {
+            "reduction_need_score": 70.88
+          },
+          "수련시설": {
+            "reduction_need_score": 70.88
+          },
+          "제1종근린생활시설": {
+            "reduction_need_score": 62.02
+          },
+          "제2종근린생활시설": {
+            "reduction_need_score": 62.02
+          },
+          "근린생활시설": {
+            "reduction_need_score": 62.02
+          },
+          "교육연구및복지시설": {
+            "reduction_need_score": 53.16
+          },
+          "노유자시설": {
+            "reduction_need_score": 35.44
+          },
+          "단독주택": {
+            "reduction_need_score": 10.2507
+          },
+          "공동주택": {
+            "reduction_need_score": 10.2507
+          },
+          "다가구주택": {
+            "reduction_need_score": 10.2507
+          },
+          "가설건축물": {
+            "reduction_need_score": 9.3289
+          },
+          "창고시설": {
+            "reduction_need_score": 8.396
+          },
+          "공장": {
+            "reduction_need_score": 7.4631
+          },
+          "자동차관련시설": {
+            "reduction_need_score": 7.4631
+          },
+          "묘지관련시설": {
+            "reduction_need_score": 7.4631
+          },
+          "동.식물 관련시설": {
+            "reduction_need_score": 5.5973
+          },
+          "위험물저장및처리시설": {
+            "reduction_need_score": 2.7987
+          },
+          "분뇨.쓰레기처리시설": {
+            "reduction_need_score": 2.7987
+          },
+          "교육연구시설": {
+            "reduction_need_score": 1.1024
+          },
+          "발전시설": {
+            "reduction_need_score": 0.0
+          },
+          "의료시설": {
+            "reduction_need_score": 0.0
+          },
+          "공공용시설": {
+            "reduction_need_score": 0.0
+          },
+          "방송통신시설": {
+            "reduction_need_score": 0.0
+          },
+          "운수시설": {
+            "reduction_need_score": 0.0
+          },
+          "교정및군사시설": {
+            "reduction_need_score": 0.0
+          }
+        }
+      },
+      {
+        "gu": "중랑구",
+        "ta_gu": 28.95,
+        "total_consumption_mwh": 129812.48,
+        "usage": {
+          "가로등": {
+            "consumption_mwh": -112.68
+          },
+          "교육용": {
+            "consumption_mwh": 2198.09
+          },
+          "농사용": {
+            "consumption_mwh": -953.52
+          },
+          "산업용": {
+            "consumption_mwh": 6888.86
+          },
+          "심야": {
+            "consumption_mwh": 1073.92
+          },
+          "일반용": {
+            "consumption_mwh": 55976.98
+          },
+          "주택용": {
+            "consumption_mwh": 64740.84
+          }
+        },
+        "building_type": {
+          "단독주택": {
+            "reduction_need_score": 70.88
+          },
+          "공동주택": {
+            "reduction_need_score": 70.88
+          },
+          "다가구주택": {
+            "reduction_need_score": 70.88
+          },
+          "위락시설": {
+            "reduction_need_score": 60.5919
+          },
+          "업무시설": {
+            "reduction_need_score": 53.8595
+          },
+          "종교시설": {
+            "reduction_need_score": 53.8595
+          },
+          "문화및집회시설": {
+            "reduction_need_score": 53.8595
+          },
+          "판매시설": {
+            "reduction_need_score": 53.8595
+          },
+          "판매및영업시설": {
+            "reduction_need_score": 53.8595
+          },
+          "관광휴게시설": {
+            "reduction_need_score": 53.8595
+          },
+          "숙박시설": {
+            "reduction_need_score": 53.8595
+          },
+          "운동시설": {
+            "reduction_need_score": 53.8595
+          },
+          "장례식장": {
+            "reduction_need_score": 53.8595
+          },
+          "수련시설": {
+            "reduction_need_score": 53.8595
+          },
+          "제1종근린생활시설": {
+            "reduction_need_score": 47.1271
+          },
+          "제2종근린생활시설": {
+            "reduction_need_score": 47.1271
+          },
+          "근린생활시설": {
+            "reduction_need_score": 47.1271
+          },
+          "교육연구및복지시설": {
+            "reduction_need_score": 40.3946
+          },
+          "노유자시설": {
+            "reduction_need_score": 26.9297
+          },
+          "가설건축물": {
+            "reduction_need_score": 8.7175
+          },
+          "창고시설": {
+            "reduction_need_score": 7.8457
+          },
+          "공장": {
+            "reduction_need_score": 6.974
+          },
+          "자동차관련시설": {
+            "reduction_need_score": 6.974
+          },
+          "묘지관련시설": {
+            "reduction_need_score": 6.974
+          },
+          "동.식물 관련시설": {
+            "reduction_need_score": 5.2305
+          },
+          "위험물저장및처리시설": {
+            "reduction_need_score": 2.6152
+          },
+          "분뇨.쓰레기처리시설": {
+            "reduction_need_score": 2.6152
+          },
+          "교육연구시설": {
+            "reduction_need_score": 1.5924
+          },
+          "발전시설": {
+            "reduction_need_score": 0.0
+          },
+          "의료시설": {
+            "reduction_need_score": 0.0
+          },
+          "공공용시설": {
+            "reduction_need_score": 0.0
+          },
+          "방송통신시설": {
+            "reduction_need_score": 0.0
+          },
+          "운수시설": {
+            "reduction_need_score": 0.0
+          },
+          "교정및군사시설": {
+            "reduction_need_score": 0.0
+          }
+        }
+      }
+    ]
+  }
+}

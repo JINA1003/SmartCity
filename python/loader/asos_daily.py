@@ -1,7 +1,8 @@
 """
 ASOS 시간자료 → 일별/월별 집계.
 
-입력: data/file/asos_weather_data/asos_108_hourly.csv
+입력: data/file/asos_weather_data/
+      asos_108_YYYYMMDDHHH_YYYYMMDDHHH.csv 형태의 연도별 파일 자동 합산
       컬럼 — tm(YYYY-MM-DD HH), ta(기온℃), ws(풍속m/s), hm(습도%)
 
 출력:
@@ -15,16 +16,29 @@ from pathlib import Path
 
 import pandas as pd
 
-HOURLY_CSV = (
+ASOS_DIR = (
     Path(__file__).resolve().parents[2]
-    / "data" / "file" / "asos_weather_data" / "asos_108_hourly.csv"
+    / "data" / "file" / "asos_weather_data"
 )
 
 
 def load_hourly() -> pd.DataFrame:
-    df = pd.read_csv(HOURLY_CSV, encoding="utf-8-sig")
+    """연도별 CSV 파일을 모두 합쳐 시간별 DataFrame 반환."""
+    files = sorted(ASOS_DIR.glob("asos_108_*.csv"))
+    if not files:
+        raise FileNotFoundError(f"ASOS CSV 없음: {ASOS_DIR}")
+
+    frames = []
+    for f in files:
+        try:
+            chunk = pd.read_csv(f, encoding="utf-8-sig")
+            frames.append(chunk)
+        except Exception:
+            continue
+
+    df = pd.concat(frames, ignore_index=True)
     df["tm"] = pd.to_datetime(df["tm"], format="%Y-%m-%d %H", errors="coerce")
-    df = df.dropna(subset=["tm"]).sort_values("tm").reset_index(drop=True)
+    df = df.dropna(subset=["tm"]).sort_values("tm").drop_duplicates("tm").reset_index(drop=True)
     for col in ("ta", "ws", "hm"):
         df[col] = pd.to_numeric(df[col], errors="coerce")
     return df

@@ -1,0 +1,112 @@
+{
+  "input": {
+    "year": 2015,
+    "month": 3,
+    "oni": 0.0
+  },
+  "alert_level": 0,
+  "alert_label": "정상",
+  "districts_affected": 0,
+  "districts_order": [
+    {
+      "gu": "강남구",
+      "blackout_items": []
+    },
+    {
+      "gu": "서초구",
+      "blackout_items": []
+    },
+    {
+      "gu": "영등포구",
+      "blackout_items": []
+    },
+    {
+      "gu": "송파구",
+      "blackout_items": []
+    },
+    {
+      "gu": "중구",
+      "blackout_items": []
+    },
+    {
+      "gu": "강서구",
+      "blackout_items": []
+    },
+    {
+      "gu": "마포구",
+      "blackout_items": []
+    },
+    {
+      "gu": "성동구",
+      "blackout_items": []
+    },
+    {
+      "gu": "구로구",
+      "blackout_items": []
+    },
+    {
+      "gu": "종로구",
+      "blackout_items": []
+    },
+    {
+      "gu": "관악구",
+      "blackout_items": []
+    },
+    {
+      "gu": "광진구",
+      "blackout_items": []
+    },
+    {
+      "gu": "금천구",
+      "blackout_items": []
+    },
+    {
+      "gu": "양천구",
+      "blackout_items": []
+    },
+    {
+      "gu": "노원구",
+      "blackout_items": []
+    },
+    {
+      "gu": "강동구",
+      "blackout_items": []
+    },
+    {
+      "gu": "성북구",
+      "blackout_items": []
+    },
+    {
+      "gu": "동대문구",
+      "blackout_items": []
+    },
+    {
+      "gu": "용산구",
+      "blackout_items": []
+    },
+    {
+      "gu": "은평구",
+      "blackout_items": []
+    },
+    {
+      "gu": "동작구",
+      "blackout_items": []
+    },
+    {
+      "gu": "서대문구",
+      "blackout_items": []
+    },
+    {
+      "gu": "중랑구",
+      "blackout_items": []
+    },
+    {
+      "gu": "도봉구",
+      "blackout_items": []
+    },
+    {
+      "gu": "강북구",
+      "blackout_items": []
+    }
+  ]
+}
