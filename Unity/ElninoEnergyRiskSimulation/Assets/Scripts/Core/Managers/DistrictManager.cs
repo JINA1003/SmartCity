@@ -3,7 +3,15 @@ using UnityEngine;
 
 public class DistrictManager : MonoBehaviour
 {
+    public static DistrictManager Instance { get; private set; }
+
     public Dictionary<string, DistrictObject> districtObjects = new Dictionary<string, DistrictObject>();
+
+    private void Awake()
+    {
+        if (Instance == null) Instance = this;
+        else Destroy(gameObject);
+    }
 
     public void AddDistrictObjects(string districtName, List<GameObject> buildings)
     {
