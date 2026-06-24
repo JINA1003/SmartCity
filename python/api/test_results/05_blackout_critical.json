@@ -6,10 +6,13 @@
   },
   "alert_level": 4,
   "alert_label": "심각",
+  "supply_mw": 112730.2,
+  "reserve_rate": 4.44,
   "districts_affected": 5,
   "districts_order": [
     {
       "gu": "강남구",
+      "ta_gu": 28.76,
       "blackout_items": [
         {
           "building_type": "위락시설",
@@ -151,6 +154,7 @@
     },
     {
       "gu": "서초구",
+      "ta_gu": 28.7,
       "blackout_items": [
         {
           "building_type": "위락시설",
@@ -292,6 +296,7 @@
     },
     {
       "gu": "송파구",
+      "ta_gu": 29.1,
       "blackout_items": [
         {
           "building_type": "위락시설",
@@ -433,6 +438,7 @@
     },
     {
       "gu": "영등포구",
+      "ta_gu": 29.25,
       "blackout_items": [
         {
           "building_type": "위락시설",
@@ -574,6 +580,7 @@
     },
     {
       "gu": "강서구",
+      "ta_gu": 28.76,
       "blackout_items": [
         {
           "building_type": "위락시설",
@@ -615,82 +622,102 @@
     },
     {
       "gu": "중구",
+      "ta_gu": 29.06,
       "blackout_items": []
     },
     {
       "gu": "마포구",
+      "ta_gu": 29.14,
       "blackout_items": []
     },
     {
       "gu": "성동구",
+      "ta_gu": 29.23,
       "blackout_items": []
     },
     {
       "gu": "강동구",
+      "ta_gu": 28.62,
       "blackout_items": []
     },
     {
       "gu": "구로구",
+      "ta_gu": 29.18,
       "blackout_items": []
     },
     {
       "gu": "관악구",
+      "ta_gu": 28.89,
       "blackout_items": []
     },
     {
       "gu": "양천구",
+      "ta_gu": 29.08,
       "blackout_items": []
     },
     {
       "gu": "종로구",
+      "ta_gu": 28.92,
       "blackout_items": []
     },
     {
       "gu": "금천구",
+      "ta_gu": 29.06,
       "blackout_items": []
     },
     {
       "gu": "광진구",
+      "ta_gu": 29.07,
       "blackout_items": []
     },
     {
       "gu": "용산구",
+      "ta_gu": 29.15,
       "blackout_items": []
     },
     {
       "gu": "노원구",
+      "ta_gu": 28.53,
       "blackout_items": []
     },
     {
       "gu": "은평구",
+      "ta_gu": 28.56,
       "blackout_items": []
     },
     {
       "gu": "성북구",
+      "ta_gu": 28.78,
       "blackout_items": []
     },
     {
       "gu": "동대문구",
+      "ta_gu": 28.96,
       "blackout_items": []
     },
     {
       "gu": "동작구",
+      "ta_gu": 28.82,
       "blackout_items": []
     },
     {
       "gu": "서대문구",
+      "ta_gu": 28.66,
       "blackout_items": []
     },
     {
       "gu": "중랑구",
+      "ta_gu": 28.95,
       "blackout_items": []
     },
     {
       "gu": "강북구",
+      "ta_gu": 28.22,
       "blackout_items": []
     },
     {
       "gu": "도봉구",
+      "ta_gu": 28.47,
       "blackout_items": []
     }
   ]

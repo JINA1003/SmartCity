@@ -321,10 +321,10 @@ def blackout_simulation():
     """
     POST /blackout_simulation  body: {year, month, oni}
 
-    순회 기준:
-      1. 구별 total_consumption_mwh 내림차순
-      2. 구 내 building_type별 reduction_need_score 내림차순
-    경보단계 '경계' 이상일 때만 블랙아웃 실행.
+    단계별 blackout_items:
+      정상/관심 : 빈 리스트
+      주의      : 공공시설(의료·발전·공공용 등) 경고 목록 (is_public=true)
+      경계/심각 : reduction_need_score 내림차순 감축 목표 달성까지 순차 나열
     """
     _lazy_load()
     data = request.get_json(force=True)
@@ -347,7 +347,6 @@ def blackout_simulation():
     bldg_score = get_building_score_map(year, month)
     result     = run_blackout(predicted["regions"], bldg_score, alert)
 
-    # districts_order: 소비량 내림차순 25구 — 각 구에 단전 순서 포함
     # blackout_items을 구별로 그룹핑 (순서 유지)
     items_by_gu: dict[str, list] = {}
     for item in result["blackout_items"]:
@@ -356,10 +355,14 @@ def blackout_simulation():
             "reduction_need_score": item["reduction_need_score"],
         })
 
+    # 구별 ta_gu 조회
+    ta_by_gu = {r["gu"]: round(r["ta_gu"], 2) for r in predicted["regions"]}
+
     districts_order = [
         {
             "gu":             gu,
-            "blackout_items": items_by_gu.get(gu, []),   # 단전 대상 아니면 빈 리스트
+            "ta_gu":          ta_by_gu.get(gu, 0.0),
+            "blackout_items": items_by_gu.get(gu, []),
         }
         for gu in result["districts_order"]
     ]
@@ -368,6 +371,8 @@ def blackout_simulation():
         "input":              {"year": year, "month": month, "oni": oni},
         "alert_level":        int(alert),
         "alert_label":        alert.label_ko,
+        "supply_mw":          supply_info["supply_mw"],
+        "reserve_rate":       supply_info["reserve_rate"],
         "districts_affected": result["districts_affected"],
         "districts_order":    districts_order,
     })
