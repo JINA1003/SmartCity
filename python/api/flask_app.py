@@ -8,7 +8,7 @@ Flask REST API — Unity ↔ Python 브릿지.
   GET  /oni?year=2025&month=8
       [입력] year, month
       슬라이더 초기값용. 과거 실측 ONI 반환, 미래면 0.0 반환.
-      반환: {"year": 2025, "month": 8, "oni": 1.37, "is_actual": true}
+      반환: {"year": 2025, "month": 8, "oni": 1.37}
 
   GET  /predict?year=2030&month=8&oni=1.2
       [입력] year, month, oni (슬라이더값)
@@ -76,6 +76,7 @@ import calendar
 from flask import Flask, jsonify, request
 
 app = Flask(__name__)
+app.json.sort_keys = False   # dict 삽입 순서 유지 (building_type score 내림차순 등)
 
 # ---------------------------------------------------------------------------
 # 모델/파라미터 로드 (서버 기동 시 1회)
@@ -174,18 +175,29 @@ def _predict_one_month(year: int, month: int, oni: float) -> dict:
     # building_type별 reduction_need_score: 실측 연산값 (가장 가까운 연월 fallback)
     bldg_score = get_building_score_map(year, month)
 
+    USAGE_ORDER = ["가로등", "교육용", "농사용", "산업용", "심야", "일반용", "주택용"]
+
     regions = []
-    for gu, ta_gu in sorted(gu_temps.items()):
+    for gu, ta_gu in sorted(gu_temps.items()):   # 가나다순
         gu_rows = cons_df[cons_df["district"] == gu]
 
+        # usage: 가나다 고정 순서
         usage_dict = {
-            row["usage_type"]: {"consumption_mwh": round(float(row["consumption_mwh"]), 2)}
-            for _, row in gu_rows.iterrows()
+            ut: {"consumption_mwh": round(float(
+                gu_rows.loc[gu_rows["usage_type"] == ut, "consumption_mwh"].values[0]
+            ), 2)}
+            for ut in USAGE_ORDER
+            if ut in gu_rows["usage_type"].values
         }
+
+        # building_type: reduction_need_score 내림차순
         building_type_dict = {
             bt: {"reduction_need_score": round(sc, 4)}
-            for bt, sc in bldg_score.get(gu, {}).items()
+            for bt, sc in sorted(
+                bldg_score.get(gu, {}).items(), key=lambda x: x[1], reverse=True
+            )
         }
+
         total_mwh = round(float(gu_rows["consumption_mwh"].sum()), 2)
 
         regions.append({
@@ -220,10 +232,10 @@ def get_oni():
     """
     슬라이더 초기값 조회.  GET /oni?year=2025&month=8
 
-    - 과거(실측 ONI 존재): 실측값 반환, is_actual=true
-    - 미래(데이터 없음):   0.0 반환,  is_actual=false
-    Unity는 이 값으로 슬라이더를 초기 세팅한 뒤
-    사용자가 조정하면 /predict 호출.
+    [입력] year, month
+    [반환] {"year": 2025, "month": 8, "oni": 1.37}
+      - 과거(실측 ONI 존재): 실측값 반환
+      - 미래(데이터 없음):   0.0 반환
     """
     try:
         year  = int(request.args["year"])
@@ -231,14 +243,11 @@ def get_oni():
     except (KeyError, ValueError) as e:
         return jsonify({"error": f"파라미터 오류: {e}"}), 400
 
-    actual = _get_oni_actual()
-    oni_val   = actual.get((year, month))
-    is_actual = oni_val is not None
+    actual  = _get_oni_actual()
+    oni_val = actual.get((year, month))
     return jsonify({
-        "year":      year,
-        "month":     month,
-        "oni":       round(oni_val, 2) if is_actual else 0.0,
-        "is_actual": is_actual,
+        "input":  {"year": year, "month": month},
+        "output": {"oni": round(oni_val, 2) if oni_val is not None else 0.0},
     })
 
 
@@ -338,13 +347,29 @@ def blackout_simulation():
     bldg_score = get_building_score_map(year, month)
     result     = run_blackout(predicted["regions"], bldg_score, alert)
 
+    # districts_order: 소비량 내림차순 25구 — 각 구에 단전 순서 포함
+    # blackout_items을 구별로 그룹핑 (순서 유지)
+    items_by_gu: dict[str, list] = {}
+    for item in result["blackout_items"]:
+        items_by_gu.setdefault(item["gu"], []).append({
+            "building_type":        item["building_type"],
+            "reduction_need_score": item["reduction_need_score"],
+        })
+
+    districts_order = [
+        {
+            "gu":             gu,
+            "blackout_items": items_by_gu.get(gu, []),   # 단전 대상 아니면 빈 리스트
+        }
+        for gu in result["districts_order"]
+    ]
+
     return jsonify({
         "input":              {"year": year, "month": month, "oni": oni},
         "alert_level":        int(alert),
         "alert_label":        alert.label_ko,
         "districts_affected": result["districts_affected"],
-        "districts_order":    result["districts_order"],
-        "blackout_items":     result["blackout_items"],
+        "districts_order":    districts_order,
     })
 
 
