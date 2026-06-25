@@ -1,5 +1,5 @@
 """
-S-DoT 기반 구별 base_offset 계산.
+S-DoT 기반 구별 base_offset 계산 및 미래 기온 예측.
 
 설계 원칙 :
   base_offset(gu)      = S-DoT 평년 일평균기온 - ASOS 동기간 평균기온  [고정, 구의 구조적 특성]
@@ -8,10 +8,22 @@ S-DoT 기반 구별 base_offset 계산.
 풍속은 S-DoT 결측률 ~80% 로 사용 불가 → ASOS 월별 평년 풍속으로 대체.
 (근거: 미래 풍속 예측 신뢰도가 낮으므로 평년값이 더 정직한 가정)
 
+구별 기온 예측 공식 (Delta Method):
+  ta_gu(gu, year, month) = ta_asos(year, month, ONI)
+                         + offset(gu, month) × multiplier(month)
+  - ta_asos  : temp_trend.predict() 결과 (ASOS 기준 기온)
+  - offset   : S-DoT 5년 실측에서 계산한 구별 월별 오프셋
+  - multiplier: ASOS 평년 풍속 기반 (평년=1.0, 약풍>1.0, 강풍<1.0)
+
 공개 함수:
-  load_sdot_gu_daily()   → S-DoT 구별 일별 DataFrame
-  calc_base_offset()     → {구: offset_degC}
-  calc_multiplier()      → {month: multiplier}  (풍속 기반 스케일)
+  load_sdot_gu_daily()        → S-DoT 구별 일별 DataFrame
+  calc_base_offset()          → {구: offset_degC}
+  calc_monthly_offset()       → {(구, month): offset_degC}
+  calc_dynamic_multiplier()   → DataFrame(year, month, multiplier)
+  calc_ws_beta()              → β_ws float
+  calc_beta_gu()              → {구: beta_gu}
+  save_gu_params() / load_gu_params()  → 파라미터 직렬화
+  predict_gu_temp()           → {구: ta_gu}  ← API/Unity 용
 """
 import re
 from pathlib import Path
@@ -359,3 +371,69 @@ def calc_dynamic_multiplier(asos_daily: pd.DataFrame) -> pd.DataFrame:
     ws_actual["multiplier"] = ws_actual["multiplier"].clip(0.5, 2.0).round(4)
 
     return ws_actual[["year", "month", "multiplier"]]
+
+
+# ============================================================================
+# 파라미터 저장 / 로드  (train_pipeline 에서 한 번 계산 → API 서버에서 재사용)
+# ============================================================================
+
+GU_PARAMS_PATH = Path(__file__).resolve().parents[2] / "data" / "output" / "gu_offset_params.pkl"
+
+
+def save_gu_params(
+    monthly_offset: dict[tuple[str, int], float],
+    ws_clim: dict[int, float],
+) -> None:
+    """
+    monthly_offset : {(구, month): offset_degC}
+    ws_clim        : {month: 평년_풍속_m/s}  → 미래 multiplier=1.0 기준
+
+    미래 예측에서는 풍속을 알 수 없으므로 평년 multiplier=1.0 을 사용.
+    """
+    import pickle
+    GU_PARAMS_PATH.parent.mkdir(parents=True, exist_ok=True)
+    with open(GU_PARAMS_PATH, "wb") as f:
+        pickle.dump({"monthly_offset": monthly_offset, "ws_clim": ws_clim}, f)
+
+
+def load_gu_params() -> tuple[dict[tuple[str, int], float], dict[int, float]]:
+    """저장된 파라미터 로드. 반환: (monthly_offset, ws_clim)"""
+    import pickle
+    with open(GU_PARAMS_PATH, "rb") as f:
+        data = pickle.load(f)
+    return data["monthly_offset"], data["ws_clim"]
+
+
+# ============================================================================
+# 미래 기온 예측  (API / Unity 용)
+# ============================================================================
+
+def predict_gu_temp(
+    ta_asos: float,
+    month: int,
+    monthly_offset: dict[tuple[str, int], float] | None = None,
+    multiplier: float = 1.0,
+) -> dict[str, float]:
+    """
+    ASOS 예측 기온(ta_asos) → 25개 구별 기온 dict.
+
+    공식:
+      ta_gu(gu) = ta_asos + offset(gu, month) × multiplier
+
+    파라미터:
+      ta_asos        : temp_trend.predict(year, month, oni) 결과
+      month          : 예측 월 (1~12)
+      monthly_offset : {(구, month): offset}  — None 이면 파일에서 자동 로드
+      multiplier     : 열섬 강도 스케일 (미래 예측 시 1.0, 과거 재현 시 실측 multiplier)
+
+    반환: {"강남구": 31.2, "강북구": 29.8, ...}
+    """
+    if monthly_offset is None:
+        monthly_offset, _ = load_gu_params()
+
+    result: dict[str, float] = {}
+    for (gu, m), offset in monthly_offset.items():
+        if m != month:
+            continue
+        result[gu] = round(ta_asos + offset * multiplier, 3)
+    return result
