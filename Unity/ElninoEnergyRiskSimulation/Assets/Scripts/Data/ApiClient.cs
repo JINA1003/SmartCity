@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Text;
+using Newtonsoft.Json.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -9,12 +10,11 @@ public class ApiClient : MonoBehaviour
     [Header("서버 설정")]
     public string serverUrl = "http://localhost:5000";
 
-    // 각 엔드포인트별 이벤트 (JSON 문자열 그대로 전달)
-    public event Action<string> OnHealthSuccess;
-    public event Action<string> OnOniSuccess;
-    public event Action<string> OnPredictSuccess;
-    public event Action<string> OnOniRangeSuccess;
-    public event Action<string> OnBlackoutSuccess;
+    public event Action<JObject> OnHealthSuccess;
+    public event Action<JObject> OnOniSuccess;
+    public event Action<JObject> OnPredictSuccess;
+    public event Action<JObject> OnOniRangeSuccess;
+    public event Action<JObject> OnBlackoutSuccess;
     public event Action<string> OnError;
 
     // -----------------------------------------------------------------------
@@ -54,18 +54,18 @@ public class ApiClient : MonoBehaviour
     // 내부 Coroutine
     // -----------------------------------------------------------------------
 
-    private IEnumerator Get(string url, Action<string> onSuccess)
+    private IEnumerator Get(string url, Action<JObject> onSuccess)
     {
         using UnityWebRequest req = UnityWebRequest.Get(url);
         yield return req.SendWebRequest();
 
         if (req.result == UnityWebRequest.Result.Success)
-            onSuccess?.Invoke(req.downloadHandler.text);
+            onSuccess?.Invoke(JObject.Parse(req.downloadHandler.text));
         else
             OnError?.Invoke($"[GET {url}] {req.responseCode} {req.error}");
     }
 
-    private IEnumerator Post(string url, string jsonBody, Action<string> onSuccess)
+    private IEnumerator Post(string url, string jsonBody, Action<JObject> onSuccess)
     {
         byte[] bodyBytes = Encoding.UTF8.GetBytes(jsonBody);
         using UnityWebRequest req = new(url, "POST");
@@ -75,7 +75,7 @@ public class ApiClient : MonoBehaviour
         yield return req.SendWebRequest();
 
         if (req.result == UnityWebRequest.Result.Success)
-            onSuccess?.Invoke(req.downloadHandler.text);
+            onSuccess?.Invoke(JObject.Parse(req.downloadHandler.text));
         else
             OnError?.Invoke($"[POST {url}] {req.responseCode} {req.error}");
     }
