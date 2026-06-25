@@ -258,12 +258,17 @@ def predict():
 
     from python.simulation.alert_level import get_alert_level
 
-    predicted   = _predict_one_month(year, month, oni)
-    alert       = get_alert_level(predicted["supply"]["reserve_rate"])
+    base        = _predict_one_month(year, month, oni)
+    alert       = get_alert_level(base["supply"]["reserve_rate"])
 
-    predicted["alert_level"] = int(alert)
-    predicted["alert_label"] = alert.label_ko
-    predicted["oni_status"]  = _oni_status(oni)
+    predicted = {
+        "asos_temp":   base["asos_temp"],
+        "alert_level": int(alert),
+        "alert_label": alert.label_ko,
+        "oni_status":  _oni_status(oni),
+        "supply":      base["supply"],
+        "regions":     base["regions"],
+    }
 
     return jsonify({
         "input":        {"year": year, "month": month, "oni": oni},

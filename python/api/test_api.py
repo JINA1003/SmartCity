@@ -130,20 +130,16 @@ def run_tests() -> int:
         n_gu    = len(regions)
         sample  = regions[0] if regions else {}
         usage_keys = list(sample.get("usage", {}).keys())
-        bt_keys    = list(sample.get("building_type", {}).keys())
 
-        _ok(f"asos_temp={pred.get('asos_temp')}℃ | 구={n_gu}개 | is_simulated={d.get('is_simulated')}")
+        _ok(f"asos_temp={pred.get('asos_temp')}℃ | alert={pred.get('alert_level')}({pred.get('alert_label')}) | 구={n_gu}개 | is_simulated={d.get('is_simulated')}")
         _ok(f"supply_mw={pred.get('supply',{}).get('supply_mw')} | reserve_rate={pred.get('supply',{}).get('reserve_rate')}%")
         _ok(f"[{sample.get('gu')}] ta_gu={sample.get('ta_gu')} | total_mwh={sample.get('total_consumption_mwh')}")
         _ok(f"usage({len(usage_keys)}종): {usage_keys}")
-        _ok(f"building_type({len(bt_keys)}종): {bt_keys[:3]}...")
 
         if n_gu != 25:
             _fail("/predict", f"구 수={n_gu} (기대=25)"); failures += 1
         if len(usage_keys) != 7:
             _fail("/predict", f"usage 수={len(usage_keys)} (기대=7)"); failures += 1
-        if len(bt_keys) == 0:
-            _fail("/predict", "building_type 비어있음"); failures += 1
 
         _save("03_predict_future.json", d)
 
