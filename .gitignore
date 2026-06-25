@@ -309,3 +309,5 @@ crashlytics-build.properties
 /python/api/test_results
 
 Unity/ElninoEnergyRiskSimulation/Assets/StreamingAssets
+Unity/ElninoEnergyRiskSimulation/Assets/Scenes/Test
+Unity/ElninoEnergyRiskSimulation/Assets/Scripts/Test
