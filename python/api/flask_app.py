@@ -20,6 +20,9 @@ Flask REST API — Unity ↔ Python 브릿지.
           "is_simulated": true,    ← 2026년 이후 또는 ONI 실측과 다를 때 true
           "predicted": {
             "asos_temp": 28.4,     ← [예측] 서울 기준기온
+            "alert_level": 4,      ← 공급 경보단계 (0=정상, 1=관심, 2=주의, 3=경계, 4=심각)
+            "alert_label": "심각", ← 경보단계 한국어 레이블
+            "oni_status": "엘니뇨", ← ONI 상태 (엘니뇨/라니냐/중립)
             "supply": {"supply_mw": 89500.0, "reserve_rate": 12.3},
             "regions": [
               {
@@ -29,11 +32,6 @@ Flask REST API — Unity ↔ Python 브릿지.
                 "usage": {                       ← 7개 용도별 소비량
                   "주택용": {"consumption_mwh": 412.3},
                   "산업용": {"consumption_mwh": 890.1},
-                  ...
-                },
-                "building_type": {               ← 34종 건물유형별 reduction_need_score
-                  "공장":         {"reduction_need_score": 8.31},
-                  "교육연구시설":  {"reduction_need_score": 0.92},
                   ...
                 }
               }, ...
@@ -140,6 +138,16 @@ def _is_simulated(year: int, month: int, oni: float) -> bool:
     return abs(actual[(year, month)] - oni) > 0.05  # ONI 변경 여부 (±0.05 허용)
 
 
+def _oni_status(oni: float) -> str:
+    """ONI 값 → 엘니뇨/라니냐/중립 판별 (±0.5 기준)."""
+    if oni >= 0.5:
+        return "엘니뇨"
+    elif oni <= -0.5:
+        return "라니냐"
+    else:
+        return "중립"
+
+
 def _asos_cdd_hdd(ta_asos: float, year: int, month: int) -> tuple[float, float]:
     """ASOS 예측 기온 → 월간 CDD/HDD (공급량 모델 입력용)."""
     days = calendar.monthrange(year, month)[1]
@@ -158,9 +166,8 @@ def _predict_one_month(year: int, month: int, oni: float) -> dict:
     from python.train.supply_regression import predict as pred_supply
     from python.train.consumption_xgb import predict_all_districts
     from python.preprocess.gu_offset import predict_gu_temp
-    from python.loader.mapping_loader import get_building_score_map
 
-    USAGE_TYPES = ["가로등", "교육용", "농사용", "산업용", "심야", "일반용", "주택용"]
+    USAGE_ORDER = ["가로등", "교육용", "농사용", "산업용", "심야", "일반용", "주택용"]
 
     ta_asos            = pred_temp(year, month, oni, _temp_model)
     cdd_asos, hdd_asos = _asos_cdd_hdd(ta_asos, year, month)   # 내부 연산용
@@ -168,34 +175,20 @@ def _predict_one_month(year: int, month: int, oni: float) -> dict:
     gu_temps           = predict_gu_temp(ta_asos, month, _monthly_offset, multiplier=1.0)
     cons_df            = predict_all_districts(
         year=year, month=month, oni=oni,
-        gu_temps=gu_temps, usage_types=USAGE_TYPES,
+        gu_temps=gu_temps, usage_types=USAGE_ORDER,
         model=_consumption_model, encoders=_consumption_encoders,
     )
-
-    # building_type별 reduction_need_score: 실측 연산값 (가장 가까운 연월 fallback)
-    bldg_score = get_building_score_map(year, month)
-
-    USAGE_ORDER = ["가로등", "교육용", "농사용", "산업용", "심야", "일반용", "주택용"]
 
     regions = []
     for gu, ta_gu in sorted(gu_temps.items()):   # 가나다순
         gu_rows = cons_df[cons_df["district"] == gu]
 
-        # usage: 가나다 고정 순서
         usage_dict = {
             ut: {"consumption_mwh": round(float(
                 gu_rows.loc[gu_rows["usage_type"] == ut, "consumption_mwh"].values[0]
             ), 2)}
             for ut in USAGE_ORDER
             if ut in gu_rows["usage_type"].values
-        }
-
-        # building_type: reduction_need_score 내림차순
-        building_type_dict = {
-            bt: {"reduction_need_score": round(sc, 4)}
-            for bt, sc in sorted(
-                bldg_score.get(gu, {}).items(), key=lambda x: x[1], reverse=True
-            )
         }
 
         total_mwh = round(float(gu_rows["consumption_mwh"].sum()), 2)
@@ -205,7 +198,6 @@ def _predict_one_month(year: int, month: int, oni: float) -> dict:
             "ta_gu":                 round(ta_gu, 2),
             "total_consumption_mwh": total_mwh,
             "usage":                 usage_dict,
-            "building_type":         building_type_dict,
         })
 
     return {
@@ -264,7 +256,15 @@ def predict():
     except (KeyError, ValueError) as e:
         return jsonify({"error": f"파라미터 오류: {e}"}), 400
 
-    predicted = _predict_one_month(year, month, oni)
+    from python.simulation.alert_level import get_alert_level
+
+    predicted   = _predict_one_month(year, month, oni)
+    alert       = get_alert_level(predicted["supply"]["reserve_rate"])
+
+    predicted["alert_level"] = int(alert)
+    predicted["alert_label"] = alert.label_ko
+    predicted["oni_status"]  = _oni_status(oni)
+
     return jsonify({
         "input":        {"year": year, "month": month, "oni": oni},
         "is_simulated": _is_simulated(year, month, oni),
