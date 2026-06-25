@@ -12,15 +12,41 @@ public class InfoPanelUI : MonoBehaviour
     public TMP_Text Text_Info_ONIType;    // 엘니뇨 / 라니냐 / 중립
     public TMP_Text Text_Info_ONINum;     // ONI 수치
 
+    // 이전 표시값 저장
+    private string cachedDateText;
+    private string cachedEmergencyStage;
+    private string cachedOniType;
+    private string cachedOniValueText;
+
     public void SetInfo(
         string dateText,
         string emergencyStage,
-        Color32 emergencyColor,
         string oniType,
         string oniValueText
     )
     {
-        // 정보 텍스트 갱신
+        // 단계가 없으면 정상으로 처리
+        if (string.IsNullOrEmpty(emergencyStage))
+        {
+            emergencyStage = "정상";
+        }
+
+        // 값이 같으면 갱신 생략
+        if (cachedDateText == dateText &&
+            cachedEmergencyStage == emergencyStage &&
+            cachedOniType == oniType &&
+            cachedOniValueText == oniValueText)
+        {
+            return;
+        }
+
+        // 새 표시값 저장
+        cachedDateText = dateText;
+        cachedEmergencyStage = emergencyStage;
+        cachedOniType = oniType;
+        cachedOniValueText = oniValueText;
+
+        // UI 갱신
         Text_Date_Info.text = dateText;
         Text_Emergency_Value.text = emergencyStage;
         Text_Info_ONIType.text = oniType;
@@ -29,7 +55,25 @@ public class InfoPanelUI : MonoBehaviour
         // 단계 색상 갱신
         if (Img_Emergency_Dot != null)
         {
-            Img_Emergency_Dot.color = emergencyColor;
+            Img_Emergency_Dot.color = GetStageColor(emergencyStage);
+        }
+    }
+
+    private Color32 GetStageColor(string emergencyStage)
+    {
+        switch (emergencyStage)
+        {
+            case "주의":
+                return new Color32(255, 242, 0, 255);
+
+            case "경계":
+                return new Color32(255, 157, 0, 255);
+
+            case "심각":
+                return new Color32(255, 2, 2, 255);
+
+            default:
+                return new Color32(19, 204, 53, 255);
         }
     }
 }
