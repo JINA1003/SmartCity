@@ -27,7 +27,7 @@ public class DataManager : MonoBehaviour
         // ApiClient의 성공 이벤트에 파싱 메서드 연결
         if (apiClient != null)
         {
-            apiClient.onPredictSuccess.AddListener(OnPredictDataParsed);
+             //apiClient.OnPredictSuccess.AddListener(OnPredictDataParsed);
         }
     }
 
