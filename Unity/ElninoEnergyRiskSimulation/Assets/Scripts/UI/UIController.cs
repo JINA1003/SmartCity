@@ -23,14 +23,15 @@ public class UIController : MonoBehaviour
 
     private void Start()
     {
-        OniSlider.enabled = false;
+        // OniSlider.enabled = false;
     }
     private void HandleStartButtonClick()
     {
-        Debug.Log("[UIController] 시작(새로고침) 버튼이 클릭되었습니다.");
-        int yearIndex = yearDropdown.value;
-        int monthIndex = monthDropdown.value;
-        OnStartButtonClick?.Invoke(yearDropdown.options[yearIndex].text, monthDropdown.options[monthIndex].text);
-        OniSlider.enabled = true;
+        //Debug.Log("[UIController] 시작(새로고침) 버튼이 클릭되었습니다.");
+        //int yearIndex = yearDropdown.value;
+        //int monthIndex = monthDropdown.value;
+        //OnStartButtonClick?.Invoke(yearDropdown.options[yearIndex].text, monthDropdown.options[monthIndex].text);
+        //OniSlider.enabled = true;
+        OnStartButtonClick?.Invoke("2030", "8");
     }
 }

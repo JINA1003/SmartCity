@@ -8,7 +8,7 @@ public class OniRangeData
     public float supplyPower;
     public float reserveRate;
     public float seoulTotalConsumption;
-    public float alert_level;
+    public int alert_level;
     public Dictionary<string, float> guTemperature;
     public Dictionary<string, double> guConsumption;
 }
