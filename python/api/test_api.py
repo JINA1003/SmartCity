@@ -131,7 +131,8 @@ def run_tests() -> int:
         sample  = regions[0] if regions else {}
         usage_keys = list(sample.get("usage", {}).keys())
 
-        _ok(f"asos_temp={pred.get('asos_temp')}℃ | alert={pred.get('alert_level')}({pred.get('alert_label')}) | 구={n_gu}개 | is_simulated={d.get('is_simulated')}")
+        oni_status = pred.get("oni_status")
+        _ok(f"asos_temp={pred.get('asos_temp')}℃ | alert={pred.get('alert_level')}({pred.get('alert_label')}) | oni_status={oni_status} | is_simulated={d.get('is_simulated')}")
         _ok(f"supply_mw={pred.get('supply',{}).get('supply_mw')} | reserve_rate={pred.get('supply',{}).get('reserve_rate')}%")
         _ok(f"[{sample.get('gu')}] ta_gu={sample.get('ta_gu')} | total_mwh={sample.get('total_consumption_mwh')}")
         _ok(f"usage({len(usage_keys)}종): {usage_keys}")
@@ -140,6 +141,10 @@ def run_tests() -> int:
             _fail("/predict", f"구 수={n_gu} (기대=25)"); failures += 1
         if len(usage_keys) != 7:
             _fail("/predict", f"usage 수={len(usage_keys)} (기대=7)"); failures += 1
+        if oni_status not in ("엘니뇨", "라니냐", "중립"):
+            _fail("/predict", f"oni_status={oni_status} (기대=엘니뇨/라니냐/중립)"); failures += 1
+        if pred.get("alert_level") is None:
+            _fail("/predict", "alert_level 없음"); failures += 1
 
         _save("03_predict_future.json", d)
 
@@ -184,14 +189,18 @@ def run_tests() -> int:
         if oni_range:
             first, last = oni_range[0], oni_range[-1]
             _ok(f"ONI 범위: {first['oni']} ~ {last['oni']}")
-            _ok(f"ONI=-2.5 → asos_temp={first['asos_temp']} | supply_mw={first['supply_mw']} | reserve_rate={first['reserve_rate']} | seoul_total={first['seoul_total_consumption_mwh']}")
-            _ok(f"ONI=+2.5 → asos_temp={last['asos_temp']}  | supply_mw={last['supply_mw']}  | reserve_rate={last['reserve_rate']}  | seoul_total={last['seoul_total_consumption_mwh']}")
+            _ok(f"ONI=-2.5 → asos_temp={first['asos_temp']} | supply_mw={first['supply_mw']} | reserve_rate={first['reserve_rate']} | alert_level={first['alert_level']} | seoul_total={first['seoul_total_consumption_mwh']}")
+            _ok(f"ONI=+2.5 → asos_temp={last['asos_temp']}  | supply_mw={last['supply_mw']}  | reserve_rate={last['reserve_rate']}  | alert_level={last['alert_level']}  | seoul_total={last['seoul_total_consumption_mwh']}")
             if len(oni_range) != 51:
                 _fail("/predict/oni_range", f"포인트 수={len(oni_range)}"); failures += 1
             if first["asos_temp"] < last["asos_temp"]:
                 _ok("ONI↑ → 기온↑ 방향 정상")
             else:
                 _fail("/predict/oni_range", "ONI↑인데 기온↓ (모델 이상)"); failures += 1
+            if first.get("alert_level") is None:
+                _fail("/predict/oni_range", "alert_level 없음"); failures += 1
+            else:
+                _ok(f"alert_level 범위: {first['alert_level']} (ONI=-2.5) ~ {last['alert_level']} (ONI=+2.5)")
 
         _save("04_predict_oni_range.json", d)
 

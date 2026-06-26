@@ -52,6 +52,7 @@ Flask REST API — Unity ↔ Python 브릿지.
               "asos_temp": 24.1,
               "supply_mw": 87000.0,
               "reserve_rate": 14.2,
+              "alert_level": 4,
               "seoul_total_consumption_mwh": 125400.0,
               "regions": [
                 {"gu": "강남구", "ta_gu": 25.0, "total_consumption_mwh": 4821.3},
@@ -295,15 +296,19 @@ def predict_oni_range():
     import numpy as np
     oni_values = [round(v, 1) for v in np.arange(-2.5, 2.6, 0.1)]
 
+    from python.simulation.alert_level import get_alert_level
+
     oni_range_data = []
     for oni_val in oni_values:
         r = _predict_one_month(year, month, oni_val)
         seoul_total = round(sum(reg["total_consumption_mwh"] for reg in r["regions"]), 2)
+        alert = get_alert_level(r["supply"]["reserve_rate"])
         oni_range_data.append({
             "oni":                          oni_val,
             "asos_temp":                    r["asos_temp"],
             "supply_mw":                    r["supply"]["supply_mw"],
             "reserve_rate":                 r["supply"]["reserve_rate"],
+            "alert_level":                  int(alert),
             "seoul_total_consumption_mwh":  seoul_total,
             "regions": [
                 {
