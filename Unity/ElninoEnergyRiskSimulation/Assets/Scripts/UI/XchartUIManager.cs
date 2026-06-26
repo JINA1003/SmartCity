@@ -15,28 +15,34 @@ public class XchartUIManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI titleText;
 
     [Header("Chart")]
+    [SerializeField] private GameObject chartPanel; // 차트 패널 전체 (제목 포함)
     [SerializeField] private LineChart oniChart;
 
     [Header("DataManager 연동")]
     [SerializeField] private DataManager dataManager;
 
+    [Header("UIController 연동")]
+    [SerializeField] private UIController uiController;
+
     // ═══════════════════════════════════════════════════════════════════════
     // 색상 상수
     // ═══════════════════════════════════════════════════════════════════════
 
-    private static readonly Color ColorTemperature = HexColor("E05C5C"); // 기온     (빨강)
-    private static readonly Color ColorReserve     = HexColor("5FA876"); // 공급예비율 (초록)
-    private static readonly Color ColorSupply      = HexColor("7A9FBF"); // 공급량   (파랑)
-    private static readonly Color ColorConsumption = HexColor("FF9D00"); // 소비량   (주황)
+    // 예비율만 강조, 나머지는 흐리게
+    private static readonly Color ColorReserve     = HexColor("5FA876");              // 예비율  (초록, 강조)
+    private static readonly Color ColorTemperature = new Color(0.88f, 0.36f, 0.36f, 0.45f); // 기온    (빨강, 흐림)
+    private static readonly Color ColorSupply      = new Color(0.48f, 0.62f, 0.75f, 0.45f); // 공급량  (파랑, 흐림)
+    private static readonly Color ColorConsumption = new Color(1.00f, 0.62f, 0.00f, 0.45f); // 소비량  (주황, 흐림)
 
-    private static readonly Color32 ColorLanina  = new Color32( 80, 130, 200, 40);
-    private static readonly Color32 ColorNeutral = new Color32(160, 160, 160, 25);
-    private static readonly Color32 ColorElnino  = new Color32(200,  80,  80, 40);
+    private static readonly Color32 ColorLanina  = new Color32( 80, 130, 200, 70);
+    private static readonly Color32 ColorNeutral = new Color32(160, 160, 160, 35);
+    private static readonly Color32 ColorElnino  = new Color32(200,  80,  80, 70);
 
-    private static readonly Color32 ColorCritical = new Color32(220,  50,  50, 200);
-    private static readonly Color32 ColorWarn     = new Color32(230, 120,  30, 200);
-    private static readonly Color32 ColorCaution  = new Color32(220, 200,  30, 200);
-    private static readonly Color32 ColorNormal   = new Color32( 80, 180, 100, 200);
+    // HLine: 색 부드럽게
+    private static readonly Color32 ColorCritical = new Color32(220,  50,  50, 120);
+    private static readonly Color32 ColorWarn     = new Color32(230, 120,  30, 120);
+    private static readonly Color32 ColorCaution  = new Color32(220, 200,  30, 120);
+    private static readonly Color32 ColorNormal   = new Color32( 80, 180, 100, 120);
 
     // ═══════════════════════════════════════════════════════════════════════
     // 상수
@@ -52,39 +58,109 @@ public class XchartUIManager : MonoBehaviour
 
     private readonly List<OniRangeData> _entries = new List<OniRangeData>();
     private string _currentDistrict = DEFAULT_DISTRICT;
+    private float _currentOni = 0f;
 
     // ═══════════════════════════════════════════════════════════════════════
     // Unity 생명주기
     // ═══════════════════════════════════════════════════════════════════════
 
-    private void OnEnable()
+    private void Start()
     {
+        SetChartVisible(false);
+
         if (dataManager != null)
             dataManager.OniRangeDataUpdated += OnOniRangeDataUpdated;
+        else
+            Debug.LogWarning("[XchartUIManager] dataManager가 연결되지 않았습니다.");
+
+        if (uiController != null)
+            uiController.OnOniValueChanged += OnOniSliderChanged;
     }
 
-    private void OnDisable()
+    private void OnDestroy()
     {
         if (dataManager != null)
             dataManager.OniRangeDataUpdated -= OnOniRangeDataUpdated;
-    }
-
-    private void Start()
-    {
-        // API 데이터가 아직 없으면 차트는 빈 상태로 대기
-        // DataManager에서 OniRangeDataUpdated 이벤트가 오면 BuildChart() 호출됨
+        if (uiController != null)
+            uiController.OnOniValueChanged -= OnOniSliderChanged;
     }
 
     // ═══════════════════════════════════════════════════════════════════════
     // 외부 인터페이스
     // ═══════════════════════════════════════════════════════════════════════
 
-    // DataManager 이벤트 핸들러
+    // 슬라이더 실시간 → 수직선 위치만 업데이트 (API 재호출 없음)
+    private void OnOniSliderChanged(float oniValue)
+    {
+        _currentOni = oniValue;
+        UpdateCurrentOniLine();
+    }
+
+    // x축 인덱스로 변환 후 수직 MarkLine 위치 갱신
+    private void UpdateCurrentOniLine()
+    {
+        if (oniChart == null || _entries.Count == 0) return;
+
+        // ONI 값 → x축 인덱스 (가장 가까운 포인트)
+        int idx = 0;
+        float minDist = float.MaxValue;
+        for (int i = 0; i < _entries.Count; i++)
+        {
+            float dist = Mathf.Abs(_entries[i].oni - _currentOni);
+            if (dist < minDist) { minDist = dist; idx = i; }
+        }
+
+        oniChart.RemoveChartComponents<MarkLine>();
+        var ml = oniChart.AddChartComponent<MarkLine>();
+        if (ml == null) return;
+
+        ml.show       = true;
+        ml.serieIndex = 0;
+        ml.data.Clear();
+
+        // 현재 ONI 수직선
+        var vLine = new MarkLineData();
+        vLine.type                     = MarkLineType.Custom;
+        vLine.name                     = $"ONI {_currentOni:F1}";
+        vLine.xValue                   = idx;
+        vLine.lineStyle.color          = new Color32(50, 50, 50, 200);
+        vLine.lineStyle.width          = 1.5f;
+        vLine.lineStyle.type           = LineStyle.Type.Solid;
+        vLine.label.show               = true;
+        vLine.label.formatter          = $"ONI\n{_currentOni:F1}";
+        vLine.label.textStyle.color    = new Color32(40, 40, 40, 220);
+        vLine.label.textStyle.fontSize = 11;
+        vLine.startSymbol.type         = SymbolType.None;
+        vLine.endSymbol.type           = SymbolType.None;
+        ml.data.Add(vLine);
+
+        // HLine 임계선 재추가 (MarkLine 제거했으므로)
+        ml.data.Add(HLine( 5.0, "심각 5%",  ColorCritical));
+        ml.data.Add(HLine( 7.0, "경계 7%",  ColorWarn));
+        ml.data.Add(HLine(10.0, "주의 10%", ColorCaution));
+        ml.data.Add(HLine(15.0, "정상 15%", ColorNormal));
+    }
+
+    // DataManager 이벤트 핸들러 — /predict/oni_range 응답 시 호출
     public void OnOniRangeDataUpdated(List<OniRangeData> data)
     {
+        if (data == null || data.Count == 0)
+        {
+            SetChartVisible(false);
+            return;
+        }
         _entries.Clear();
         _entries.AddRange(data);
+        SetChartVisible(true);
         BuildChart();
+    }
+
+    private void SetChartVisible(bool visible)
+    {
+        if (chartPanel != null)
+            chartPanel.SetActive(visible);
+        else if (oniChart != null)
+            oniChart.gameObject.SetActive(visible);
     }
 
     // 구 클릭 시 외부에서 호출 — 해당 구 데이터로 차트 갱신
@@ -129,24 +205,24 @@ public class XchartUIManager : MonoBehaviour
             hasGuTemp ? e.guTemperature.GetValueOrDefault(_currentDistrict, 0f)
                       : e.seoulTemperature);
 
-        // Serie 0 : 공급예비율 (실제 % 값, y축 직접 매핑)
-        AddLineSerie("예비율 (%)", ColorReserve, 2.5f, false,
+        // Serie 0 : 공급예비율 — 강조 (두껍고 solid)
+        AddLineSerie("예비율 (%)", ColorReserve, 3.0f, false,
             e => e.reserveRate);
 
-        // Serie 1 : 기온 (구별 or 서울 전체, 정규화)
-        string tempLabel = hasGuTemp ? $"{_currentDistrict} 기온 (정규화)" : "서울 기온 (정규화)";
-        AddLineSerie(tempLabel, ColorTemperature, 1.5f, true,
+        // Serie 1 : 기온 — 흐리게
+        string tempLabel = hasGuTemp ? $"{_currentDistrict} 기온" : "서울 기온";
+        AddLineSerie(tempLabel, ColorTemperature, 1.0f, true,
             e => (float)Normalize(
                 hasGuTemp ? e.guTemperature.GetValueOrDefault(_currentDistrict, 0f) : e.seoulTemperature,
                 tempMin, tempMax));
 
-        // Serie 2 : 공급량 (정규화)
-        AddLineSerie("공급량 (정규화)", ColorSupply, 1.5f, true,
+        // Serie 2 : 공급량 — 흐리게
+        AddLineSerie("공급량", ColorSupply, 1.0f, true,
             e => (float)Normalize(e.supplyPower, supplyMin, supplyMax));
 
-        // Serie 3 : 소비량 (구별 or 서울 전체, 정규화)
-        string consLabel = hasGuCons ? $"{_currentDistrict} 소비량 (정규화)" : "서울 소비량 (정규화)";
-        AddLineSerie(consLabel, ColorConsumption, 1.5f, true,
+        // Serie 3 : 소비량 — 흐리게
+        string consLabel = hasGuCons ? $"{_currentDistrict} 소비량" : "서울 소비량";
+        AddLineSerie(consLabel, ColorConsumption, 1.0f, true,
             e => (float)Normalize(
                 hasGuCons ? (float)e.guConsumption.GetValueOrDefault(_currentDistrict, 0.0) : e.seoulTotalConsumption,
                 consMin, consMax));
@@ -163,12 +239,13 @@ public class XchartUIManager : MonoBehaviour
     {
         oniChart.theme.transparentBackground = true;
 
+        // XCharts Background 컴포넌트: 반투명 흰색 60%
         var bg = oniChart.GetChartComponent<Background>();
         if (bg != null)
         {
-            bg.show       = false;
+            bg.show       = true;
             bg.autoColor  = false;
-            bg.imageColor = new Color(0f, 0f, 0f, 0f);
+            bg.imageColor = new Color(1f, 1f, 1f, 0.6f);
         }
 
         var grid = oniChart.GetChartComponent<GridCoord>();
@@ -179,14 +256,14 @@ public class XchartUIManager : MonoBehaviour
             grid.borderWidth     = 0;
         }
 
-        // XCharts가 런타임에 자동 생성하는 자식 "background" Image → alpha=0
+        // XCharts 자동 생성 child "background" Image → 흰색 60%
         var bgChild = oniChart.transform.Find("background");
         if (bgChild != null)
         {
             var img = bgChild.GetComponent<Image>();
             if (img != null)
             {
-                img.color         = new Color(0f, 0f, 0f, 0f);
+                img.color         = new Color(1f, 1f, 1f, 0.6f);
                 img.raycastTarget = false;
             }
         }
@@ -198,10 +275,10 @@ public class XchartUIManager : MonoBehaviour
         if (xAxis != null)
         {
             xAxis.axisLabel.show               = true;
-            xAxis.axisLabel.textStyle.color    = Color.white;
-            xAxis.axisLabel.textStyle.fontSize = 9;
-            xAxis.axisLabel.interval           = 4;
-            xAxis.axisLine.lineStyle.color     = new Color32(255, 255, 255, 120);
+            xAxis.axisLabel.textStyle.color    = Color.black;
+            xAxis.axisLabel.textStyle.fontSize = 14;
+            xAxis.axisLabel.interval           = 25; // idx 0(-2.5), 25(0.0), 50(+2.5) 만 표시
+            xAxis.axisLine.lineStyle.color     = new Color32(0, 0, 0, 150);
             xAxis.splitLine.show               = false;
         }
 
@@ -209,13 +286,12 @@ public class XchartUIManager : MonoBehaviour
         if (yAxis != null)
         {
             yAxis.axisLabel.show               = true;
-            yAxis.axisLabel.textStyle.color    = Color.white;
-            yAxis.axisLabel.textStyle.fontSize = 9;
-            // y축 레이블: 0~16 범위. 예비율(%) 실제값 기준으로 표시
+            yAxis.axisLabel.textStyle.color    = Color.black;
+            yAxis.axisLabel.textStyle.fontSize = 11;
             yAxis.axisLabel.formatter          = "{value}%";
             yAxis.axisLine.show                = false;
             yAxis.splitLine.show               = true;
-            yAxis.splitLine.lineStyle.color    = new Color32(255, 255, 255, 30);
+            yAxis.splitLine.lineStyle.color    = new Color32(0, 0, 0, 30);
             yAxis.splitLine.lineStyle.width    = 1f;
             yAxis.minMaxType                   = Axis.AxisMinMaxType.Custom;
             yAxis.min                          = Y_MIN;
@@ -283,8 +359,9 @@ public class XchartUIManager : MonoBehaviour
         ma.itemStyle.color          = color;
         ma.itemStyle.borderWidth    = 0;
         ma.label.show               = true;
-        ma.label.textStyle.color    = new Color32(220, 220, 220, 200);
-        ma.label.textStyle.fontSize = 11;
+        ma.label.position           = LabelStyle.Position.Top;
+        ma.label.textStyle.color    = new Color32(40, 40, 40, 220);
+        ma.label.textStyle.fontSize = 12;
     }
 
     private void AddThresholdLines()
@@ -308,12 +385,12 @@ public class XchartUIManager : MonoBehaviour
         d.name                     = label;
         d.yValue                   = yVal;
         d.lineStyle.color          = color;
-        d.lineStyle.width          = 1.2f;
+        d.lineStyle.width          = 1.0f;
         d.lineStyle.type           = LineStyle.Type.Dashed;
         d.label.show               = true;
         d.label.formatter          = label;
-        d.label.textStyle.color    = color;
-        d.label.textStyle.fontSize = 9;
+        d.label.textStyle.color    = new Color32(40, 40, 40, 220);
+        d.label.textStyle.fontSize = 13;
         d.startSymbol.type         = SymbolType.None;
         d.endSymbol.type           = SymbolType.None;
         return d;

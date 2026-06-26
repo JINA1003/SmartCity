@@ -10,12 +10,16 @@ public class UIController : MonoBehaviour
     [Header("UI Elements")]
     [SerializeField] private TMP_Dropdown yearDropdown;
     [SerializeField] private TMP_Dropdown monthDropdown;
+    [SerializeField] private GameObject oniSliderPanel; // Panel_ONI_Scroll 전체
     [SerializeField] private Slider oniSlider;
     [SerializeField] private TMP_Text oniTypeText;  // 중립 / 라니냐 / 엘니뇨
     [SerializeField] private TMP_Text oniNumText;   // 0.0
 
     // 연월 드롭다운 변경 → /oni && /predict/oni_range 호출 트리거
     public event Action<string, string> OnDateSelected;
+
+    // 슬라이더 드래그 중 실시간 ONI 값 변경 알림
+    public event Action<float> OnOniValueChanged;
 
     // 슬라이더 버튼 뗄 때 → /predict 재호출 트리거 (ONI 값 전달)
     public event Action<float> OnOniSliderReleased;
@@ -29,8 +33,8 @@ public class UIController : MonoBehaviour
         yearDropdown.onValueChanged.AddListener(_ => NotifyDateSelected());
         monthDropdown.onValueChanged.AddListener(_ => NotifyDateSelected());
 
-        // 슬라이더: 드래그 중 ONI 타입/수치 실시간 표시, 버튼 뗄 때 API 호출
-        oniSlider.onValueChanged.AddListener(UpdateOniDisplay);
+        // 슬라이더: 드래그 중 ONI 타입/수치 실시간 표시 + 차트 수직선 이벤트
+        oniSlider.onValueChanged.AddListener(v => { UpdateOniDisplay(v); OnOniValueChanged?.Invoke(v); });
 
         var trigger = oniSlider.gameObject.AddComponent<EventTrigger>();
         var entry = new EventTrigger.Entry { eventID = EventTriggerType.PointerUp };
@@ -83,7 +87,10 @@ public class UIController : MonoBehaviour
 
     private void SetSliderActive(bool active)
     {
-        oniSlider.gameObject.SetActive(active);
+        if (oniSliderPanel != null)
+            oniSliderPanel.SetActive(active);
+        else
+            oniSlider.gameObject.SetActive(active);
         oniSlider.interactable = active;
     }
 
