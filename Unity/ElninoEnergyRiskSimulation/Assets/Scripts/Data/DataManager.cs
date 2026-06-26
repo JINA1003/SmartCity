@@ -19,6 +19,9 @@ public class DataManager : MonoBehaviour
     private int _currentYear;
     private int _currentMonth;
 
+    private static readonly WaitForSeconds SliderDelay = new WaitForSeconds(0.5f);
+    private Coroutine _sliderCoroutine;
+
     private void OnEnable()
     {
         if (uiController != null)
@@ -45,10 +48,18 @@ public class DataManager : MonoBehaviour
         StartCoroutine(LoadOnDateSelected(_currentYear, _currentMonth));
     }
 
-    // 슬라이더 버튼 뗄 때 → /predict만 재호출 (ONI 값 슬라이더에서)
+    // 슬라이더 버튼 뗄 때 → 0.5초 후 /predict 재호출
     private void HandleSliderReleased(float oniValue)
     {
-        StartCoroutine(LoadPredictOnly(_currentYear, _currentMonth, oniValue));
+        if (_sliderCoroutine != null) StopCoroutine(_sliderCoroutine);
+        _sliderCoroutine = StartCoroutine(SliderDelayedPredict(oniValue));
+    }
+
+    private IEnumerator SliderDelayedPredict(float oniValue)
+    {
+        yield return SliderDelay;
+        yield return StartCoroutine(LoadPredictOnly(_currentYear, _currentMonth, oniValue));
+        _sliderCoroutine = null;
     }
 
     IEnumerator LoadOnDateSelected(int year, int month)
