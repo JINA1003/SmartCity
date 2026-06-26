@@ -13,14 +13,8 @@ public class UIManager : MonoBehaviour
     [SerializeField] private DataManager dataManager;
 
     private readonly Dictionary<DistrictType, DistrictData> districtDataMap = new();
-
-    // ================================
-    // 테스트용
-    // API 데이터가 Unity까지 들어오는지 확인하기 위해,
-    // 첫 로딩 때 종로구 패널을 자동으로 한 번 띄웁니다.
-    // 실제 사용 시에는 이 변수와 HandleDistrictDataUpdated 안의 테스트용 if 블록을 제거하거나 주석 처리하세요.
-    // ================================
-    private bool didShowInitialDistrictForTest = false;
+    private DistrictType selectedDistrictType;
+    private bool hasSelectedDistrict;
 
     private void Awake()
     {
@@ -81,17 +75,6 @@ public class UIManager : MonoBehaviour
 
     private void HandlePowerDataUpdated(PowerGridData data)
     {
-        // ================================
-        // 테스트용
-        // 인포 패널 데이터가 API에서 들어왔는지 Console에서 확인합니다.
-        // 실제 사용 시에는 Debug.Log만 제거해도 됩니다.
-        // ================================
-        Debug.Log($"[UIManager][TEST] 인포 데이터 수신: {data.year}/{data.month}, ONI={data.oni}, 상태={data.oniStatus}, 경보={data.riskLabel}");
-
-        // ================================
-        // 실제 사용
-        // API에서 받은 연월, 경보 단계, ONI 상태, ONI 값을 인포 패널에 표시합니다.
-        // ================================
         SetInfoPanel(
             $"{data.year}년 {data.month}월",
             data.riskLabel,
@@ -102,40 +85,27 @@ public class UIManager : MonoBehaviour
 
     private void HandleDistrictDataUpdated(DistrictData data)
     {
-        // ================================
-        // 실제 사용
-        // API에서 받은 구별 데이터를 Dictionary에 저장합니다.
-        // 이후 사용자가 구를 클릭하면 ShowGuEnergyPanel(districtType)에서 꺼내 씁니다.
-        // ================================
         districtDataMap[data.districtType] = data;
 
-        // ================================
-        // 테스트용
-        // 구 데이터가 API에서 들어왔는지 Console에서 확인합니다.
-        // 실제 사용 시에는 Debug.Log만 제거해도 됩니다.
-        // ================================
-        Debug.Log($"[UIManager][TEST] 구 데이터 수신: {data.districtType}, 총 사용량={data.totalPowerUsage}");
-
-        // ================================
-        // 테스트용
-        // 시작 위치가 종로구라서, 종로구 데이터가 들어오면 패널을 자동 표시합니다.
-        // 실제 사용 시에는 이 if 블록 전체를 제거하거나 주석 처리하세요.
-        // ================================
-        if (!didShowInitialDistrictForTest && data.districtType == DistrictType.JONGNO)
+        if (!hasSelectedDistrict)
         {
-            didShowInitialDistrictForTest = true;
-            ShowGuEnergyPanel(DistrictType.JONGNO);
-            Debug.Log("[UIManager][TEST] 종로구 패널 자동 표시");
+            SelectDistrict(data.districtType);
+            return;
         }
+
+        if (selectedDistrictType == data.districtType)
+            ShowGuEnergyPanel(selectedDistrictType);
+    }
+
+    public void SelectDistrict(DistrictType districtType)
+    {
+        selectedDistrictType = districtType;
+        hasSelectedDistrict = true;
+        ShowGuEnergyPanel(districtType);
     }
 
     public void ShowGuEnergyPanel(DistrictType districtType)
     {
-        // ================================
-        // 실제 사용
-        // 구 클릭 시 호출합니다.
-        // 예: UIManager.Instance.ShowGuEnergyPanel(DistrictType.JONGNO);
-        // ================================
         if (!districtDataMap.TryGetValue(districtType, out DistrictData data))
         {
             Debug.LogWarning($"[UIManager] {districtType} 데이터가 아직 없습니다.");

@@ -3,22 +3,24 @@ using UnityEngine;
 
 public class GuEnergyPanelUI : MonoBehaviour
 {
-    [Header("구별 에너지 패널")]
-    public GameObject Panel_Gu_Energy;
+    [Header("구 에너지 패널")]
+    public GameObject Panel_Gu_Energy;      // 구 에너지 패널 전체 오브젝트
 
-    public TMP_Text Text_District_Energy;
-    public TMP_Text Text_Usage_Change_Amount;
-    public TMP_Text Text_Usage_Change_Rate;
-    public TMP_Text Text_Total_Usage;
-    public TMP_Text Text_Usage_Percent;
+    [Header("구 기본 정보")]
+    public TMP_Text Text_District_Energy;       // 선택된 구 이름
+    public TMP_Text Text_Usage_Change_Amount;   // 전력 사용 변화량
+    public TMP_Text Text_Usage_Change_Rate;     // 전력 사용 변화율
+    public TMP_Text Text_Total_Usage;           // 구 전체 전력 사용량
+    public TMP_Text Text_Usage_Percent;         // 서울 전체 대비 사용 비율
 
-    public TMP_Text ResidentialMwh;
-    public TMP_Text GeneralMwh;
-    public TMP_Text EducationMwh;
-    public TMP_Text IndustrialMwh;
-    public TMP_Text AgricultureMwh;
-    public TMP_Text StreetlightMwh;
-    public TMP_Text MidnightMwh;
+    [Header("용도별 전력 사용량")]
+    public TMP_Text ResidentialMwh;     // 주택용
+    public TMP_Text GeneralMwh;         // 일반용
+    public TMP_Text EducationMwh;       // 교육용
+    public TMP_Text IndustrialMwh;      // 산업용
+    public TMP_Text AgricultureMwh;     // 농사용
+    public TMP_Text StreetlightMwh;     // 가로등
+    public TMP_Text MidnightMwh;        // 심야
 
     public void Show(
         string districtName,

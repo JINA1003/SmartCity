@@ -603,6 +603,7 @@ GameObject:
   - component: {fileID: 2905273215113125954}
   - component: {fileID: 8224930393578614012}
   - component: {fileID: 5718062681542890554}
+  - component: {fileID: 7562619347927083480}
   m_Layer: 5
   m_Name: Panel_Gu_Energy
   m_TagString: Untagged
@@ -697,6 +698,31 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!114 &7562619347927083480
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2438935512466047332}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: daa31ed69b09041f3a7e2d95ea560e7c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SmartCity.Scripts::GuEnergyPanelUI
+  Panel_Gu_Energy: {fileID: 3190462229203745171}
+  Text_District_Energy: {fileID: 1944211813680773664}
+  Text_Usage_Change_Amount: {fileID: 204927768110939027}
+  Text_Usage_Change_Rate: {fileID: 1944211813680773664}
+  Text_Total_Usage: {fileID: 204927768110939027}
+  Text_Usage_Percent: {fileID: 2382608233700130658}
+  ResidentialMwh: {fileID: 2996584561874055767}
+  GeneralMwh: {fileID: 8081523853010115601}
+  EducationMwh: {fileID: 35734839770512410}
+  IndustrialMwh: {fileID: 2585744017273690259}
+  AgricultureMwh: {fileID: 5947924012704100093}
+  StreetlightMwh: {fileID: 5274714832697141602}
+  MidnightMwh: {fileID: 67705836081416460}
 --- !u!1 &2481147861859074126
 GameObject:
   m_ObjectHideFlags: 0
