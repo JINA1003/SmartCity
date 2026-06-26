@@ -31,10 +31,13 @@ public class UIManager : MonoBehaviour
         }
 
         Instance = this;
+        ResolveReferences();
     }
 
     private void OnEnable()
     {
+        ResolveReferences();
+
         if (dataManager == null)
         {
             Debug.LogWarning("[UIManager] DataManager가 연결되지 않았습니다.");
@@ -51,6 +54,29 @@ public class UIManager : MonoBehaviour
 
         dataManager.OnPowerDataUpdated -= HandlePowerDataUpdated;
         dataManager.OnDistrictDataUpdated -= HandleDistrictDataUpdated;
+    }
+
+    private void ResolveReferences()
+    {
+        if (dataManager == null)
+            dataManager = FindSceneObject<DataManager>();
+
+        if (infoPanel == null)
+            infoPanel = FindSceneObject<InfoPanelUI>();
+
+        if (guEnergyPanel == null)
+            guEnergyPanel = FindSceneObject<GuEnergyPanelUI>();
+    }
+
+    private static T FindSceneObject<T>() where T : Component
+    {
+        foreach (T component in Resources.FindObjectsOfTypeAll<T>())
+        {
+            if (component.gameObject.scene.IsValid() && component.gameObject.scene.isLoaded)
+                return component;
+        }
+
+        return null;
     }
 
     private void HandlePowerDataUpdated(PowerGridData data)
