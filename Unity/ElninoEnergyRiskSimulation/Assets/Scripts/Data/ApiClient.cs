@@ -10,51 +10,49 @@ public class ApiClient : MonoBehaviour
     [Header("서버 설정")]
     public string serverUrl = "http://localhost:5000";
 
-    public event Action<JObject> OnHealthSuccess;
-    public event Action<JObject> OnOniSuccess;
-    public event Action<JObject> OnPredictSuccess;
-    public event Action<JObject> OnOniRangeSuccess;
-    public event Action<JObject> OnBlackoutSuccess;
     public event Action<string> OnError;
 
     // -----------------------------------------------------------------------
     // 외부 호출 진입점
     // -----------------------------------------------------------------------
 
-    public void FetchHealth()
+    public void FetchHealth(Action<JObject> onSuccess)
     {
-        StartCoroutine(Get($"{serverUrl}/health", OnHealthSuccess));
+        StartCoroutine(GetJObject($"{serverUrl}/health", onSuccess));
     }
 
-    public void FetchOni(int year, int month)
+    public void FetchOni(int year, int month, Action<JArray> onSuccess)
     {
         string url = $"{serverUrl}/oni?year={year}&month={month}";
-        StartCoroutine(Get(url, OnOniSuccess));
+        StartCoroutine(GetJArray(url, onSuccess));
     }
 
-    public void FetchPredict(int year, int month, float oni)
+    // ONI 슬라이더 조정시 발생되는 API
+    public void FetchPredict(int year, int month, float oni, Action<JObject> onSuccess)
     {
         string url = $"{serverUrl}/predict?year={year}&month={month}&oni={oni}";
-        StartCoroutine(Get(url, OnPredictSuccess));
+        StartCoroutine(GetJObject(url, onSuccess));
     }
 
-    public void FetchOniRange(int year, int month)
+    // 차트용
+    public void FetchOniRange(int year, int month, Action<JObject> onSuccess)
     {
         string url = $"{serverUrl}/predict/oni_range?year={year}&month={month}";
-        StartCoroutine(Get(url, OnOniRangeSuccess));
+        StartCoroutine(GetJObject(url, onSuccess));
     }
-
-    public void FetchBlackoutSimulation(int year, int month, float oni)
+    
+    // 위험도 
+    public void FetchBlackoutSimulation(int year, int month, float oni, Action<JObject> onSuccess)
     {
         string body = $"{{\"year\":{year},\"month\":{month},\"oni\":{oni}}}";
-        StartCoroutine(Post($"{serverUrl}/blackout_simulation", body, OnBlackoutSuccess));
+        StartCoroutine(Post($"{serverUrl}/blackout_simulation", body, onSuccess));
     }
 
     // -----------------------------------------------------------------------
     // 내부 Coroutine
     // -----------------------------------------------------------------------
 
-    private IEnumerator Get(string url, Action<JObject> onSuccess)
+    private IEnumerator GetJObject(string url, Action<JObject> onSuccess)
     {
         using UnityWebRequest req = UnityWebRequest.Get(url);
         yield return req.SendWebRequest();
@@ -62,7 +60,24 @@ public class ApiClient : MonoBehaviour
         if (req.result == UnityWebRequest.Result.Success)
             onSuccess?.Invoke(JObject.Parse(req.downloadHandler.text));
         else
+        {
             OnError?.Invoke($"[GET {url}] {req.responseCode} {req.error}");
+            onSuccess?.Invoke(null);
+        }
+    }
+
+    private IEnumerator GetJArray(string url, Action<JArray> onSuccess)
+    {
+        using UnityWebRequest req = UnityWebRequest.Get(url);
+        yield return req.SendWebRequest();
+
+        if (req.result == UnityWebRequest.Result.Success)
+            onSuccess?.Invoke(JArray.Parse(req.downloadHandler.text));
+        else
+        {
+            OnError?.Invoke($"[GET {url}] {req.responseCode} {req.error}");
+            onSuccess?.Invoke(null);
+        }
     }
 
     private IEnumerator Post(string url, string jsonBody, Action<JObject> onSuccess)
