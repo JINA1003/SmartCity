@@ -19,7 +19,7 @@ public class DataManager : MonoBehaviour
     private int _currentYear;
     private int _currentMonth;
 
-    private static readonly WaitForSeconds SliderDelay = new WaitForSeconds(0.5f);
+    private static readonly WaitForSeconds SliderDelay = new WaitForSeconds(0.3f);
     private Coroutine _sliderCoroutine;
 
     private void OnEnable()

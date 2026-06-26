@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using System.IO;
 using System.Text;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
@@ -9,35 +8,7 @@ using UnityEngine.Networking;
 public class ApiClient : MonoBehaviour
 {
     [Header("서버 설정")]
-    private string serverUrl;
-
-    private void Awake()
-    {
-        string envPath = Path.Combine(Application.streamingAssetsPath, ".env");
-        if (File.Exists(envPath))
-        {
-            foreach (var line in File.ReadAllLines(envPath))
-            {
-                var trimmed = line.Trim();
-                if (trimmed.StartsWith("#") || !trimmed.Contains("=")) continue;
-
-                var parts = trimmed.Split('=', 2);
-                string key   = parts[0].Trim();
-                string value = parts[1].Trim().Trim('"');
-
-                if (key == "FLASK_PORT")
-                {
-                    serverUrl = $"http://localhost:{value}";
-                    Debug.Log($"[ApiClient] serverUrl 로드: {serverUrl}");
-                }
-            }
-        }
-        else
-        {
-            serverUrl = "http://localhost:5001";
-            Debug.LogWarning($"[ApiClient] .env 파일 없음 → fallback: {serverUrl}");
-        }
-    }
+    public string serverUrl = "http://localhost:5001";
 
     public event Action<string> OnError;
 

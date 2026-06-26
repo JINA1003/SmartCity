@@ -83,7 +83,6 @@ Transform:
   - {fileID: 5854522319306132983}
   - {fileID: 6822289029031174674}
   - {fileID: 6410087892062620548}
-  - {fileID: 2902313982849870688}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2563397207717470007
@@ -134,6 +133,7 @@ MonoBehaviour:
   chartPanel: {fileID: 0}
   oniChart: {fileID: 0}
   dataManager: {fileID: 1710315119800515962}
+  uiController: {fileID: 0}
 --- !u!1 &2601368635065639924
 GameObject:
   m_ObjectHideFlags: 0
@@ -516,54 +516,6 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
---- !u!1 &6180310999428182476
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2902313982849870688}
-  - component: {fileID: 4961983340219080072}
-  m_Layer: 0
-  m_Name: XChartManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &2902313982849870688
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6180310999428182476}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -12.549683, y: -14.99998, z: 9876.795}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 4180507456290223588}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &4961983340219080072
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6180310999428182476}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6eba564a4732e4aa882e6ddb50db2bc5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: SmartCity.Scripts::XchartUIManager
-  titleText: {fileID: 0}
-  chartPanel: {fileID: 0}
-  oniChart: {fileID: 0}
-  dataManager: {fileID: 0}
 --- !u!1 &7565144512346115843
 GameObject:
   m_ObjectHideFlags: 0

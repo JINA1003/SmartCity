@@ -50,7 +50,7 @@ public class XchartUIManager : MonoBehaviour
 
     private const string DEFAULT_DISTRICT = "종로구";
     private const double Y_MIN = 0.0;
-    private const double Y_MAX = 16.0;
+    private const double Y_MAX = 25.0;
 
     // ═══════════════════════════════════════════════════════════════════════
     // 상태

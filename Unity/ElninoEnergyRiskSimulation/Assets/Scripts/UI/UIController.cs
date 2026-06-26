@@ -96,18 +96,16 @@ public class UIController : MonoBehaviour
 
     private void BuildDropdownOptions()
     {
-        // 연도: placeholder + 2005 ~ 2040
         yearDropdown.ClearOptions();
         var years = new List<string> { "연도 선택" };
         for (int y = 2005; y <= 2040; y++) years.Add(y.ToString());
         yearDropdown.AddOptions(years);
-        yearDropdown.value = 0; // placeholder
+        yearDropdown.value = 0;
 
-        // 월: placeholder + 1 ~ 12
         monthDropdown.ClearOptions();
         var months = new List<string> { "월 선택" };
         for (int m = 1; m <= 12; m++) months.Add(m.ToString());
         monthDropdown.AddOptions(months);
-        monthDropdown.value = 0; // placeholder
+        monthDropdown.value = 0;
     }
 }
