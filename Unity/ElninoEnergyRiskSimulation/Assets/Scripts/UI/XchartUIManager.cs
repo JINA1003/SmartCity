@@ -28,10 +28,10 @@ public class XchartUIManager : MonoBehaviour
     // 색상 상수
     // ═══════════════════════════════════════════════════════════════════════
 
-    // 예비율만 강조, 나머지는 흐리게
-    private static readonly Color ColorReserve     = HexColor("5FA876");              // 예비율  (초록, 강조)
-    private static readonly Color ColorTemperature = new Color(0.88f, 0.36f, 0.36f, 0.45f); // 기온    (빨강, 흐림)
-    private static readonly Color ColorSupply      = new Color(0.48f, 0.62f, 0.75f, 0.45f); // 공급량  (파랑, 흐림)
+    // 공급예비율 강조(빨강), 나머지는 흐리게
+    private static readonly Color ColorReserve     = new Color(0.88f, 0.18f, 0.18f, 1.00f); // 예비율  (빨강, 강조)
+    private static readonly Color ColorTemperature = new Color(0.48f, 0.62f, 0.75f, 0.45f); // 기온    (파랑, 흐림)
+    private static readonly Color ColorSupply      = new Color(0.30f, 0.70f, 0.45f, 0.45f); // 공급량  (초록, 흐림)
     private static readonly Color ColorConsumption = new Color(1.00f, 0.62f, 0.00f, 0.45f); // 소비량  (주황, 흐림)
 
     private static readonly Color32 ColorLanina  = new Color32( 80, 130, 200, 70);
@@ -118,16 +118,16 @@ public class XchartUIManager : MonoBehaviour
         ml.serieIndex = 0;
         ml.data.Clear();
 
-        // 현재 ONI 수직선
+        // 현재 ONI 수직선 (XValue 타입으로 x축 인덱스 지정)
         var vLine = new MarkLineData();
         vLine.type                     = MarkLineType.Custom;
         vLine.name                     = $"ONI {_currentOni:F1}";
         vLine.xValue                   = idx;
         vLine.lineStyle.color          = new Color32(50, 50, 50, 200);
-        vLine.lineStyle.width          = 1.5f;
+        vLine.lineStyle.width          = 2.0f;
         vLine.lineStyle.type           = LineStyle.Type.Solid;
         vLine.label.show               = true;
-        vLine.label.formatter          = $"ONI\n{_currentOni:F1}";
+        vLine.label.formatter          = $"ONI {_currentOni:F1}";
         vLine.label.textStyle.color    = new Color32(40, 40, 40, 220);
         vLine.label.textStyle.fontSize = 11;
         vLine.startSymbol.type         = SymbolType.None;
@@ -209,20 +209,20 @@ public class XchartUIManager : MonoBehaviour
         AddLineSerie("예비율 (%)", ColorReserve, 3.0f, false,
             e => e.reserveRate);
 
-        // Serie 1 : 기온 — 흐리게
+        // Serie 1 : 기온 — 흐리게, 실선
         string tempLabel = hasGuTemp ? $"{_currentDistrict} 기온" : "서울 기온";
-        AddLineSerie(tempLabel, ColorTemperature, 1.0f, true,
+        AddLineSerie(tempLabel, ColorTemperature, 1.0f, false,
             e => (float)Normalize(
                 hasGuTemp ? e.guTemperature.GetValueOrDefault(_currentDistrict, 0f) : e.seoulTemperature,
                 tempMin, tempMax));
 
-        // Serie 2 : 공급량 — 흐리게
-        AddLineSerie("공급량", ColorSupply, 1.0f, true,
+        // Serie 2 : 공급량 — 흐리게, 실선
+        AddLineSerie("공급량", ColorSupply, 1.0f, false,
             e => (float)Normalize(e.supplyPower, supplyMin, supplyMax));
 
-        // Serie 3 : 소비량 — 흐리게
+        // Serie 3 : 소비량 — 빨강, 흐리게, 실선
         string consLabel = hasGuCons ? $"{_currentDistrict} 소비량" : "서울 소비량";
-        AddLineSerie(consLabel, ColorConsumption, 1.0f, true,
+        AddLineSerie(consLabel, ColorConsumption, 1.0f, false,
             e => (float)Normalize(
                 hasGuCons ? (float)e.guConsumption.GetValueOrDefault(_currentDistrict, 0.0) : e.seoulTotalConsumption,
                 consMin, consMax));
@@ -280,6 +280,11 @@ public class XchartUIManager : MonoBehaviour
             xAxis.axisLabel.interval           = 25; // idx 0(-2.5), 25(0.0), 50(+2.5) 만 표시
             xAxis.axisLine.lineStyle.color     = new Color32(0, 0, 0, 150);
             xAxis.splitLine.show               = false;
+            // x축 제목
+            xAxis.axisName.show                          = true;
+            xAxis.axisName.name                          = "ONI";
+            xAxis.axisName.labelStyle.textStyle.color    = Color.black;
+            xAxis.axisName.labelStyle.textStyle.fontSize = 13;
         }
 
         var yAxis = oniChart.GetChartComponent<YAxis>();
@@ -360,8 +365,9 @@ public class XchartUIManager : MonoBehaviour
         ma.itemStyle.borderWidth    = 0;
         ma.label.show               = true;
         ma.label.position           = LabelStyle.Position.Top;
-        ma.label.textStyle.color    = new Color32(40, 40, 40, 220);
-        ma.label.textStyle.fontSize = 12;
+        ma.label.offset             = new Vector3(0, 18, 0); // 더 위로
+        ma.label.textStyle.color    = new Color32(30, 30, 30, 230);
+        ma.label.textStyle.fontSize = 14;
     }
 
     private void AddThresholdLines()
@@ -387,6 +393,8 @@ public class XchartUIManager : MonoBehaviour
         d.lineStyle.color          = color;
         d.lineStyle.width          = 1.0f;
         d.lineStyle.type           = LineStyle.Type.Dashed;
+        d.lineStyle.dashLength     = 4f;
+        d.lineStyle.gapLength      = 3f;
         d.label.show               = true;
         d.label.formatter          = label;
         d.label.textStyle.color    = new Color32(40, 40, 40, 220);
