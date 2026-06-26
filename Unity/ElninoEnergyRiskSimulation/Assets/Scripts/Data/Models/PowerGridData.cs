@@ -4,10 +4,11 @@ using UnityEngine;
 [Serializable]
 public class PowerGridData
 {
-    public DateTime date;
+    public string year;
+    public string month;
     public float oni;
     public float temperature;
-    public float supplyAmount;
-    public int supplyCount;
     public int riskLevel;
+    public string riskLabel;
+    public string oniStatus;
 }

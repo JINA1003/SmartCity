@@ -1,11 +1,9 @@
-using NUnit.Framework;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class DistrictObject : MonoBehaviour
+public class DistrictObject
 {
     public DistrictData data;
-    public List<GameObject> buildings;
-    public Dictionary<BuildingType, float> buildingReducationScores;
+    public List<BuildingObject> buildings;
     public bool IsShutDown = false;
 }
