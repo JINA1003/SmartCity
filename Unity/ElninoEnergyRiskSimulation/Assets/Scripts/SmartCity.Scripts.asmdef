@@ -1,8 +1,11 @@
 {
     "name": "SmartCity.Scripts",
+    "rootNamespace": "",
     "references": [
         "XCharts.Runtime",
-        "Unity.TextMeshPro"
+        "Unity.TextMeshPro",
+        "CesiumForUnity",
+        "Unity.Mathematics"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
