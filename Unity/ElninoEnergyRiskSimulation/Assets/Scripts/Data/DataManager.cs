@@ -164,7 +164,8 @@ public class DataManager : MonoBehaviour
                 if (regionObject == null) continue;
 
                 DistrictData districtData = new DistrictData();
-                districtData.districtName = regionObject["gu"].Value<string>();
+                string guNameStr = regionObject["gu"].Value<string>();
+                districtData.districtType = ConvertStringToDistrictType(guNameStr);
                 districtData.temperature = regionObject["ta_gu"].Value<float>();
                 districtData.totalPowerUsage = regionObject["total_consumption_mwh"].Value<double>();
 
@@ -180,10 +181,10 @@ public class DataManager : MonoBehaviour
                 }
 
                 // (2) 건물 감축 필요도 파싱 (Blackout 데이터 결합)
-                if (currentAlertLevel == 4 && blackoutItemsDict.ContainsKey(districtData.districtName))
+                if (currentAlertLevel == 4 && blackoutItemsDict.ContainsKey(guNameStr))
                 {
                     districtData.buildingReductionScores = new Dictionary<BuildingType, float>();
-                    JArray bItems = blackoutItemsDict[districtData.districtName];
+                    JArray bItems = blackoutItemsDict[guNameStr];
 
                     if (bItems != null)
                     {
@@ -312,6 +313,41 @@ public class DataManager : MonoBehaviour
             case "다가구주택": return BuildingType.multi_family_house;
             default:
                 return BuildingType.neighborhood_all; // 기본값
+        }
+    }
+
+    public DistrictType ConvertStringToDistrictType(string koreanName)
+    {
+        switch (koreanName)
+        {
+            case "도봉구": return DistrictType.DOBONG;
+            case "동대문구": return DistrictType.DONGDAEMUN;
+            case "동작구": return DistrictType.DONGJAK;
+            case "은평구": return DistrictType.EUNPYEONG;
+            case "강북구": return DistrictType.GANGBUK;
+            case "강동구": return DistrictType.GANGDONG;
+            case "강남구": return DistrictType.GANGNAM;
+            case "강서구": return DistrictType.GANGSEO;
+            case "금천구": return DistrictType.GEUMCHEON;
+            case "구로구": return DistrictType.GURO;
+            case "관악구": return DistrictType.GWANAK;
+            case "광진구": return DistrictType.GWANGJIN;
+            case "종로구": return DistrictType.JONGNO;
+            case "중구": return DistrictType.JUNG;
+            case "중랑구": return DistrictType.JUNGNANG;
+            case "마포구": return DistrictType.MAPO;
+            case "노원구": return DistrictType.NOWON;
+            case "서초구": return DistrictType.SEOCHO;
+            case "서대문구": return DistrictType.SEODAEMUN;
+            case "성북구": return DistrictType.SEONGBUK;
+            case "성동구": return DistrictType.SEONGDONG;
+            case "송파구": return DistrictType.SONGPA;
+            case "양천구": return DistrictType.YANGCHEON;
+            case "영등포구": return DistrictType.YEONGDEUNGPO;
+            case "용산구": return DistrictType.YONGSAN;
+            default:
+                Debug.LogWarning($"[DataManager] 알 수 없는 구 이름: {koreanName}");
+                return DistrictType.GANGNAM; // 기본값 임시 할당
         }
     }
 
