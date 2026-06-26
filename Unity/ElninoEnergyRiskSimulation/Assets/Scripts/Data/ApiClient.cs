@@ -8,7 +8,7 @@ using UnityEngine.Networking;
 public class ApiClient : MonoBehaviour
 {
     [Header("서버 설정")]
-    public string serverUrl = "http://localhost:5000";
+    public string serverUrl = "http://localhost:5001";
 
     public event Action<string> OnError;
 
