@@ -14,12 +14,13 @@ public class DataManager : MonoBehaviour
     public event Action<PowerGridData> OnPowerDataUpdated;
     public event Action<DistrictData> OnDistrictDataUpdated;
     public event Action<List<OniRangeData>> OniRangeDataUpdated;
+    public event Action OnAllDistrictsParsed;
 
     // 현재 선택된 연월 (슬라이더 재호출 시 사용)
     private int _currentYear;
     private int _currentMonth;
 
-    private static readonly WaitForSeconds SliderDelay = new WaitForSeconds(0.3f);
+    private static readonly WaitForSeconds SliderDelay = new WaitForSeconds(0.15f);
     private Coroutine _sliderCoroutine;
 
     private void OnEnable()
@@ -201,7 +202,7 @@ public class DataManager : MonoBehaviour
 
                 DistrictData districtData = new DistrictData();
                 string guNameStr = regionObject["gu"].Value<string>();
-                districtData.districtType = ConvertStringToDistrictType(guNameStr);
+                districtData.districtType = DataConverter.GetDistrictType(guNameStr);
                 districtData.temperature = regionObject["ta_gu"].Value<float>();
                 districtData.totalPowerUsage = regionObject["total_consumption_mwh"].Value<double>();
 
@@ -229,7 +230,7 @@ public class DataManager : MonoBehaviour
                             string bTypeStr = item["building_type"].Value<string>();
                             float score = item["reduction_need_score"].Value<float>();
 
-                            BuildingType enumType = ConvertStringToBuildingType(bTypeStr);
+                            BuildingType enumType = DataConverter.GetBuildingType(bTypeStr);
                             districtData.buildingReductionScores[enumType] = score;
                         }
                     }
@@ -244,6 +245,8 @@ public class DataManager : MonoBehaviour
                 OnDistrictDataUpdated?.Invoke(districtData);
             }
         }
+        Debug.Log("[DataManager] 모든 구역 데이터 파싱 완료!");
+        OnAllDistrictsParsed?.Invoke();
     }
 
     // 차트용 ONI 범위 데이터를 파싱하는 메서드
@@ -307,84 +310,6 @@ public class DataManager : MonoBehaviour
 
         // 파싱된 전체 범위 데이터 리스트를 이벤트로 방송 (차트 매니저 등에서 활용)
         OniRangeDataUpdated?.Invoke(rangeDataList);
-    }
-
-    private BuildingType ConvertStringToBuildingType(string koreanName)
-    {
-        switch (koreanName)
-        {
-            case "교육연구시설": return BuildingType.edu_research;
-            case "공장": return BuildingType.factory;
-            case "창고시설": return BuildingType.warehouse;
-            case "자동차관련시설": return BuildingType.vehicle_related;
-            case "위험물저장및처리시설": return BuildingType.hazardous_material;
-            case "동.식물 관련시설": return BuildingType.animal_plant;
-            case "발전시설": return BuildingType.power_generation;
-            case "분뇨.쓰레기처리시설": return BuildingType.waste_treatment;
-            case "묘지관련시설": return BuildingType.cemetery;
-            case "가설건축물": return BuildingType.temporary_build;
-            case "제1종근린생활시설": return BuildingType.neighborhood_1;
-            case "제2종근린생활시설": return BuildingType.neighborhood_2;
-            case "업무시설": return BuildingType.office;
-            case "의료시설": return BuildingType.medical;
-            case "노유자시설": return BuildingType.elder_child_care;
-            case "종교시설": return BuildingType.religious;
-            case "문화및집회시설": return BuildingType.cultural_assembly;
-            case "판매시설": return BuildingType.retail;
-            case "판매및영업시설": return BuildingType.sales_business;
-            case "위락시설": return BuildingType.entertainment;
-            case "관광휴게시설": return BuildingType.tourist_rest;
-            case "숙박시설": return BuildingType.accommodation;
-            case "운동시설": return BuildingType.sports;
-            case "근린생활시설": return BuildingType.neighborhood_all;
-            case "공공용시설": return BuildingType.public_use;
-            case "장례식장": return BuildingType.funeral;
-            case "교육연구및복지시설": return BuildingType.edu_welfare;
-            case "방송통신시설": return BuildingType.broadcasting_comm;
-            case "운수시설": return BuildingType.transport;
-            case "수련시설": return BuildingType.youth_training;
-            case "교정및군사시설": return BuildingType.defense_prison;
-            case "단독주택": return BuildingType.single_house;
-            case "공동주택": return BuildingType.multi_house;
-            case "다가구주택": return BuildingType.multi_family_house;
-            default:
-                return BuildingType.neighborhood_all; // 기본값
-        }
-    }
-
-    public DistrictType ConvertStringToDistrictType(string koreanName)
-    {
-        switch (koreanName)
-        {
-            case "도봉구": return DistrictType.DOBONG;
-            case "동대문구": return DistrictType.DONGDAEMUN;
-            case "동작구": return DistrictType.DONGJAK;
-            case "은평구": return DistrictType.EUNPYEONG;
-            case "강북구": return DistrictType.GANGBUK;
-            case "강동구": return DistrictType.GANGDONG;
-            case "강남구": return DistrictType.GANGNAM;
-            case "강서구": return DistrictType.GANGSEO;
-            case "금천구": return DistrictType.GEUMCHEON;
-            case "구로구": return DistrictType.GURO;
-            case "관악구": return DistrictType.GWANAK;
-            case "광진구": return DistrictType.GWANGJIN;
-            case "종로구": return DistrictType.JONGNO;
-            case "중구": return DistrictType.JUNG;
-            case "중랑구": return DistrictType.JUNGNANG;
-            case "마포구": return DistrictType.MAPO;
-            case "노원구": return DistrictType.NOWON;
-            case "서초구": return DistrictType.SEOCHO;
-            case "서대문구": return DistrictType.SEODAEMUN;
-            case "성북구": return DistrictType.SEONGBUK;
-            case "성동구": return DistrictType.SEONGDONG;
-            case "송파구": return DistrictType.SONGPA;
-            case "양천구": return DistrictType.YANGCHEON;
-            case "영등포구": return DistrictType.YEONGDEUNGPO;
-            case "용산구": return DistrictType.YONGSAN;
-            default:
-                Debug.LogWarning($"[DataManager] 알 수 없는 구 이름: {koreanName}");
-                return DistrictType.GANGNAM; // 기본값 임시 할당
-        }
     }
 
     public int SafeStringToInt(string input, int defaultValue = 0)
