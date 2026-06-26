@@ -5,7 +5,7 @@ public class DistrictManager : MonoBehaviour
 {
     public static DistrictManager Instance { get; private set; }
 
-    public Dictionary<string, DistrictObject> districtObjects = new Dictionary<string, DistrictObject>();
+    public Dictionary<DistrictType, DistrictObject> districtObjects = new Dictionary<DistrictType, DistrictObject>();
 
     [SerializeField] private DataManager dataManager;
 
@@ -38,27 +38,27 @@ public class DistrictManager : MonoBehaviour
     private void HandleDistrictDataUpdated(DistrictData newData)
     {
         // 구 객체를 가져오거나 생성한 후 API 데이터를 갱신합니다.
-        DistrictObject district = GetOrCreateDistrict(newData.districtName);
+        DistrictObject district = GetOrCreateDistrict(newData.districtType);
         district.data = newData;
 
-        Debug.Log($"[DistrictManager] [{newData.districtName}] 전력 데이터 업데이트 완료.");
+        Debug.Log($"[DistrictManager] [{newData.districtType}] 전력 데이터 업데이트 완료.");
 
         // TODO: 이벤트 함수 만들어서 갱신됐다고 Invoke합니다.
     }
 
     // 해당 구(District) 객체가 존재하면 반환하고, 없으면 새로 생성하여 딕셔너리에 등록하는 헬퍼 메서드입니다.
-    private DistrictObject GetOrCreateDistrict(string districtName)
+    private DistrictObject GetOrCreateDistrict(DistrictType districtType)
     {
-        if (!districtObjects.ContainsKey(districtName))
+        if (!districtObjects.ContainsKey(districtType))
         {
             // 빈 껍데기 형태의 DistrictObject를 우선 생성하여 등록합니다.
             // (참고: DistrictObject가 MonoBehaviour이므로, 프로젝트 구조에 따라 
             //  Instantiate나 AddComponent 구조로 변경해야 할 수 있습니다.)
-            districtObjects[districtName] = new DistrictObject
+            districtObjects[districtType] = new DistrictObject
             {
                 data = new DistrictData
                 {
-                    districtName = districtName,
+                    districtType = districtType,
                     // 이곳으로 이동해야 합니다.
                     buildingReductionScores = new Dictionary<BuildingType, float>()
                 },
@@ -66,16 +66,16 @@ public class DistrictManager : MonoBehaviour
                 IsShutDown = false
             };
         }
-        return districtObjects[districtName];
+        return districtObjects[districtType];
     }
 
     // 건물 생성 로직에서 호출할 메서드
-    public void UpdateDistrictBuildings(string districtName, List<BuildingObject> buildings)
+    public void UpdateDistrictBuildings(DistrictType districtType, List<BuildingObject> buildings)
     {
         // 구 객체를 가져오거나 생성한 후 건물 리스트를 연결합니다.
-        DistrictObject district = GetOrCreateDistrict(districtName);
+        DistrictObject district = GetOrCreateDistrict(districtType);
         district.buildings = buildings;
 
-        Debug.Log($"[DistrictManager] [{districtName}] 건물 오브젝트 배치 완료. (총 {buildings.Count}개 건물)");
+        Debug.Log($"[DistrictManager] [{districtType}] 건물 오브젝트 배치 완료. (총 {buildings.Count}개 건물)");
     }
 }
