@@ -6,10 +6,6 @@ using System.IO;
 using System.Threading.Tasks;
 using UnityEngine;
 
-//JObject -> { } 중괄호(딕셔너리 형태)
-//JArray  -> [ ] 대괄호(배열 형태)
-//JToken  -> 둘 다 포함하는 부모 타입
-
 public class DataParser
 {
     private const double LAT_SCALE = 111320.0;
@@ -54,12 +50,10 @@ public class DataParser
                     List<double[]> rawCoords = new List<double[]>();
 
                     foreach (JArray point in ring)
-                    {   // 주의: GeoJSON 은 경도(x), 위도(y) 순서다.
-                        // point[0] 이 경도, point[1] 이 위도다.
+                    {
                         double lon = (double)point[0]; // 경도
                         double lat = (double)point[1]; // 위도
 
-                        // 경도, 위도를 배열로 묶어서 리스트에 추가한다.
                         double[] coord = new double[] { lon, lat };
                         rawCoords.Add(coord);
                     }
@@ -73,14 +67,11 @@ public class DataParser
                     string addressDetail = props["A5"]?.ToString();
                     data.name = (address + " " + addressDetail).Trim();
 
-                    data.type = props["A9"]?.ToString();
+                    string sigunguStr = props["sigungu"]?.ToString();
+                    data.districtType = DataConverter.GetDistrictType(sigunguStr);
 
-                    //화재 시뮬레이션을 위한 코드
-                    data.structureCode = props["A10"]?.ToString();
-
-
-
-
+                    string buildingTypeStr = props["building_type"]?.ToString();
+                    data.buildingType = DataConverter.GetBuildingType(buildingTypeStr);
 
                     double a26 = 0;
                     if (props["A26"] != null && props["A26"].Type != JTokenType.Null)

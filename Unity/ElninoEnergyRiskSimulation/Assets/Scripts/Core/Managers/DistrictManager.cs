@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -8,6 +9,10 @@ public class DistrictManager : MonoBehaviour
     public Dictionary<DistrictType, DistrictObject> districtObjects = new Dictionary<DistrictType, DistrictObject>();
 
     [SerializeField] private DataManager dataManager;
+
+    public event Action<Dictionary<DistrictType, DistrictData>> OnAllDistrictsDataUpdated;
+
+    public event Action<Dictionary<DistrictType, DistrictObject>> OnAllDistrictsObjectsUpdated;
 
     private void Awake()
     {
@@ -20,6 +25,7 @@ public class DistrictManager : MonoBehaviour
         if (dataManager != null)
         {
             dataManager.OnDistrictDataUpdated += HandleDistrictDataUpdated;
+            dataManager.OnAllDistrictsParsed += HandleAllDistrictsParsed;
         }
         else
         {
@@ -31,6 +37,7 @@ public class DistrictManager : MonoBehaviour
         if (dataManager != null)
         {
             dataManager.OnDistrictDataUpdated -= HandleDistrictDataUpdated;
+            dataManager.OnAllDistrictsParsed -= HandleAllDistrictsParsed;
         }
     }
 
@@ -44,6 +51,22 @@ public class DistrictManager : MonoBehaviour
         Debug.Log($"[DistrictManager] [{newData.districtType}] 전력 데이터 업데이트 완료.");
 
         // TODO: 이벤트 함수 만들어서 갱신됐다고 Invoke합니다.
+    }
+
+    private void HandleAllDistrictsParsed()
+    {
+        Debug.Log("[DistrictManager] 모든 구 데이터 세팅 완료. 구독자들에게 전달!");
+
+        // 1. UI용 순수 데이터 딕셔너리 추출
+        Dictionary<DistrictType, DistrictData> pureDataDict = new Dictionary<DistrictType, DistrictData>();
+        foreach (var kvp in districtObjects)
+        {
+            pureDataDict[kvp.Key] = kvp.Value.data;
+        }
+
+        // 2. 이벤트 각각 발생!
+        OnAllDistrictsDataUpdated?.Invoke(pureDataDict);
+        OnAllDistrictsObjectsUpdated?.Invoke(districtObjects);
     }
 
     // 해당 구(District) 객체가 존재하면 반환하고, 없으면 새로 생성하여 딕셔너리에 등록하는 헬퍼 메서드입니다.

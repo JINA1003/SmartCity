@@ -1,56 +1,110 @@
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using UnityEngine;
+using CesiumForUnity;
+using Unity.Mathematics;
 
-// 건물을 생성하는 클래스입니다.
-// 구별 건물이 전부 생성될 때마다 DistrictObject를 생성합니다.
-// GeoJson으로 건물을 생성할 때 하나의 구를 스폰을 완료할 때마다.
-// AddDistrictObjects()로 구오브젝트를 생성합니다.
 public class BuildingManager : MonoBehaviour
 {
-    [Header("건물에 적용할 재질(Material)")]
+    [Header("설정")]
+    public string geoJsonFileName = "seoul_buildings.geojson";
     public Material buildingMaterial;
 
-    /// <summary>
-    /// BuildingData를 기반으로 유니티 씬에 건물 GameObject를 생성합니다.
-    /// </summary>
-    /// <param name="data">건물 정보가 담긴 BuildingData</param>
+    [Header("Cesium 설정")]
+    public CesiumGeoreference cesiumGeoreference;
+
+    private async void Start()
+    {
+        await LoadAndSpawnDistrictsAsync();
+    }
+
+    public async Task LoadAndSpawnDistrictsAsync()
+    {
+        DataParser parser = new DataParser();
+
+        Debug.Log("[BuildingManager] GeoJSON 파싱 시작...");
+        List<BuildingData> allBuildings = await parser.ParseGeoJson(geoJsonFileName);
+
+        // 파싱된 전체 건물을 DistrictType(구)을 기준으로 그룹화(Group)합니다.
+        var buildingsByDistrict = allBuildings.GroupBy(b => b.districtType);
+
+        foreach (var districtGroup in buildingsByDistrict)
+        {
+            DistrictType currentDistrict = districtGroup.Key;
+            List<BuildingObject> districtBuildingObjects = new List<BuildingObject>();
+
+            int count = 0;
+            // 해당 구에 속한 건물들을 하나씩 생성
+            foreach (BuildingData bData in districtGroup)   
+            {
+                GameObject spawnedObj = SpawnBuilding(bData);
+                count++;
+                if (count % 50 == 0) await Task.Yield();
+                if (spawnedObj != null)
+                {
+                    // BuildingObject 컴포넌트를 붙이고 데이터 초기화
+                    BuildingObject bObj = spawnedObj.AddComponent<BuildingObject>();
+                    bObj.data = bData;
+
+                    districtBuildingObjects.Add(bObj);
+                }
+            }
+
+            // 구별로 생성이 끝났다면 DistrictManager에게 리스트 전달
+            if (DistrictManager.Instance != null)
+            {
+                DistrictManager.Instance.UpdateDistrictBuildings(currentDistrict, districtBuildingObjects);
+            }
+            else
+            {
+                Debug.LogWarning("[BuildingManager] DistrictManager 인스턴스를 찾을 수 없습니다.");
+            }
+        }
+
+        Debug.Log("[BuildingManager] 모든 구 건물 스폰 및 등록 완료");
+    }
+
     public GameObject SpawnBuilding(BuildingData data)
     {
-        // 1. MeshBuilder를 사용해 3D 메쉬 데이터 생성
-        // data.polygon: 로컬 XZ 좌표 목록, data.height: 계산된 건물 높이
         Mesh buildingMesh = MeshBuilder.BuildPolygonMesh(data.polygon, data.height);
 
-        // 2. 예외 처리 (매우 중요)
-        // EarClipping 실패 시 null을 반환하므로 반드시 체크해야 합니다.
         if (buildingMesh == null)
         {
-            Debug.LogWarning($"[BuildingSpawner] 건물 메쉬 생성 실패 (ID: {data.id})");
             return null;
         }
 
-        // 3. 유니티 게임 오브젝트 생성
-        // 오브젝트 이름에 건물 ID나 이름을 넣어두면 관리가 편합니다.
         GameObject buildingObj = new GameObject($"Building_{data.id}");
 
-        // 4. 렌더링을 위한 컴포넌트 추가
         MeshFilter meshFilter = buildingObj.AddComponent<MeshFilter>();
         MeshRenderer meshRenderer = buildingObj.AddComponent<MeshRenderer>();
 
-        // 5. 컴포넌트에 데이터 할당
         meshFilter.mesh = buildingMesh;
 
-        // 머티리얼을 할당하지 않으면 유니티에서 기본적으로 분홍색(Magenta)으로 보입니다.
         if (buildingMaterial != null)
         {
             meshRenderer.material = buildingMaterial;
         }
 
-        // 6. 건물의 위치(Position) 지정
-        // polygon 데이터는 이미 로컬 XZ 좌표로 변환되어 있으므로 중심축 기준으로 높이만 조절합니다.
-        // 지형 해발고도(terrainAltitude)를 적용하여 건물이 땅 위에 올라오도록 합니다.
-        buildingObj.transform.position = new Vector3(0, data.terrainAltitude, 0);
 
-        // (선택) 깔끔한 씬 관리를 위해 생성된 건물을 이 스크립트의 자식으로 설정
-        buildingObj.transform.SetParent(this.transform);
+        // 1. 하이어라키 원점 이동: 떨림(Jittering) 방지를 위해 반드시 Georeference의 자식으로 둡니다.
+        if (cesiumGeoreference != null)
+        {
+            buildingObj.transform.SetParent(cesiumGeoreference.transform, false);
+        }
+        else
+        {
+            buildingObj.transform.SetParent(this.transform, false);
+            Debug.LogWarning("CesiumGeoreference가 할당되지 않았습니다!");
+        }
+
+        // 3. 지구상에 똑바로 세우기: CesiumGlobeAnchor 부착 및 위경도 데이터 입력
+        CesiumGlobeAnchor anchor = buildingObj.AddComponent<CesiumGlobeAnchor>();
+
+        // DataParser에서 평균 낸 중심 위도/경도를 삽입하여 지구 표면에 위치시킵니다.
+        // 고도(Height)는 일단 0 또는 terrainAltitude로 둡니다.
+        double altitude = data.terrainAltitude > 0 ? data.terrainAltitude : 0;
+        anchor.longitudeLatitudeHeight = new double3(data.lon, data.lat, altitude);
 
         return buildingObj;
     }
