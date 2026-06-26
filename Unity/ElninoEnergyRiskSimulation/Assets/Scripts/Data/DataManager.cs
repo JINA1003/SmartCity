@@ -15,104 +15,140 @@ public class DataManager : MonoBehaviour
     public event Action<DistrictData> OnDistrictDataUpdated;
     public event Action<List<OniRangeData>> OniRangeDataUpdated;
 
-    private float oni;
+    // 현재 선택된 연월 (슬라이더 재호출 시 사용)
+    private int _currentYear;
+    private int _currentMonth;
+
+    private static readonly WaitForSeconds SliderDelay = new WaitForSeconds(0.3f);
+    private Coroutine _sliderCoroutine;
 
     private void OnEnable()
     {
         if (uiController != null)
         {
-            uiController.OnStartButtonClick += HandleStartSimulation;
+            uiController.OnDateSelected       += HandleDateSelected;
+            uiController.OnOniSliderReleased  += HandleSliderReleased;
         }
     }
+
     private void OnDisable()
     {
         if (uiController != null)
-            uiController.OnStartButtonClick -= HandleStartSimulation;
-    }
-
-    private void HandleStartSimulation(string year, string month)
-    {
-        StartCoroutine(UpdateLoadDataSequence(year, month));
-    }
-
-    IEnumerator UpdateLoadDataSequence(string year, string month)
-    {
-        int intYear = SafeStringToInt(year);
-        int intMonth = SafeStringToInt(month);
-
-        // 1. ONI 데이터 로드
-        Debug.Log("1. ONI 데이터 로드 시작...");
-        float? fetchedOni = null;
-        bool isOniLoaded = false;
-        apiClient.FetchOni(intYear, intMonth, (data) =>
         {
-            if (data != null && data.Count > 0) fetchedOni = data["output"]["oni"].Value<float>();
+            uiController.OnDateSelected       -= HandleDateSelected;
+            uiController.OnOniSliderReleased  -= HandleSliderReleased;
+        }
+    }
+
+    // 드롭다운 변경 → /oni && /predict/oni_range 병렬 호출, /oni 완료 후 /predict 순차 호출
+    private void HandleDateSelected(string year, string month)
+    {
+        _currentYear  = SafeStringToInt(year);
+        _currentMonth = SafeStringToInt(month);
+        StartCoroutine(LoadOnDateSelected(_currentYear, _currentMonth));
+    }
+
+    // 슬라이더 버튼 뗄 때 → 0.5초 후 /predict 재호출
+    private void HandleSliderReleased(float oniValue)
+    {
+        if (_sliderCoroutine != null) StopCoroutine(_sliderCoroutine);
+        _sliderCoroutine = StartCoroutine(SliderDelayedPredict(oniValue));
+    }
+
+    private IEnumerator SliderDelayedPredict(float oniValue)
+    {
+        yield return SliderDelay;
+        yield return StartCoroutine(LoadPredictOnly(_currentYear, _currentMonth, oniValue));
+        _sliderCoroutine = null;
+    }
+
+    IEnumerator LoadOnDateSelected(int year, int month)
+    {
+        // /oni && /predict/oni_range 병렬 시작
+        Debug.Log($"[DataManager] /oni && /predict/oni_range 병렬 호출 ({year}-{month})");
+
+        float? fetchedOni = null;
+        bool isOniLoaded  = false;
+        bool isRangeLoaded = false;
+
+        apiClient.FetchOni(year, month, (data) =>
+        {
+            if (data != null) fetchedOni = data["output"]["oni"].Value<float>();
             isOniLoaded = true;
         });
+
+        apiClient.FetchOniRange(year, month, (rangeData) =>
+        {
+            if (rangeData != null)
+            {
+                ParseOniRangeData(rangeData);
+                Debug.Log("[DataManager] OniRange 파싱 완료");
+            }
+            else
+            {
+                Debug.LogError("[DataManager] OniRange API 응답 Null");
+            }
+            isRangeLoaded = true;
+        });
+
+        // /oni 완료 대기
         yield return new WaitUntil(() => isOniLoaded);
 
         if (fetchedOni == null)
         {
-            Debug.LogError("[DataManager] ONI값을 가져오지 못해 시뮬레이션을 종료합니다.");
+            Debug.LogError("[DataManager] ONI값을 가져오지 못했습니다.");
+            yield return new WaitUntil(() => isRangeLoaded);
             yield break;
         }
 
-        // 2. Predict API 로드
-        Debug.Log("2. Predict 데이터 로드 시작...");
-        JObject predictData = null;
-        bool isPredictLoaded = false;
-        apiClient.FetchPredict(intYear, intMonth, fetchedOni.Value, (data) =>
+        // 슬라이더 초기화 (ONI 값으로)
+        uiController.InitSlider(fetchedOni.Value);
+
+        // /oni 완료 후 /predict 순차 호출
+        yield return StartCoroutine(LoadPredictOnly(year, month, fetchedOni.Value));
+
+        // oni_range도 완료될 때까지 대기 (이미 됐으면 즉시 통과)
+        yield return new WaitUntil(() => isRangeLoaded);
+    }
+
+    IEnumerator LoadPredictOnly(int year, int month, float oniValue)
+    {
+        Debug.Log($"[DataManager] /predict 호출 ({year}-{month}, oni={oniValue})");
+
+        JObject predictData   = null;
+        bool isPredictLoaded  = false;
+
+        apiClient.FetchPredict(year, month, oniValue, (data) =>
         {
-            predictData = data;
+            predictData     = data;
             isPredictLoaded = true;
         });
         yield return new WaitUntil(() => isPredictLoaded);
 
         if (predictData == null)
         {
-            Debug.LogError("[DataManager] Predict API 응답이 Null이어서 파싱을 중단합니다.");
+            Debug.LogError("[DataManager] Predict API 응답 Null");
             yield break;
         }
 
-        // Predict 데이터에서 현재 위험도 추출
-        JObject predicted = predictData["predicted"] as JObject;
-        int currentAlertLevel = (predicted != null && predicted["alert_level"] != null) ? predicted["alert_level"].Value<int>() : 0;
+        JObject predicted     = predictData["predicted"] as JObject;
+        int currentAlertLevel = (predicted != null && predicted["alert_level"] != null)
+                                ? predicted["alert_level"].Value<int>() : 0;
 
-        // 3. Blackout Simulation API 로드 (alert_level이 4일 때만 실행)
-        JObject blackoutData = null;
+        JObject blackoutData  = null;
         if (currentAlertLevel == 4)
         {
-            Debug.Log("3. Blackout 데이터 로드 시작 (위험도 4단계 감지됨)...");
+            Debug.Log("[DataManager] /blackout_simulation 호출 (위험도 4단계)");
             bool isBlackoutLoaded = false;
-            apiClient.FetchBlackoutSimulation(intYear, intMonth, fetchedOni.Value, (data) =>
+            apiClient.FetchBlackoutSimulation(year, month, oniValue, (data) =>
             {
-                blackoutData = data;
+                blackoutData    = data;
                 isBlackoutLoaded = true;
             });
             yield return new WaitUntil(() => isBlackoutLoaded);
         }
-        else
-        {
-            Debug.Log($"3. 현재 위험도가 {currentAlertLevel}단계이므로 Blackout 데이터를 로드하지 않습니다.");
-        }
 
-        // 4. 데이터 병합 및 파싱 (blackoutData는 4단계가 아니면 null로 넘어감)
-        ParseAndDispatchData(year, month, fetchedOni.Value, predictData, blackoutData);
-
-        // 5. 차트용 ONI 범위 데이터 로드
-        Debug.Log("5. 차트용 OniRange 데이터 로드 시작...");
-        apiClient.FetchOniRange(intYear, intMonth, (rangeData) =>
-        {
-            if (rangeData != null)
-            {
-                ParseOniRangeData(rangeData);
-                Debug.Log("6. OniRange 데이터 파싱 및 이벤트 호출 완료!");
-            }
-            else
-            {
-                Debug.LogError("[DataManager] OniRange API 응답이 Null입니다.");
-            }
-        });
+        ParseAndDispatchData(year.ToString(), month.ToString(), oniValue, predictData, blackoutData);
     }
 
     // 두 JSON 데이터를 병합하여 객체를 생성하고 이벤트를 호출하는 헬퍼 메서드

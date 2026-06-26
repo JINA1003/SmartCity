@@ -71,8 +71,12 @@ Flask REST API — Unity ↔ Python 브릿지.
 from __future__ import annotations
 
 import calendar
+import os
 
+from dotenv import load_dotenv
 from flask import Flask, jsonify, request
+
+load_dotenv()
 
 app = Flask(__name__)
 app.json.sort_keys = False   # dict 삽입 순서 유지 (building_type score 내림차순 등)
@@ -389,4 +393,5 @@ def blackout_simulation():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    port = int(os.getenv("FLASK_PORT", 5001))
+    app.run(host="0.0.0.0", port=port, debug=True)
