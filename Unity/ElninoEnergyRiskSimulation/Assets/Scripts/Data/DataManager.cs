@@ -46,7 +46,7 @@ public class DataManager : MonoBehaviour
         bool isOniLoaded = false;
         apiClient.FetchOni(intYear, intMonth, (data) =>
         {
-            if (data != null && data.Count > 0) fetchedOni = data[0]["output"]["oni"].Value<float>();
+            if (data != null && data.Count > 0) fetchedOni = data["output"]["oni"].Value<float>();
             isOniLoaded = true;
         });
         yield return new WaitUntil(() => isOniLoaded);
@@ -236,7 +236,7 @@ public class DataManager : MonoBehaviour
                 data.seoulTotalConsumption = item["seoul_total_consumption_mwh"] != null ? item["seoul_total_consumption_mwh"].Value<float>() : 0f;
 
                 // 참고: 현재 올려주신 json에는 alert_level이 존재하지 않아 안전하게 처리합니다.
-                data.alert_level = item["alert_level"].Value<float>();
+                data.alert_level = item["alert_level"].Value<int>();
 
                 // 2. 구역별(regions) 데이터 파싱
                 data.guTemperature = new Dictionary<string, float>();

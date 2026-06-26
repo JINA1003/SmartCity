@@ -38,9 +38,4 @@ public class PowerGridManager : MonoBehaviour
         this.data = newData;
         Debug.Log($"전체 전력망 데이터 갱신 완료 (예비율 등 UI 업데이트 시점)");
     }
-
-    void AddData(PowerGridData data)
-    {
-        this.data = data;
-    }
 }

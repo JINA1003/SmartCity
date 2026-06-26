@@ -21,10 +21,10 @@ public class ApiClient : MonoBehaviour
         StartCoroutine(GetJObject($"{serverUrl}/health", onSuccess));
     }
 
-    public void FetchOni(int year, int month, Action<JArray> onSuccess)
+    public void FetchOni(int year, int month, Action<JObject> onSuccess)
     {
         string url = $"{serverUrl}/oni?year={year}&month={month}";
-        StartCoroutine(GetJArray(url, onSuccess));
+        StartCoroutine(GetJObject(url, onSuccess));
     }
 
     // ONI 슬라이더 조정시 발생되는 API
@@ -59,20 +59,6 @@ public class ApiClient : MonoBehaviour
 
         if (req.result == UnityWebRequest.Result.Success)
             onSuccess?.Invoke(JObject.Parse(req.downloadHandler.text));
-        else
-        {
-            OnError?.Invoke($"[GET {url}] {req.responseCode} {req.error}");
-            onSuccess?.Invoke(null);
-        }
-    }
-
-    private IEnumerator GetJArray(string url, Action<JArray> onSuccess)
-    {
-        using UnityWebRequest req = UnityWebRequest.Get(url);
-        yield return req.SendWebRequest();
-
-        if (req.result == UnityWebRequest.Result.Success)
-            onSuccess?.Invoke(JArray.Parse(req.downloadHandler.text));
         else
         {
             OnError?.Invoke($"[GET {url}] {req.responseCode} {req.error}");
