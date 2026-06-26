@@ -75,3 +75,7 @@ crashlytics-build.properties
 /Assets/StreamingAssets
 /Assets/Scripts/Test
 /Assets/Scenes/Test
+
+# Unity crash logs
+*.blob
+mono_crash.*
