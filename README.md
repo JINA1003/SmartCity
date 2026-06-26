@@ -114,54 +114,16 @@ sequenceDiagram
 
 ## 4. 모델 파이프라인
 
-### 단계별 모델 요약
+| 단계               | 모델          | 출력                         | 아티팩트                        |
+| ------------------ | ------------- | ---------------------------- | ------------------------------- |
+| **1. 기온 예측**   | 선형회귀      | 서울 월평균기온 (℃)          | `temp_trend_model.pkl`          |
+| **2. 열섬 보정**   | Delta Method  | 구별 예측기온 (℃)            | `gu_offset_params.pkl`          |
+| **3. 소비량 예측** | XGBoost       | 구×용도별 소비량 (MWh)       | `consumption_xgb.pkl`           |
+| **4. 공급량 예측** | 다항 선형회귀 | 공급량(MW) + 최대전력(MW)    | `supply_model.pkl`              |
+| **예비율 계산**    | 수식          | (supply−peak) / peak × 100   | —                               |
 
-| 단계               | 모델          | 입력                                       | 출력                          |
-| ------------------ | ------------- | ------------------------------------------ | ----------------------------- |
-| **1. 기온 예측**   | 선형회귀      | ONI, year, month(더미)                     | 서울 대표 월평균기온 (℃)      |
-| **2. 열섬 보정**   | Delta Method  | 구별 기온 오프셋, 풍속                     | 구별 예측기온 (℃)             |
-| **3. 소비량 예측** | XGBoost       | CDD/HDD, year, month, district, usage_type | 구×용도별 소비량 (MWh)        |
-| **4. 공급량 예측** | 다항 선형회귀 | CDD/HDD, year, month, oni                  | 공급량(MW) + 최대전력(MW)     |
-| **예비율 계산**    | 수식          | supply_mw, peak_mw                         | (supply-peak)/peak × 100 (%)  |
-
-### 1번 모델 — 기온 예측
-
-```
-ta_mean(year, month, ONI) = β0 + β(ONI)·ONI + β(year)·year + Σ β(month_k)·I(month=k)
-```
-
-아티팩트: `python/model/artifacts/temp_trend_model.pkl`
-
-### 2번 모델 — 공간 열섬 보정
-
-```
-ta_gu = ta_asos_pred + base_offset(구)
-```
-
-- `base_offset`: AWS 구별 관측 기반 보정값
-- 아티팩트: `data/output/gu_offset_params.pkl`
-
-### 3번 모델 — 소비량 예측 (XGBoost)
-
-| 피처          | 설명                                                         |
-| ------------- | ------------------------------------------------------------ |
-| `cdd`         | 냉방도일 Σmax(0, ta−24℃)                                     |
-| `hdd`         | 난방도일 Σmax(0, 18℃−ta)                                     |
-| `year`        | 기저소비 증가 추세                                           |
-| `month`       | 계절성                                                       |
-| `district`    | 구별 기저 소비 수준                                          |
-| `usage_type`  | 용도별 반응 패턴 (7종: 주택/일반/교육/산업/농사/가로등/심야) |
-| `oni`         | ENSO 신호                                                    |
-
-아티팩트: `python/model/artifacts/consumption_xgb.pkl`, `consumption_encoders.pkl`
-
-### 4번 모델 — 공급량 예측
-
-- 피처: `year, month, oni, cdd, hdd` (degree=2 다항)
-- 타깃: `supply_mw_mean`(공급능력), `peak_mw`(최대전력) — **reserve_rate는 직접 학습하지 않고 수식으로 계산**
-- 아티팩트: `python/model/artifacts/supply_model.pkl`
-
-> **주의**: ONI와 예비율의 직접 상관관계는 데이터상 매우 약함 (r=0.07). 실제 예비율은 ONI보다 연도별 설비 증설 사이클에 지배됨. 그래프의 예비율 곡선은 이 한계를 반영함.
+피처 공통: `year, month, oni, cdd, hdd, district, usage_type`  
+학습 진입점: `python -m python.train_pipeline`
 
 ---
 
