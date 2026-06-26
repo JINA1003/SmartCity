@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class PowerGridManager : MonoBehaviour
@@ -7,6 +8,8 @@ public class PowerGridManager : MonoBehaviour
     PowerGridData data;
 
     [SerializeField] private DataManager dataManager;
+
+    public event Action<PowerGridData> OnPowerGridDataUpdated;
 
     private void Awake()
     {
@@ -36,6 +39,7 @@ public class PowerGridManager : MonoBehaviour
     private void HandlePowerDataUpdated(PowerGridData newData)
     {
         this.data = newData;
+        OnPowerGridDataUpdated?.Invoke(data);
         Debug.Log($"전체 전력망 데이터 갱신 완료 (예비율 등 UI 업데이트 시점)");
     }
 }
