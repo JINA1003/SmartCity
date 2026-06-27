@@ -38,7 +38,7 @@ public class CityManager : MonoBehaviour
 
     // --- C++ DLL 함수 연결 ---
     [DllImport("SeoulBuildingProcessor")]
-    private static extern void LoadDistrictData(System.IntPtr dataPointer, int byteLength);
+    private static extern int LoadDistrictData(System.IntPtr dataPointer, int byteLength);
 
     [DllImport("SeoulBuildingProcessor")]
     private static extern void LoadPolygonData(IntPtr dataPointer, int elementCount);
@@ -73,8 +73,9 @@ public class CityManager : MonoBehaviour
     [DllImport("SeoulBuildingProcessor")]
     private static extern void GetBuildingPositions(int districtId, [In, Out] double[] lons, [In, Out] double[] lats);
 
-    private async void Start()
+    private void Start()
     {
+        Debug.Log("[CityManager] Start() - 구역별 건물 데이터 로드 및 메쉬 생성 시작...");
         // PloygonData 고속 로드
         LoadGlobalPolygonBinaryFast();
 
@@ -85,11 +86,23 @@ public class CityManager : MonoBehaviour
             LoadDistrictBinaryFast((int)district);
         }
 
+        StartCoroutine(InitializeDistrict());
+
         // 2. 렌더링용 Compute Buffer 초기화
         // InitializeComputeBuffer();
+    }
 
-        // 2. 메쉬 생성 및 지형 배치
-        await SpawnDistrictChunkAsync(1);
+    IEnumerator InitializeDistrict()
+    {
+        // Tileset이 준비될 때까지 대기
+        while (terrainTileset == null || !terrainTileset.enabled)
+        {
+            yield return null;
+        }
+
+        Debug.Log("[CityManager] Tileset 준비 완료. 구역별 메쉬 생성 시작...");
+        // 지연 후 호출
+        yield return SpawnDistrictChunkAsync(11110);
     }
 
     // NativePlugin으로 데이터를 전달하기 위해 C# 배열을 핀(Pin) 고정하여 C++로 전달하는 방식으로 구현
@@ -111,13 +124,16 @@ public class CityManager : MonoBehaviour
         try
         {
             // C++ 구역별 건물 데이터 로드
-            LoadDistrictData(handle.AddrOfPinnedObject(), rawData.Length);
+            int result = LoadDistrictData(handle.AddrOfPinnedObject(), rawData.Length);
+            Debug.Log(result);
         }
         finally
         {
             // 핀 고정 해제
             if (handle.IsAllocated) handle.Free();
         }
+        
+        // 전달 됐음
     }
 
     private void LoadGlobalPolygonBinaryFast()
