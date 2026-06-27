@@ -22,12 +22,20 @@ public class InfoPanelUI : MonoBehaviour
         if (string.IsNullOrEmpty(emergencyStage)) // 단계가 없으면 정상으로 처리
             emergencyStage = "정상";
 
-        Text_Date_Info.text = dateText;
-        Text_Emergency_Value.text = emergencyStage;
-        Text_Info_ONIType.text = oniType;
-        Text_Info_ONINum.text = oniValueText;
+        if (Text_Date_Info != null)
+            Text_Date_Info.text = dateText;
 
-        Img_Emergency_Dot.color = GetEmergencyColor(emergencyStage);
+        if (Text_Emergency_Value != null)
+            Text_Emergency_Value.text = emergencyStage;
+
+        if (Text_Info_ONIType != null)
+            Text_Info_ONIType.text = oniType;
+
+        if (Text_Info_ONINum != null)
+            Text_Info_ONINum.text = oniValueText;
+
+        if (Img_Emergency_Dot != null)
+            Img_Emergency_Dot.color = GetEmergencyColor(emergencyStage);
     }
 
     private Color32 GetEmergencyColor(string emergencyStage)
