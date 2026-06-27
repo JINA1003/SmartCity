@@ -5,7 +5,8 @@
         "XCharts.Runtime",
         "Unity.TextMeshPro",
         "CesiumForUnity",
-        "Unity.Mathematics"
+        "Unity.Mathematics",
+        "Unity.RenderPipelines.Universal.Runtime"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

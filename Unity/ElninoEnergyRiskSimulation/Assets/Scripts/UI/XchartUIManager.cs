@@ -75,6 +75,16 @@ public class XchartUIManager : MonoBehaviour
             uiController.OnOniValueChanged += OnOniSliderChanged;
     }
 
+    private void OnEnable()
+    {
+        MinimapManager.OnDistrictSelected += SetDistrict;
+    }
+
+    private void OnDisable()
+    {
+        MinimapManager.OnDistrictSelected -= SetDistrict;
+    }
+
     private void OnDestroy()
     {
         if (dataManager != null)
