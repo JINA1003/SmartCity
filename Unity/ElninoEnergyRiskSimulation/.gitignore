@@ -79,3 +79,6 @@ crashlytics-build.properties
 # Unity crash logs
 *.blob
 mono_crash.*
+
+/Assets/Plugins
+/Assets/Resources
