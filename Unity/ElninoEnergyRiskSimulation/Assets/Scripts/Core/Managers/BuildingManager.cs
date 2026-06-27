@@ -1,9 +1,10 @@
+using CesiumForUnity;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using UnityEngine;
-using CesiumForUnity;
 using Unity.Mathematics;
+using UnityEngine;
 
 public class BuildingManager : MonoBehaviour
 {
@@ -13,6 +14,7 @@ public class BuildingManager : MonoBehaviour
 
     [Header("Cesium 설정")]
     public CesiumGeoreference cesiumGeoreference;
+    public Cesium3DTileset terrainTileset;
 
     private async void Start()
     {
@@ -48,6 +50,8 @@ public class BuildingManager : MonoBehaviour
                     bObj.data = bData;
 
                     districtBuildingObjects.Add(bObj);
+
+                    StartCoroutine(PlaceBuilding(spawnedObj, bData.lon, bData.lat));
                 }
             }
 
@@ -98,14 +102,46 @@ public class BuildingManager : MonoBehaviour
             Debug.LogWarning("CesiumGeoreference가 할당되지 않았습니다!");
         }
 
-        // 3. 지구상에 똑바로 세우기: CesiumGlobeAnchor 부착 및 위경도 데이터 입력
-        CesiumGlobeAnchor anchor = buildingObj.AddComponent<CesiumGlobeAnchor>();
-
-        // DataParser에서 평균 낸 중심 위도/경도를 삽입하여 지구 표면에 위치시킵니다.
-        // 고도(Height)는 일단 0 또는 terrainAltitude로 둡니다.
-        double altitude = data.terrainAltitude > 0 ? data.terrainAltitude : 0;
-        anchor.longitudeLatitudeHeight = new double3(data.lon, data.lat, altitude);
-
         return buildingObj;
+    }
+
+    IEnumerator PlaceBuilding(GameObject obj, double lon, double lat)
+    {
+        yield return null;
+        if (obj == null) yield break;
+
+        // 1. 지구상에 똑바로 세우기 위한 앵커 추가 및 활성화 대기
+        CesiumGlobeAnchor anchor = obj.AddComponent<CesiumGlobeAnchor>();
+        yield return new WaitUntil(() => anchor != null && anchor.isActiveAndEnabled);
+
+        double terrainHeight = 0;
+
+        // 2. Cesium 3D Tileset 지형으로부터 해당 위경도의 최정밀 고도(Heigt) 샘플링 대기
+        if (terrainTileset != null)
+        {
+            double3[] positions = new double3[] { new double3(lon, lat, 0) };
+            System.Threading.Tasks.Task<CesiumSampleHeightResult> task
+                = terrainTileset.SampleHeightMostDetailed(positions);
+            yield return new WaitUntil(() => task.IsCompleted);
+
+            if (task.Result.sampleSuccess[0])
+                terrainHeight = task.Result.longitudeLatitudeHeightPositions[0].z;
+        }
+
+        // 3. 앵커 좌표에 정확한 해발고도 반영
+        anchor.longitudeLatitudeHeight = new double3(lon, lat, terrainHeight);
+
+        // 4. 컴포넌트 구조 체크 후 데이터 동기화
+        BuildingObject bObj = obj.GetComponent<BuildingObject>();
+        if (bObj != null && bObj.data != null)
+        {
+            // bObj.data.terrainAltitude = (float)terrainHeight;
+        }
+
+        yield return null;
+
+        // 5. 고도 배치가 완전히 끝나면 숨겨두었던 메쉬를 화면에 렌더링
+        if (obj != null)
+            obj.GetComponent<MeshRenderer>().enabled = true;
     }
 }
