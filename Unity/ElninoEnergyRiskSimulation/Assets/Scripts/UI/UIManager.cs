@@ -6,188 +6,200 @@ public class UIManager : MonoBehaviour
     public static UIManager Instance { get; private set; }
 
     [Header("패널 UI")]
-    public InfoPanelUI infoPanel;
-    public GuEnergyPanelUI guEnergyPanel;
+    public InfoPanelUI infoPanel;         // 상단 정보 패널
+    public GuEnergyPanelUI guEnergyPanel; // 구별 에너지 정보 패널
 
     [Header("데이터")]
-    [SerializeField] private DataManager dataManager;
+    public DataManager dataManager;       // API 데이터를 받아오는 DataManager
 
-    private readonly Dictionary<DistrictType, DistrictData> districtDataMap = new();
+    // 구별 데이터를 DistrictType 기준으로 저장합니다.
+    private readonly Dictionary<DistrictType, DistrictData> districtDataMap =
+        new Dictionary<DistrictType, DistrictData>();
+
+    // 현재 선택된 구를 저장합니다.
     private DistrictType selectedDistrictType;
     private bool hasSelectedDistrict;
 
     private void Awake()
     {
-        if (Instance != null && Instance != this)
+        // UIManager를 하나만 사용하기 위한 싱글톤 처리입니다.
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else
         {
             Destroy(gameObject);
-            return;
         }
-
-        Instance = this;
-        ResolveReferences();
     }
 
     private void OnEnable()
     {
-        ResolveReferences();
-
+        // DataManager가 연결되지 않았으면 이벤트를 구독할 수 없습니다.
         if (dataManager == null)
         {
-            Debug.LogWarning("[UIManager] DataManager가 연결되지 않았습니다.");
+            Debug.LogWarning("[UIManager] dataManager가 연결되지 않았습니다.");
             return;
         }
 
-        dataManager.OnPowerDataUpdated += HandlePowerDataUpdated;
-        dataManager.OnDistrictDataUpdated += HandleDistrictDataUpdated;
+        // 전체 전력 데이터가 갱신되면 상단 정보 패널을 갱신합니다.
+        dataManager.OnPowerDataUpdated += OnPowerDataUpdated;
+
+        // 구별 데이터가 갱신되면 구 에너지 패널을 갱신합니다.
+        dataManager.OnDistrictDataUpdated += OnDistrictDataUpdated;
     }
 
     private void OnDisable()
     {
+        // 오브젝트가 꺼질 때 이벤트 연결을 해제합니다.
         if (dataManager == null) return;
 
-        dataManager.OnPowerDataUpdated -= HandlePowerDataUpdated;
-        dataManager.OnDistrictDataUpdated -= HandleDistrictDataUpdated;
+        dataManager.OnPowerDataUpdated -= OnPowerDataUpdated;
+        dataManager.OnDistrictDataUpdated -= OnDistrictDataUpdated;
     }
 
-    private void ResolveReferences()
+    // 전체 전력망 데이터가 갱신되었을 때 호출됩니다.
+    private void OnPowerDataUpdated(PowerGridData data)
     {
-        if (dataManager == null)
-            dataManager = FindSceneObject<DataManager>();
-
         if (infoPanel == null)
-            infoPanel = FindSceneObject<InfoPanelUI>();
-
-        if (guEnergyPanel == null)
-            guEnergyPanel = FindSceneObject<GuEnergyPanelUI>();
-    }
-
-    private static T FindSceneObject<T>() where T : Component
-    {
-        foreach (T component in Resources.FindObjectsOfTypeAll<T>())
         {
-            if (component.gameObject.scene.IsValid() && component.gameObject.scene.isLoaded)
-                return component;
-        }
-
-        return null;
-    }
-
-    private void HandlePowerDataUpdated(PowerGridData data)
-    {
-        SetInfoPanel(
-            $"{data.year}년 {data.month}월",
-            data.riskLabel,
-            data.oniStatus,
-            data.oni.ToString("0.00")
-        );
-    }
-
-    private void HandleDistrictDataUpdated(DistrictData data)
-    {
-        districtDataMap[data.districtType] = data;
-
-        if (!hasSelectedDistrict)
-        {
-            SelectDistrict(data.districtType);
+            Debug.LogWarning("[UIManager] infoPanel이 연결되지 않았습니다.");
             return;
         }
 
-        if (selectedDistrictType == data.districtType)
-            ShowGuEnergyPanel(selectedDistrictType);
+        // 상단 정보 패널에 표시할 값을 준비합니다.
+        string dateText = data.year + "년 " + data.month + "월";
+        string emergencyStage = string.IsNullOrEmpty(data.riskLabel) ? "정상" : data.riskLabel;
+        string oniType = string.IsNullOrEmpty(data.oniStatus) ? "-" : data.oniStatus;
+        string oniValueText = data.oni.ToString("0.00");
+
+        // 상단 정보 패널을 갱신합니다.
+        infoPanel.SetInfoPanel(
+            dateText,
+            emergencyStage,
+            oniType,
+            oniValueText
+        );
     }
 
+    // 구별 데이터가 하나씩 갱신될 때 호출됩니다.
+    private void OnDistrictDataUpdated(DistrictData data)
+    {
+        // DistrictType을 key로 사용해서 구별 데이터를 저장합니다.
+        districtDataMap[data.districtType] = data;
+
+        // 아직 선택된 구가 없다면 첫 번째로 들어온 구를 자동 선택합니다.
+        if (!hasSelectedDistrict)
+        {
+            selectedDistrictType = data.districtType;
+            hasSelectedDistrict = true;
+        }
+
+        // 현재 선택된 구의 데이터가 갱신되면 구 패널도 갱신합니다.
+        if (selectedDistrictType == data.districtType)
+        {
+            SetGuEnergyPanel(selectedDistrictType);
+        }
+    }
+
+    // 외부에서 DistrictType으로 구를 선택할 때 호출합니다.
     public void SelectDistrict(DistrictType districtType)
     {
         selectedDistrictType = districtType;
         hasSelectedDistrict = true;
-        ShowGuEnergyPanel(districtType);
+
+        SetGuEnergyPanel(districtType);
     }
 
-    public void ShowGuEnergyPanel(DistrictType districtType)
+    // 외부에서 한글 구 이름으로 구를 선택할 때 호출합니다.
+    public void SelectDistrictByName(string districtName)
     {
-        if (!districtDataMap.TryGetValue(districtType, out DistrictData data))
+        if (string.IsNullOrEmpty(districtName))
         {
-            Debug.LogWarning($"[UIManager] {districtType} 데이터가 아직 없습니다.");
+            Debug.LogWarning("[UIManager] 선택된 구 이름이 비어 있습니다.");
             return;
         }
 
-        double seoulTotal = 0;
-        foreach (DistrictData district in districtDataMap.Values)
-            seoulTotal += district.totalPowerUsage;
+        DistrictType districtType = DataConverter.GetDistrictType(districtName.Trim());
+        SelectDistrict(districtType);
+    }
 
-        string usagePercentText = seoulTotal > 0
-            ? $"{data.totalPowerUsage / seoulTotal * 100.0:0.0}%"
-            : "-";
+    // 선택한 구의 데이터를 찾아서 구 에너지 패널에 표시합니다.
+    public void SetGuEnergyPanel(DistrictType districtType)
+    {
+        if (guEnergyPanel == null)
+        {
+            Debug.LogWarning("[UIManager] guEnergyPanel이 연결되지 않았습니다.");
+            return;
+        }
 
-        ShowGuEnergyPanel(
-            GetDistrictKoreanName(data.districtType),
+        if (!districtDataMap.TryGetValue(districtType, out DistrictData data))
+        {
+            Debug.LogWarning("[UIManager] " + districtType + " 데이터가 아직 없습니다.");
+            return;
+        }
+
+        // 서울 전체 전력 사용량을 계산합니다.
+        double seoulTotalUsage = GetSeoulTotalUsage();
+
+        // 선택한 구가 서울 전체 사용량 중 몇 퍼센트인지 계산합니다.
+        string usagePercentText = "-";
+        if (seoulTotalUsage > 0)
+        {
+            usagePercentText = (data.totalPowerUsage / seoulTotalUsage * 100.0).ToString("0.0") + "%";
+        }
+
+        // DistrictType enum 값을 화면에 표시할 한글 구 이름으로 변환합니다.
+        string districtName = GetDistrictName(data.districtType);
+
+        // 구 에너지 패널에 표시할 모든 텍스트 값을 전달합니다.
+        guEnergyPanel.SetGuEnergyPanel(
+            districtName,
             "-",
             "-",
-            $"{data.totalPowerUsage:0.0} MWh",
+            data.totalPowerUsage.ToString("0.0") + " MWh",
             usagePercentText,
-            GetUsageText(data, "주택용"),
-            GetUsageText(data, "일반용"),
-            GetUsageText(data, "교육용"),
-            GetUsageText(data, "산업용"),
-            GetUsageText(data, "농사용"),
-            GetUsageText(data, "가로등"),
-            GetUsageText(data, "심야")
+            GetUsageValue(data, "주택용"),
+            GetUsageValue(data, "일반용"),
+            GetUsageValue(data, "교육용"),
+            GetUsageValue(data, "산업용"),
+            GetUsageValue(data, "농사용"),
+            GetUsageValue(data, "가로등"),
+            GetUsageValue(data, "심야")
         );
     }
 
-    private string GetUsageText(DistrictData data, string usageName)
+    // 현재 저장된 모든 구의 총 전력 사용량을 더합니다.
+    private double GetSeoulTotalUsage()
     {
-        if (data.typePowerUsage != null &&
-            data.typePowerUsage.TryGetValue(usageName, out float value))
+        double total = 0;
+
+        foreach (DistrictData district in districtDataMap.Values)
         {
-            return $"{value:0.0} MWh";
+            total += district.totalPowerUsage;
+        }
+
+        return total;
+    }
+
+    // 용도별 전력 사용량을 화면에 표시할 문자열로 변환합니다.
+    private string GetUsageValue(DistrictData data, string usageName)
+    {
+        if (data.typePowerUsage == null)
+        {
+            return "-";
+        }
+
+        if (data.typePowerUsage.TryGetValue(usageName, out float value))
+        {
+            return value.ToString("0.0") + " MWh";
         }
 
         return "-";
     }
 
-    public void SetInfoPanel(string dateText, string emergencyStage, string oniType, string oniValueText)
-    {
-        if (infoPanel != null)
-            infoPanel.SetInfo(dateText, emergencyStage, oniType, oniValueText);
-    }
-
-    public void ShowGuEnergyPanel(
-        string districtName,
-        string usageChangeAmountText,
-        string usageChangeRateText,
-        string totalUsageText,
-        string usagePercentText,
-        string houseText,
-        string generalText,
-        string educationText,
-        string industrialText,
-        string agricultureText,
-        string streetlightText,
-        string midnightText
-    )
-    {
-        if (guEnergyPanel != null)
-        {
-            guEnergyPanel.Show(
-                districtName,
-                usageChangeAmountText,
-                usageChangeRateText,
-                totalUsageText,
-                usagePercentText,
-                houseText,
-                generalText,
-                educationText,
-                industrialText,
-                agricultureText,
-                streetlightText,
-                midnightText
-            );
-        }
-    }
-
-    private string GetDistrictKoreanName(DistrictType districtType)
+    // DistrictType enum 값을 화면에 표시할 한글 구 이름으로 변환합니다.
+    private string GetDistrictName(DistrictType districtType)
     {
         switch (districtType)
         {
