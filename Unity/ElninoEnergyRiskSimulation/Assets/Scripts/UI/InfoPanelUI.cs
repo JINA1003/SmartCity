@@ -5,46 +5,40 @@ using UnityEngine.UI;
 public class InfoPanelUI : MonoBehaviour
 {
     [Header("상단 정보 패널")]
-    public TMP_Text Text_Date_Info;
-    public TMP_Text Text_Emergency;
-    public TMP_Text Text_Emergency_Value;
-    public Image Img_Emergency_Dot;
-    public TMP_Text Text_Info_ONIType;
-    public TMP_Text Text_Info_ONINum;
+    public TMP_Text Text_Date_Info;       // 날짜
+    public TMP_Text Text_Emergency;       // 비상 단계 텍스트
+    public TMP_Text Text_Emergency_Value; // 비상 단계 값
+    public Image Img_Emergency_Dot;       // 단계 색상 원
+    public TMP_Text Text_Info_ONIType;    // 엘니뇨 / 라니냐 / 중립
+    public TMP_Text Text_Info_ONINum;     // ONI 수치
 
-    private string cachedDateText;
-    private string cachedEmergencyStage;
-    private string cachedOniType;
-    private string cachedOniValueText;
-
-    public void SetInfo(string dateText, string emergencyStage, string oniType, string oniValueText)
+    public void SetInfoPanel(
+        string dateText,
+        string emergencyStage,
+        string oniType,
+        string oniValueText
+    )
     {
-        if (string.IsNullOrEmpty(emergencyStage))
+        if (string.IsNullOrEmpty(emergencyStage)) // 단계가 없으면 정상으로 처리
             emergencyStage = "정상";
 
-        if (cachedDateText == dateText &&
-            cachedEmergencyStage == emergencyStage &&
-            cachedOniType == oniType &&
-            cachedOniValueText == oniValueText)
-        {
-            return;
-        }
+        if (Text_Date_Info != null)
+            Text_Date_Info.text = dateText;
 
-        cachedDateText = dateText;
-        cachedEmergencyStage = emergencyStage;
-        cachedOniType = oniType;
-        cachedOniValueText = oniValueText;
+        if (Text_Emergency_Value != null)
+            Text_Emergency_Value.text = emergencyStage;
 
-        if (Text_Date_Info != null) Text_Date_Info.text = dateText;
-        if (Text_Emergency_Value != null) Text_Emergency_Value.text = emergencyStage;
-        if (Text_Info_ONIType != null) Text_Info_ONIType.text = oniType;
-        if (Text_Info_ONINum != null) Text_Info_ONINum.text = oniValueText;
+        if (Text_Info_ONIType != null)
+            Text_Info_ONIType.text = oniType;
+
+        if (Text_Info_ONINum != null)
+            Text_Info_ONINum.text = oniValueText;
 
         if (Img_Emergency_Dot != null)
-            Img_Emergency_Dot.color = GetStageColor(emergencyStage);
+            Img_Emergency_Dot.color = GetEmergencyColor(emergencyStage);
     }
 
-    private Color32 GetStageColor(string emergencyStage)
+    private Color32 GetEmergencyColor(string emergencyStage)
     {
         switch (emergencyStage)
         {
