@@ -269,7 +269,7 @@ Light:
   serializedVersion: 12
   m_Type: 1
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 2
+  m_Intensity: 1
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -3166,7 +3166,7 @@ GameObject:
   - component: {fileID: 2069202531}
   - component: {fileID: 2069202530}
   m_Layer: 0
-  m_Name: UIManagerObject
+  m_Name: UIManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
