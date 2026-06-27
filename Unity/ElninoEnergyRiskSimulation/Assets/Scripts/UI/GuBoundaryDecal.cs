@@ -43,9 +43,24 @@ public class GuBoundaryDecal : MonoBehaviour
         public List<JArray> outerRings;
     }
 
+    private void OnEnable()
+    {
+        MinimapManager.OnDistrictSelected += HandleDistrictSelected;
+    }
+
+    private void OnDisable()
+    {
+        MinimapManager.OnDistrictSelected -= HandleDistrictSelected;
+    }
+
     private void Start()
     {
         LoadAndSpawn();
+    }
+
+    private void HandleDistrictSelected(string districtName)
+    {
+        SetSelectedDistrict(districtName);
     }
 
     public void SetSelectedDistrict(string districtName)
