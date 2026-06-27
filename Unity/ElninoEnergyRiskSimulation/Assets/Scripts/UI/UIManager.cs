@@ -6,31 +6,30 @@ public class UIManager : MonoBehaviour
     public static UIManager Instance { get; private set; }
 
     [Header("패널 UI")]
-    public InfoPanelUI infoPanel;         // 상단 정보 패널
-    public GuEnergyPanelUI guEnergyPanel; // 구별 에너지 정보 패널
+    public InfoPanelUI infoPanel;          // 상단 정보 패널
+    public GuEnergyPanelUI guEnergyPanel;  // 구별 에너지 정보 패널
 
     [Header("데이터")]
-    public DataManager dataManager;       // API 데이터를 받아오는 DataManager
+    public DataManager dataManager;        // API 데이터를 받아오는 DataManager
 
     // 구별 데이터를 DistrictType 기준으로 저장합니다.
     private readonly Dictionary<DistrictType, DistrictData> districtDataMap =
         new Dictionary<DistrictType, DistrictData>();
 
     // 현재 선택된 구를 저장합니다.
-    private DistrictType selectedDistrictType;
-    private bool hasSelectedDistrict;
+    // 초기 화면에서는 무조건 종로구가 먼저 보이도록 기본값을 JONGNO로 고정합니다.
+    private DistrictType selectedDistrictType = DistrictType.JONGNO;
 
     private void Awake()
     {
         // UIManager를 하나만 사용하기 위한 싱글톤 처리입니다.
-        if (Instance == null)
-        {
-            Instance = this;
-        }
-        else
+        if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
+            return;
         }
+
+        Instance = this;
     }
 
     private void OnEnable()
@@ -88,14 +87,9 @@ public class UIManager : MonoBehaviour
         // DistrictType을 key로 사용해서 구별 데이터를 저장합니다.
         districtDataMap[data.districtType] = data;
 
-        // 아직 선택된 구가 없다면 첫 번째로 들어온 구를 자동 선택합니다.
-        if (!hasSelectedDistrict)
-        {
-            selectedDistrictType = data.districtType;
-            hasSelectedDistrict = true;
-        }
-
-        // 현재 선택된 구의 데이터가 갱신되면 구 패널도 갱신합니다.
+        // 초기 selectedDistrictType이 JONGNO라서,
+        // 종로구 데이터가 들어오는 순간 구 패널이 종로구 정보로 먼저 표시됩니다.
+        // 강남구 등 다른 구가 먼저 들어와도 자동 선택하지 않습니다.
         if (selectedDistrictType == data.districtType)
         {
             SetGuEnergyPanel(selectedDistrictType);
@@ -106,12 +100,11 @@ public class UIManager : MonoBehaviour
     public void SelectDistrict(DistrictType districtType)
     {
         selectedDistrictType = districtType;
-        hasSelectedDistrict = true;
-
         SetGuEnergyPanel(districtType);
     }
 
     // 외부에서 한글 구 이름으로 구를 선택할 때 호출합니다.
+    // 나중에 미니맵에서 "강남구", "종로구" 같은 이름을 넘기면 이 함수로 처리하면 됩니다.
     public void SelectDistrictByName(string districtName)
     {
         if (string.IsNullOrEmpty(districtName))

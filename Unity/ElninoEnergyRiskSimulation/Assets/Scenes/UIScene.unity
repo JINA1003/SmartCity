@@ -124,6 +124,53 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 6656464907965312887, guid: 0ca1e22c5ab034d658b004c770a5fb90, type: 3}
   m_PrefabInstance: {fileID: 333513989}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &173557973
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 173557975}
+  - component: {fileID: 173557974}
+  m_Layer: 0
+  m_Name: 'UIManagerObject]'
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &173557974
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 173557973}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b7b0dd8a2d8c1408eab10921b50ae8d7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SmartCity.Scripts::UIManager
+  infoPanel: {fileID: 1234313566}
+  guEnergyPanel: {fileID: 0}
+  dataManager: {fileID: 0}
+--- !u!4 &173557975
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 173557973}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 12783.135, y: -1929.8846, z: -11982.188}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &249392781 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 2438935512466047332, guid: 4ee737ad455bc4d579217a0e8d92253d, type: 3}
@@ -3469,6 +3516,7 @@ SceneRoots:
   - {fileID: 916403144}
   - {fileID: 491429010}
   - {fileID: 2092461590}
+  - {fileID: 173557975}
   - {fileID: 360179007}
   - {fileID: 995273479}
   - {fileID: 1463890029}
