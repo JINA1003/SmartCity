@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using Newtonsoft.Json.Linq;
-using System.Runtime.CompilerServices;
+// using System.Runtime.CompilerServices;
 using System;
 
 public class MinimapManager : MonoBehaviour
@@ -206,11 +206,11 @@ public class MinimapManager : MonoBehaviour
         outlineObj.AddComponent<CanvasRenderer>();
 
         MinimapOutline outline = outlineObj.AddComponent<MinimapOutline>();
-        outline.points = uiPoints;          // ★ 꼭 추가
+        outline.points = uiPoints;
         outline.color = nonSelectedOutlineColor;
         outline.lineWidth = outlineWidth;
         outline.raycastTarget = false;
-        outline.SetVerticesDirty();         // ★ 꼭 추가
+        outline.SetVerticesDirty();
 
         polygonGraphic.outline = outline;
     }
@@ -254,18 +254,6 @@ public class MinimapManager : MonoBehaviour
         if (selectedPolygon.outline != null)
         {
             selectedPolygon.outline.SetOutlineColor(selectedOutlineColor);
-        }
-
-        if (
-            mainCameraController != null &&
-            mainCameraController.IsDistrictClickEnabled
-        )
-        {
-            mainCameraController.MoveToDistrictByClick(polygon.districtName);
-        }
-        else
-        {
-            Debug.Log("시뮬레이션 중이므로 구 클릭 카메라 이동만 비활성화되었습니다.");
         }
 
         // 이벤트 발생
