@@ -2,12 +2,18 @@ using System.Collections.Generic;
 using UnityEngine;
 using CesiumForUnity;
 using Unity.Mathematics;
+using UnityEngine.UI;
 
 public class MainCameraController : MonoBehaviour
 {
     // 메인 카메라 붙여넣기
     [Header("Main Camera")]
-    public Camera mainCamera;
+    [SerializeField] private Camera mainCamera;
+
+    // 시뮬레이션 ing 알려줄 토클 연결
+    // 이거에 따라 카메라 이동 설정 변환
+    [Header("Simulation Toggle")]
+    [SerializeField] private Toggle simulationToggle;
 
     // 카메라가 화면을 비출때 방향 조정
     private Vector3 lookDownRotation = new Vector3(65f, 0f, 0f);
@@ -19,8 +25,6 @@ public class MainCameraController : MonoBehaviour
     // 좌표는 MinimapManager에서 가져옴
     private Dictionary<string, double2> districtLonLatMap =
         new Dictionary<string, double2>();
-
-    public bool IsDistrictClickEnabled { get; private set; } = true;
 
     private void Awake()
     {
@@ -45,6 +49,20 @@ public class MainCameraController : MonoBehaviour
         }
     }
 
+    // 구 클릭 이벤트 구독
+    // 클릭시 해당 구로 카메라 이동
+    private void OnEnable()
+    {
+        MinimapManager.OnDistrictSelected += MoveToClickedDistrict;
+        // SimulationManager.OnBlackoutDistrictChanged += MoveToBlackoutDistrict;
+    }
+
+    private void OnDisable()
+    {
+        MinimapManager.OnDistrictSelected -= MoveToClickedDistrict;
+        // SimulationManager.OnBlackoutDistrictChanged -= MoveToBlackoutDistrict;
+    }
+
     public void RegisterDistrictPosition(string districtName, double lon, double lat)
     {
         if (string.IsNullOrEmpty(districtName)) return;
@@ -55,36 +73,25 @@ public class MainCameraController : MonoBehaviour
         }
     }
 
-    // 모드 1. 구 클릭 시 카메라 이동
-    public void MoveToDistrictByClick(string districtName)
+    // 모드 1. 시뮬레이션 ❌: 구 클릭 가능 -> 클릭된 구로 카메라 이동
+    public void MoveToClickedDistrict(string districtName)
     {
-        // IsDistrictClickEnabled  = true가 아닌 false 일때
-        if (!IsDistrictClickEnabled)
+        // 토글 ON이면 구 클릭으로 카메라 이동 금지
+        if (simulationToggle != null && simulationToggle.isOn)
         {
-            Debug.Log("[MainCameraController] 구 클릭 이동이 비활성화된 상태입니다.");
+            Debug.Log("[MainCameraController] 시뮬레이션 ON 상태이므로 구 클릭 카메라 이동 비활성화");
             return;
         }
 
         MoveToDistrict(districtName);
     }
 
-    // 모드 2. 시뮬레이션 시작 시 정전 구로 카메라 이동
-    // 시뮬레이션 로직에서 아래 함수 실행하면 됨
+    // 모드 2. 시뮬레이션 ⭕️: 구 클릭 이동 안됨 / 정전 순회 중인 구로 카메라 이동
+    // TODO
     public void MoveToBlackoutDistrict(string districtName)
     {
-        DisableDistrictClick(); // 구 클릭 비활
 
         MoveToDistrict(districtName);
-    }
-
-    public void EnableDistrictClick()
-    {
-        IsDistrictClickEnabled = true;
-    }
-
-    public void DisableDistrictClick()
-    {
-        IsDistrictClickEnabled = false;
     }
 
     // 특정 구로 카메라 이동
