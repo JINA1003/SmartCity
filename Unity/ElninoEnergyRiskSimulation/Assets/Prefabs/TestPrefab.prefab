@@ -46,6 +46,53 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DataManager
   apiClient: {fileID: 7922431310694080807}
   uiController: {fileID: 1970570418660836511}
+--- !u!1 &1108918767898206306
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 321874242400305823}
+  - component: {fileID: 4503288507644655149}
+  m_Layer: 0
+  m_Name: CityManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &321874242400305823
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1108918767898206306}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -0.2197876, y: -15, z: 8.517578}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4180507456290223588}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4503288507644655149
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1108918767898206306}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4ae0dc313c1b214a89185f7ee6c3faf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SmartCity.Scripts::CityManager
+  terrainTileset: {fileID: 0}
+  cesiumGeoreference: {fileID: 0}
+  blackoutMaterial: {fileID: 0}
 --- !u!1 &1143553010424704365
 GameObject:
   m_ObjectHideFlags: 0
@@ -84,6 +131,7 @@ Transform:
   - {fileID: 6410087892062620548}
   - {fileID: 590020554035043372}
   - {fileID: 2414258775001061889}
+  - {fileID: 321874242400305823}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2563397207717470007
@@ -259,7 +307,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: SmartCity.Scripts::BlackoutSimulationController
   dataManager: {fileID: 0}
-  blackoutSimulationPanel: {fileID: 0}
+  blackoutSimulationCanvasGroup: {fileID: 0}
   simulationToggle: {fileID: 0}
   stayDurationPerDistrict: 3
 --- !u!1 &4805271982088816925
