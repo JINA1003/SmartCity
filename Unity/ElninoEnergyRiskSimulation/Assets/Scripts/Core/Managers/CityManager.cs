@@ -306,6 +306,8 @@ public class CityManager : MonoBehaviour
         chunkObj.AddComponent<MeshFilter>().mesh = chunkMesh;
         MeshRenderer renderer = chunkObj.AddComponent<MeshRenderer>();
         renderer.material = blackoutMaterial;
+        // 데칼이 건물 청크에 투영되지 않도록 BUILDING Rendering Layer 지정
+        renderer.renderingLayerMask = RenderingLayerMask.GetMask("BUILDING");
 
         // 6. Cesium 좌표계 매핑
         CesiumGlobeAnchor anchor = chunkObj.AddComponent<CesiumGlobeAnchor>();

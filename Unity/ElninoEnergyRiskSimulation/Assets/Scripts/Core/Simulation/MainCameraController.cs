@@ -87,10 +87,9 @@ public class MainCameraController : MonoBehaviour
     }
 
     // 모드 2. 시뮬레이션 ⭕️: 구 클릭 이동 안됨 / 정전 순회 중인 구로 카메라 이동
-    // TODO
+    // TODO: 시뮬레이션 on 될때 제대로 실행되는지 확인하기
     public void MoveToBlackoutDistrict(string districtName)
     {
-
         MoveToDistrict(districtName);
     }
 
@@ -103,14 +102,14 @@ public class MainCameraController : MonoBehaviour
             return;
         }
 
-        if (!districtLonLatMap.ContainsKey(districtName))
+        // 구 이름(key)으로 좌표 찾고 없으면 Warning
+        if (!districtLonLatMap.TryGetValue(districtName, out double2 lonLat))
         {
             Debug.LogWarning("[MainCameraController] 이동 좌표를 찾을 수 없습니다: " + districtName);
             return;
         }
 
-        double2 lonLat = districtLonLatMap[districtName];
-
+        // 카메라 좌표값 설정
         cameraAnchor.longitudeLatitudeHeight =
             new double3(
                 lonLat.x,
@@ -118,6 +117,7 @@ public class MainCameraController : MonoBehaviour
                 initialHeight
             );
 
+        // 카메라가 아래를 보도록
         mainCamera.transform.rotation = Quaternion.Euler(lookDownRotation);
     }
 }

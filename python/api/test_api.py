@@ -130,17 +130,29 @@ def run_tests() -> int:
         n_gu    = len(regions)
         sample  = regions[0] if regions else {}
         usage_keys = list(sample.get("usage", {}).keys())
+        building_type = sample.get("building_type", {})
+        building_keys = list(building_type.keys())
+        sample_bt = building_keys[0] if building_keys else None
+        sample_score = (
+            building_type[sample_bt].get("reduction_need_score")
+            if sample_bt else None
+        )
 
         oni_status = pred.get("oni_status")
         _ok(f"asos_temp={pred.get('asos_temp')}℃ | alert={pred.get('alert_level')}({pred.get('alert_label')}) | oni_status={oni_status} | is_simulated={d.get('is_simulated')}")
         _ok(f"supply_mw={pred.get('supply',{}).get('supply_mw')} | reserve_rate={pred.get('supply',{}).get('reserve_rate')}%")
         _ok(f"[{sample.get('gu')}] ta_gu={sample.get('ta_gu')} | total_mwh={sample.get('total_consumption_mwh')}")
         _ok(f"usage({len(usage_keys)}종): {usage_keys}")
+        _ok(f"building_type({len(building_keys)}종): {sample_bt}={sample_score}")
 
         if n_gu != 25:
             _fail("/predict", f"구 수={n_gu} (기대=25)"); failures += 1
         if len(usage_keys) != 7:
             _fail("/predict", f"usage 수={len(usage_keys)} (기대=7)"); failures += 1
+        if len(building_keys) != 34:
+            _fail("/predict", f"building_type 수={len(building_keys)} (기대=34)"); failures += 1
+        if sample_bt and sample_score is None:
+            _fail("/predict", "building_type.reduction_need_score 없음"); failures += 1
         if oni_status not in ("엘니뇨", "라니냐", "중립"):
             _fail("/predict", f"oni_status={oni_status} (기대=엘니뇨/라니냐/중립)"); failures += 1
         if pred.get("alert_level") is None:
