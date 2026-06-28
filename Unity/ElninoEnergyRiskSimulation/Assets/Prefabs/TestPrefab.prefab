@@ -83,6 +83,7 @@ Transform:
   - {fileID: 6822289029031174674}
   - {fileID: 6410087892062620548}
   - {fileID: 590020554035043372}
+  - {fileID: 2414258775001061889}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2563397207717470007
@@ -213,6 +214,54 @@ MonoBehaviour:
   m_PointerBehavior: 0
   m_CursorLockBehavior: 0
   m_ScrollDeltaPerTick: 6
+--- !u!1 &3148466803085907177
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2414258775001061889}
+  - component: {fileID: 6730944337062574733}
+  m_Layer: 0
+  m_Name: BlackoutSimulationController
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2414258775001061889
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3148466803085907177}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -0.2197876, y: -15, z: 8.517578}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4180507456290223588}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6730944337062574733
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3148466803085907177}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4bdfbf0c84fe04eed93efe761ad7bebb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SmartCity.Scripts::BlackoutSimulationController
+  dataManager: {fileID: 0}
+  blackoutSimulationPanel: {fileID: 0}
+  simulationToggle: {fileID: 0}
+  stayDurationPerDistrict: 3
 --- !u!1 &4805271982088816925
 GameObject:
   m_ObjectHideFlags: 0
@@ -302,6 +351,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a9cf0009183a7457bb92414c639ab899, type: 3}
   m_Name: 
   m_EditorClassIdentifier: SmartCity.Scripts::GuBoundaryDecal
+  fileName: seoul_district.geojson
+  cesiumGeoreference: {fileID: 0}
+  decalMaterial: {fileID: 0}
+  projectionDepth: 5000
+  altitude: 3000
+  drawDistance: 50000
+  textureResolution: 4096
+  lineHalfWidth: 0.65
+  lineColor: {r: 1, g: 0, b: 0, a: 1}
+  selectedFillColor: {r: 0.72, g: 0.72, b: 0.72, a: 0.62}
 --- !u!1 &7565144512346115843
 GameObject:
   m_ObjectHideFlags: 0
