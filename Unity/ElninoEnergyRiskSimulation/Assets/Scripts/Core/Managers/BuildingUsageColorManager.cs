@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 /// <summary>
 /// District_Chunk 메쉬에 수요감축 필요도 기반 색상을 적용한다.
@@ -297,10 +298,15 @@ public class BuildingUsageColorManager : MonoBehaviour
 
         material.SetTexture("_ColorPalette", paletteTexture);
 
+        uint buildingLayerMask = RenderingLayerMask.GetMask("BUILDING");
+
         foreach (MeshRenderer renderer in districtRenderers.Values)
         {
             if (renderer.sharedMaterial != material)
                 renderer.sharedMaterial = material;
+
+            // CityManager와 동일 — Decal Layers에서 건물 청크 제외
+            renderer.renderingLayerMask = buildingLayerMask;
 
             renderer.GetPropertyBlock(propertyBlock);
             propertyBlock.SetTexture("_ColorPalette", paletteTexture);
