@@ -44,7 +44,10 @@ public class GuEnergyPanelUI : MonoBehaviour
         ResolveReferences();
 
         if (Panel_Gu_Energy != null)
+        {
+            EnsureParentsActive(Panel_Gu_Energy.transform);
             Panel_Gu_Energy.SetActive(true);
+        }
 
         if (Text_District_Energy != null) Text_District_Energy.text = $"{districtName} 에너지";
         if (Text_Usage_Change_Amount != null) Text_Usage_Change_Amount.text = usageChangeAmountText;
@@ -120,5 +123,17 @@ public class GuEnergyPanelUI : MonoBehaviour
         }
 
         return null;
+    }
+
+    private void EnsureParentsActive(Transform target)
+    {
+        Transform current = target.parent;
+        while (current != null)
+        {
+            if (!current.gameObject.activeSelf)
+                current.gameObject.SetActive(true);
+
+            current = current.parent;
+        }
     }
 }

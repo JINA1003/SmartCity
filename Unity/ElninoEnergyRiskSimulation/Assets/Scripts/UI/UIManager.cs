@@ -13,8 +13,10 @@ public class UIManager : MonoBehaviour
     [SerializeField] private DataManager dataManager;
 
     private readonly Dictionary<DistrictType, DistrictData> districtDataMap = new();
+    private readonly Dictionary<DistrictType, double> baselinePowerUsageMap = new();
     private const string DefaultDistrict = "종로구";
     private string currentDistrict = DefaultDistrict;
+    private string currentDataPeriodKey = string.Empty;
 
     private void Awake()
     {
@@ -69,6 +71,14 @@ public class UIManager : MonoBehaviour
 
     private void HandlePowerDataUpdated(PowerGridData data)
     {
+        string dataPeriodKey = $"{data.year}-{data.month}";
+        if (currentDataPeriodKey != dataPeriodKey)
+        {
+            currentDataPeriodKey = dataPeriodKey;
+            districtDataMap.Clear();
+            baselinePowerUsageMap.Clear();
+        }
+
         SetInfoPanel(
             $"{data.year}년 {data.month}월",
             data.riskLabel,
@@ -81,6 +91,8 @@ public class UIManager : MonoBehaviour
     {
         // 날짜 선택으로 들어온 구별 데이터를 저장하고, 현재 선택된 구만 화면에 반영합니다.
         districtDataMap[data.districtType] = data;
+        if (!baselinePowerUsageMap.ContainsKey(data.districtType))
+            baselinePowerUsageMap[data.districtType] = data.totalPowerUsage;
 
         if (data.districtType == DataConverter.GetDistrictType(currentDistrict))
             BuildGuEnergyPanel();
@@ -113,20 +125,25 @@ public class UIManager : MonoBehaviour
             return;
         }
 
-        double seoulTotal = 0;
-        foreach (DistrictData district in districtDataMap.Values)
-            seoulTotal += district.totalPowerUsage;
+        string usageChangeAmountText = "-";
+        string usageChangeRateText = "-";
 
-        string usagePercentText = seoulTotal > 0
-            ? $"{data.totalPowerUsage / seoulTotal * 100.0:0.0}%"
-            : "-";
+        if (baselinePowerUsageMap.TryGetValue(data.districtType, out double baselineUsage) &&
+            baselineUsage > 0)
+        {
+            double usageChangeAmount = data.totalPowerUsage - baselineUsage;
+            double usageChangeRate = usageChangeAmount / baselineUsage * 100.0;
+
+            usageChangeAmountText = $"{usageChangeAmount:+0.0;-0.0;0.0} MWh";
+            usageChangeRateText = $"{usageChangeRate:+0.0;-0.0;0.0}%";
+        }
 
         ShowGuEnergyPanel(
             GetDistrictKoreanName(data.districtType),
-            "-",
-            "-",
-            $"{data.totalPowerUsage:0.0} MWh",
-            usagePercentText,
+            usageChangeAmountText,
+            usageChangeRateText,
+            $"{data.totalPowerUsage:0.0} ",
+            usageChangeRateText,
             GetUsageText(data, "주택용"),
             GetUsageText(data, "일반용"),
             GetUsageText(data, "교육용"),
@@ -142,7 +159,7 @@ public class UIManager : MonoBehaviour
         if (data.typePowerUsage != null &&
             data.typePowerUsage.TryGetValue(usageName, out float value))
         {
-            return $"{value:0.0} MWh";
+            return $"{value:0.0} ";
         }
 
         return "-";
