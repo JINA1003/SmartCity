@@ -20,6 +20,11 @@ public class GuEnergyPanelUI : MonoBehaviour
     public TMP_Text StreetlightMwh;
     public TMP_Text MidnightMwh;
 
+    private void Awake()
+    {
+        ResolveReferences();
+    }
+
     public void Show(
         string districtName,
         string usageChangeAmountText,
@@ -35,6 +40,8 @@ public class GuEnergyPanelUI : MonoBehaviour
         string midnightText
     )
     {
+        ResolveReferences();
+
         if (Panel_Gu_Energy != null)
             Panel_Gu_Energy.SetActive(true);
 
@@ -57,5 +64,37 @@ public class GuEnergyPanelUI : MonoBehaviour
     {
         if (Panel_Gu_Energy != null)
             Panel_Gu_Energy.SetActive(false);
+    }
+
+    private void ResolveReferences()
+    {
+        if (Panel_Gu_Energy == null)
+            Panel_Gu_Energy = gameObject;
+
+        if (Text_District_Energy == null) Text_District_Energy = FindText("Text_District_Energy");
+        if (Text_Usage_Change_Amount == null) Text_Usage_Change_Amount = FindText("Text_Usage_Change_Amount");
+        if (Text_Usage_Change_Rate == null) Text_Usage_Change_Rate = FindText("Text_Usage_Change_Rate");
+        if (Text_Total_Usage == null) Text_Total_Usage = FindText("Text_Total_Usage");
+        if (Text_Usage_Percent == null) Text_Usage_Percent = FindText("Text_Usage_Percent");
+
+        if (ResidentialMwh == null) ResidentialMwh = FindText("Text_Residential_Value");
+        if (GeneralMwh == null) GeneralMwh = FindText("Text_General_Value");
+        if (EducationMwh == null) EducationMwh = FindText("Text_Education_Value");
+        if (IndustrialMwh == null) IndustrialMwh = FindText("Text_Industrial_Value");
+        if (AgricultureMwh == null) AgricultureMwh = FindText("Text_Agriculture_Value");
+        if (StreetlightMwh == null) StreetlightMwh = FindText("Text_Streetlight_Value");
+        if (MidnightMwh == null) MidnightMwh = FindText("Text_Midnight_Value");
+    }
+
+    private TMP_Text FindText(string objectName)
+    {
+        TMP_Text[] texts = GetComponentsInChildren<TMP_Text>(true);
+        foreach (TMP_Text text in texts)
+        {
+            if (text.gameObject.name == objectName)
+                return text;
+        }
+
+        return null;
     }
 }
