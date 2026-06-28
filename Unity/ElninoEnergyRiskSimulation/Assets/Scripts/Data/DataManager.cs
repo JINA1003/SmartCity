@@ -16,7 +16,7 @@ public class DataManager : MonoBehaviour
     public event Action<List<OniRangeData>> OniRangeDataUpdated;
     public event Action OnAllDistrictsParsed;
 
-    // 블랙아웃 시뮬레이션용: 소비량 내림차순 + blackout_items 있는 구 이름 목록
+    // 블랙아웃 시뮬레이션 토글 순회용: /blackout_simulation 에서 blackout_items가 있는 구만 (소비량 내림차순)
     public event Action<List<string>> OnBlackoutOrderParsed;
 
     // 현재 선택된 연월 (슬라이더 재호출 시 사용)
@@ -139,6 +139,8 @@ public class DataManager : MonoBehaviour
         int currentAlertLevel = (predicted != null && predicted["alert_level"] != null)
                                 ? predicted["alert_level"].Value<int>() : 0;
 
+        // /blackout_simulation: 시뮬레이션 토글이 순회할 구 목록(blackout_items 있는 구) 전용.
+        // 건물 색상용 reduction_need_score는 /predict regions[].building_type 에서 파싱한다.
         JObject blackoutData  = null;
         if (currentAlertLevel == 4)
         {
@@ -178,21 +180,20 @@ public class DataManager : MonoBehaviour
 
         OnPowerDataUpdated?.Invoke(powerGridData);
 
-        // --- [ 2. 블랙아웃 JSON 구(Gu)별 빠른 검색 Dictionary 만들기 (4단계일 때만) ] ---
-        Dictionary<string, JArray> blackoutItemsDict = new Dictionary<string, JArray>();
+        // --- [ 2. 블랙아웃 순회 순서 — BlackoutSimulationController simulationToggle 전용 ] ---
         if (currentAlertLevel == 4 && blackoutData != null)
         {
             JArray districtsOrder = blackoutData["districts_order"] as JArray;
             if (districtsOrder != null)
             {
-                // 소비량 내림차순 순서 유지, blackout_items 있는 구만 추출
+                // districts_order는 25구 전체(소비량 내림차순)이나,
+                // 순회 대상은 blackout_items가 비어 있지 않은 구만 해당한다.
                 List<string> blackoutOrderedGuNames = new List<string>();
 
                 foreach (JToken distToken in districtsOrder)
                 {
                     string guName = distToken["gu"].Value<string>();
                     JArray bItems = distToken["blackout_items"] as JArray;
-                    blackoutItemsDict[guName] = bItems;
 
                     if (bItems != null && bItems.Count > 0)
                         blackoutOrderedGuNames.Add(guName);
@@ -200,6 +201,11 @@ public class DataManager : MonoBehaviour
 
                 OnBlackoutOrderParsed?.Invoke(blackoutOrderedGuNames);
             }
+        }
+        else
+        {
+            // 경보 4단계가 아니면 순회 목록 비움 (이전 ONI 값 잔류 방지)
+            OnBlackoutOrderParsed?.Invoke(new List<string>());
         }
 
         // --- [ 3. 구역 데이터(DistrictData) 파싱 ] ---
@@ -228,29 +234,9 @@ public class DataManager : MonoBehaviour
                     }
                 }
 
-                // (2) 건물 감축 필요도 파싱 (Blackout 데이터 결합)
-                if (currentAlertLevel == 4 && blackoutItemsDict.ContainsKey(guNameStr))
-                {
-                    districtData.buildingReductionScores = new Dictionary<BuildingType, float>();
-                    JArray bItems = blackoutItemsDict[guNameStr];
-
-                    if (bItems != null)
-                    {
-                        foreach (JToken item in bItems)
-                        {
-                            string bTypeStr = item["building_type"].Value<string>();
-                            float score = item["reduction_need_score"].Value<float>();
-
-                            BuildingType enumType = DataConverter.GetBuildingType(bTypeStr);
-                            districtData.buildingReductionScores[enumType] = score;
-                        }
-                    }
-                }
-                else
-                {
-                    // 4단계가 아니거나 블랙아웃 대상 지역이 아니면 null 할당
-                    districtData.buildingReductionScores = new Dictionary<BuildingType, float>();
-                }
+                // (2) 건물유형별 수요감축 필요도 — /predict regions[].building_type
+                districtData.buildingReductionScores = ParseBuildingReductionScores(
+                    regionObject["building_type"] as JObject);
 
                 // 완성된 구 데이터 이벤트로 전파
                 OnDistrictDataUpdated?.Invoke(districtData);
@@ -321,6 +307,23 @@ public class DataManager : MonoBehaviour
 
         // 파싱된 전체 범위 데이터 리스트를 이벤트로 방송 (차트 매니저 등에서 활용)
         OniRangeDataUpdated?.Invoke(rangeDataList);
+    }
+
+    private static Dictionary<BuildingType, float> ParseBuildingReductionScores(JObject buildingTypeObject)
+    {
+        var scores = new Dictionary<BuildingType, float>();
+        if (buildingTypeObject == null) return scores;
+
+        foreach (var kvp in buildingTypeObject)
+        {
+            JToken scoreToken = kvp.Value?["reduction_need_score"];
+            if (scoreToken == null) continue;
+
+            BuildingType buildingType = DataConverter.GetBuildingType(kvp.Key);
+            scores[buildingType] = scoreToken.Value<float>();
+        }
+
+        return scores;
     }
 
     public int SafeStringToInt(string input, int defaultValue = 0)

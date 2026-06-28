@@ -146,6 +146,18 @@ PrefabInstance:
       propertyPath: cesiumGeoreference
       value: 
       objectReference: {fileID: 916403143}
+    - target: {fileID: 678573333553768700, guid: 811e02f6b40f5c64a9c5aee485c83582, type: 3}
+      propertyPath: terrainTileset
+      value: 
+      objectReference: {fileID: 723347944}
+    - target: {fileID: 678573333553768700, guid: 811e02f6b40f5c64a9c5aee485c83582, type: 3}
+      propertyPath: blackoutMaterial
+      value: 
+      objectReference: {fileID: 2100000, guid: f20c7ae9dbbd5dc4d80ce970fe9f5df8, type: 2}
+    - target: {fileID: 678573333553768700, guid: 811e02f6b40f5c64a9c5aee485c83582, type: 3}
+      propertyPath: cesiumGeoreference
+      value: 
+      objectReference: {fileID: 916403143}
     - target: {fileID: 1143553010424704365, guid: 811e02f6b40f5c64a9c5aee485c83582, type: 3}
       propertyPath: m_Name
       value: TestPrefab
@@ -214,6 +226,18 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4503288507644655149, guid: 811e02f6b40f5c64a9c5aee485c83582, type: 3}
+      propertyPath: terrainTileset
+      value: 
+      objectReference: {fileID: 723347944}
+    - target: {fileID: 4503288507644655149, guid: 811e02f6b40f5c64a9c5aee485c83582, type: 3}
+      propertyPath: blackoutMaterial
+      value: 
+      objectReference: {fileID: 2100000, guid: f20c7ae9dbbd5dc4d80ce970fe9f5df8, type: 2}
+    - target: {fileID: 4503288507644655149, guid: 811e02f6b40f5c64a9c5aee485c83582, type: 3}
+      propertyPath: cesiumGeoreference
+      value: 
+      objectReference: {fileID: 916403143}
     - target: {fileID: 5628084255731729884, guid: 811e02f6b40f5c64a9c5aee485c83582, type: 3}
       propertyPath: oniChart
       value: 

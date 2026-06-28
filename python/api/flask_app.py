@@ -33,6 +33,11 @@ Flask REST API — Unity ↔ Python 브릿지.
                   "주택용": {"consumption_mwh": 412.3},
                   "산업용": {"consumption_mwh": 890.1},
                   ...
+                },
+                "building_type": {               ← 34개 건물유형별 수요감축 필요도
+                  "공장": {"reduction_need_score": 4.57},
+                  "교육연구시설": {"reduction_need_score": 0.58},
+                  ...
                 }
               }, ...
             ]
@@ -171,8 +176,10 @@ def _predict_one_month(year: int, month: int, oni: float) -> dict:
     from python.train.supply_regression import predict as pred_supply
     from python.train.consumption_xgb import predict_all_districts
     from python.preprocess.gu_offset import predict_gu_temp
+    from python.loader.mapping_loader import get_building_score_map
 
     USAGE_ORDER = ["가로등", "교육용", "농사용", "산업용", "심야", "일반용", "주택용"]
+    building_score_map = get_building_score_map(year, month)
 
     ta_asos            = pred_temp(year, month, oni, _temp_model)
     cdd_asos, hdd_asos = _asos_cdd_hdd(ta_asos, year, month)   # 내부 연산용
@@ -198,11 +205,18 @@ def _predict_one_month(year: int, month: int, oni: float) -> dict:
 
         total_mwh = round(float(gu_rows["consumption_mwh"].sum()), 2)
 
+        bt_scores = building_score_map.get(gu, {})
+        building_type_dict = {
+            bt: {"reduction_need_score": round(score, 4)}
+            for bt, score in sorted(bt_scores.items())
+        }
+
         regions.append({
             "gu":                    gu,
             "ta_gu":                 round(ta_gu, 2),
             "total_consumption_mwh": total_mwh,
             "usage":                 usage_dict,
+            "building_type":         building_type_dict,
         })
 
     return {
