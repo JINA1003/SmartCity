@@ -286,9 +286,12 @@ public class CityManager : MonoBehaviour
 
         // 5. 씬에 배치
         GameObject chunkObj = new GameObject($"District_Chunk_{districtId}");
-        // 데칼(GuBoundaryDecal)이 건물 청크에 투영되지 않도록 Building 레이어로 지정
-        // DecalProjector의 Decal Layer Mask에서 Building 레이어를 제외해야 효과가 있음
-        chunkObj.layer = LayerMask.NameToLayer("BUILDING");
+        // 데칼(GuBoundaryDecal)이 건물 청크에 투영되지 않도록 BUILDING 레이어로 지정
+        // Project Settings → Tags and Layers에 "BUILDING" 레이어가 등록되어 있어야 함
+        // DecalProjector의 Decal Layer Mask에서 BUILDING 레이어를 제외해야 효과가 있음
+        int buildingLayer = LayerMask.NameToLayer("BUILDING");
+        if (buildingLayer != -1)
+            chunkObj.layer = buildingLayer;
         if (cesiumGeoreference != null)
         {
             chunkObj.transform.SetParent(cesiumGeoreference.transform, false);
