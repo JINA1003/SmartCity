@@ -200,7 +200,7 @@ public class UIManager : MonoBehaviour
         infoPanel = FindFirstObjectByType<InfoPanelUI>(FindObjectsInactive.Include);
         if (infoPanel != null) return;
 
-        GameObject panelObject = GameObject.Find("Panel_Info");
+        GameObject panelObject = FindSceneObjectByName("Panel_Info");
         if (panelObject == null) return;
 
         infoPanel = panelObject.GetComponent<InfoPanelUI>();
@@ -216,12 +216,24 @@ public class UIManager : MonoBehaviour
         guEnergyPanel = FindFirstObjectByType<GuEnergyPanelUI>(FindObjectsInactive.Include);
         if (guEnergyPanel != null) return;
 
-        GameObject panelObject = GameObject.Find("Panel_Gu_Energy");
+        GameObject panelObject = FindSceneObjectByName("Panel_Gu_Energy");
         if (panelObject == null) return;
 
         guEnergyPanel = panelObject.GetComponent<GuEnergyPanelUI>();
         if (guEnergyPanel == null)
             guEnergyPanel = panelObject.AddComponent<GuEnergyPanelUI>();
+    }
+
+    private GameObject FindSceneObjectByName(string objectName)
+    {
+        Transform[] transforms = FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        foreach (Transform target in transforms)
+        {
+            if (target.name == objectName)
+                return target.gameObject;
+        }
+
+        return null;
     }
 
     private string GetDistrictKoreanName(DistrictType districtType)

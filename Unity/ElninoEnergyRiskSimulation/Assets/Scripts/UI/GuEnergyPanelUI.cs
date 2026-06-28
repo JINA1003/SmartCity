@@ -64,15 +64,17 @@ public class GuEnergyPanelUI : MonoBehaviour
     // 날짜 데이터가 들어오기 전에는 구 패널을 숨깁니다.
     public void Hide()
     {
+        ResolveReferences();
+
         if (Panel_Gu_Energy != null)
             Panel_Gu_Energy.SetActive(false);
     }
 
-    // 인스펙터 연결이 비어 있어도 자식 텍스트 오브젝트를 이름으로 찾아서 연결합니다.
+    // 인스펙터 연결이 비어 있어도 Panel_Gu_Energy와 값 텍스트를 찾아서 연결합니다.
     private void ResolveReferences()
     {
         if (Panel_Gu_Energy == null)
-            Panel_Gu_Energy = gameObject;
+            Panel_Gu_Energy = FindPanelObject();
 
         if (Text_District_Energy == null) Text_District_Energy = FindText("Text_District_Energy");
         if (Text_Usage_Change_Amount == null) Text_Usage_Change_Amount = FindText("Text_Usage_Change_Amount");
@@ -89,10 +91,28 @@ public class GuEnergyPanelUI : MonoBehaviour
         if (MidnightMwh == null) MidnightMwh = FindText("Text_Midnight_Value");
     }
 
+    // 스크립트가 패널 자식에 붙어 있어도 실제 패널 오브젝트를 찾아 켤 수 있게 합니다.
+    private GameObject FindPanelObject()
+    {
+        Transform current = transform;
+        while (current != null)
+        {
+            if (current.name == "Panel_Gu_Energy")
+                return current.gameObject;
+
+            current = current.parent;
+        }
+
+        return gameObject;
+    }
+
     // 라벨 텍스트가 아니라 값 텍스트만 찾아서 갱신합니다.
     private TMP_Text FindText(string objectName)
     {
-        TMP_Text[] texts = GetComponentsInChildren<TMP_Text>(true);
+        TMP_Text[] texts = Panel_Gu_Energy != null
+            ? Panel_Gu_Energy.GetComponentsInChildren<TMP_Text>(true)
+            : GetComponentsInChildren<TMP_Text>(true);
+
         foreach (TMP_Text text in texts)
         {
             if (text.gameObject.name == objectName)
