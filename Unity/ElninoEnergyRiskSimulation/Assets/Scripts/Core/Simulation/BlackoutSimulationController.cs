@@ -10,19 +10,18 @@ public class BlackoutSimulationController : MonoBehaviour
     [SerializeField] private DataManager dataManager;
 
     [Header("Blackout Simulation 패널")]
-    [SerializeField] private GameObject blackoutSimulationPanel;
+    [SerializeField] private CanvasGroup blackoutSimulationCanvasGroup;
     [SerializeField] private Toggle simulationToggle;
 
     [Header("시뮬레이션 설정")]
-    [SerializeField] private float stayDurationPerDistrict = 3f; // 구당 머무는 시간 (초)
+    [SerializeField] private float stayDurationPerDistrict = 3f;
 
-    // 현재 순회 중인 구 이름 — MainCameraController가 구독해서 카메라 이동
+    // 비활성 상태일 때 패널 투명도
+    private const float DisabledAlpha = 0.35f;
+
     public static event Action<string> OnBlackoutDistrictChanged;
-
-    // 시뮬레이션 ON/OFF — 외부에서 상태 감지용
     public static event Action<bool> OnBlackoutSimulationToggled;
 
-    // districts_order 순서대로 저장된 구 이름 목록 (소비량 높은 순)
     private List<string> _orderedDistricts = new();
     private Coroutine _simulationCoroutine;
 
@@ -42,27 +41,23 @@ public class BlackoutSimulationController : MonoBehaviour
 
     private void Start()
     {
-        SetPanelActive(false);
+        SetPanelEnabled(false);
     }
 
-    // /predict 결과로 riskLevel 수신 → 패널 활성/비활성
     private void HandlePowerDataUpdated(PowerGridData data)
     {
         bool isLevel4 = data.riskLevel == 4;
-        SetPanelActive(isLevel4);
+        SetPanelEnabled(isLevel4);
 
-        // 4단계가 아닌데 시뮬레이션이 켜져 있으면 강제 종료
         if (!isLevel4 && simulationToggle.isOn)
             simulationToggle.isOn = false;
     }
 
-    // DataManager에서 소비량 내림차순 + blackout_items 있는 구 이름 목록을 직접 수신
     private void HandleBlackoutOrderParsed(List<string> orderedGuNames)
     {
         _orderedDistricts = orderedGuNames;
     }
 
-    // 토글 ON → 시뮬레이션 코루틴 시작 / OFF → 중단
     private void HandleToggleChanged(bool isOn)
     {
         OnBlackoutSimulationToggled?.Invoke(isOn);
@@ -90,7 +85,6 @@ public class BlackoutSimulationController : MonoBehaviour
         Debug.Log($"[BlackoutSimulationController] 시뮬레이션 {(isOn ? "시작" : "중단")}");
     }
 
-    // 구 순서대로 카메라 이동 이벤트 발행
     private IEnumerator RunSimulation()
     {
         foreach (string districtName in _orderedDistricts)
@@ -107,9 +101,13 @@ public class BlackoutSimulationController : MonoBehaviour
         simulationToggle.isOn = false;
     }
 
-    private void SetPanelActive(bool active)
+    // 4단계: alpha=1 + 클릭 가능 / 그 외: alpha=0.35 + 클릭 차단
+    private void SetPanelEnabled(bool enabled)
     {
-        if (blackoutSimulationPanel != null)
-            blackoutSimulationPanel.SetActive(active);
+        if (blackoutSimulationCanvasGroup == null) return;
+
+        blackoutSimulationCanvasGroup.alpha          = enabled ? 1f : DisabledAlpha;
+        blackoutSimulationCanvasGroup.interactable   = enabled;
+        blackoutSimulationCanvasGroup.blocksRaycasts = enabled;
     }
 }
