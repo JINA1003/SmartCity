@@ -2,9 +2,7 @@ Shader "SmartCity/BuildingUsage"
 {
     Properties
     {
-        _ColorPalette ("Color Palette (100x1)", 2D) = "white" {}
-        _RankMap ("Rank Map (100x1)", 2D) = "gray" {}
-        _DistrictIndex ("District Index", Float) = 0
+        _ColorPalette ("Color Palette", 2D) = "white" {}
     }
 
     SubShader
@@ -32,12 +30,6 @@ Shader "SmartCity/BuildingUsage"
 
             TEXTURE2D(_ColorPalette);
             SAMPLER(sampler_ColorPalette);
-            TEXTURE2D(_RankMap);
-            SAMPLER(sampler_RankMap);
-
-            CBUFFER_START(UnityPerMaterial)
-                float _DistrictIndex;
-            CBUFFER_END
 
             struct Attributes
             {
@@ -50,7 +42,7 @@ Shader "SmartCity/BuildingUsage"
             {
                 float4 positionCS : SV_POSITION;
                 float3 normalWS : TEXCOORD0;
-                float2 uv2 : TEXCOORD1;
+                float t : TEXCOORD1;
             };
 
             Varyings vert(Attributes input)
@@ -58,23 +50,14 @@ Shader "SmartCity/BuildingUsage"
                 Varyings output;
                 output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
                 output.normalWS = TransformObjectToWorldNormal(input.normalOS);
-                output.uv2 = input.uv2;
+                // UV2.y: C#에서 기록한 정규화 수요감축 필요도 (0=낮음/초록, 1=높음/빨강)
+                output.t = saturate(input.uv2.y);
                 return output;
-            }
-
-            float4 SamplePaletteColor(float paletteIndexNormalized)
-            {
-                float2 paletteUv = float2(paletteIndexNormalized, 0.5);
-                return SAMPLE_TEXTURE2D(_ColorPalette, sampler_ColorPalette, paletteUv);
             }
 
             half4 frag(Varyings input) : SV_Target
             {
-                float usageIndex = saturate(input.uv2.y);
-                float cellIndex = _DistrictIndex * 4.0 + usageIndex;
-                float rankU = (cellIndex + 0.5) / 100.0;
-                float paletteIndexNormalized = SAMPLE_TEXTURE2D(_RankMap, sampler_RankMap, float2(rankU, 0.5)).r;
-                float4 baseColor = SamplePaletteColor(paletteIndexNormalized);
+                float4 baseColor = SAMPLE_TEXTURE2D(_ColorPalette, sampler_ColorPalette, float2(input.t, 0.5));
 
                 Light mainLight = GetMainLight();
                 float3 normal = normalize(input.normalWS);
