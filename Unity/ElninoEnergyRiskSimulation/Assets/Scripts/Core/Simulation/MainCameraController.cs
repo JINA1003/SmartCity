@@ -54,13 +54,13 @@ public class MainCameraController : MonoBehaviour
     private void OnEnable()
     {
         MinimapManager.OnDistrictSelected += MoveToClickedDistrict;
-        // SimulationManager.OnBlackoutDistrictChanged += MoveToBlackoutDistrict;
+        BlackoutSimulationController.OnBlackoutDistrictChanged += MoveToBlackoutDistrict;
     }
 
     private void OnDisable()
     {
         MinimapManager.OnDistrictSelected -= MoveToClickedDistrict;
-        // SimulationManager.OnBlackoutDistrictChanged -= MoveToBlackoutDistrict;
+        BlackoutSimulationController.OnBlackoutDistrictChanged -= MoveToBlackoutDistrict;
     }
 
     public void RegisterDistrictPosition(string districtName, double lon, double lat)
