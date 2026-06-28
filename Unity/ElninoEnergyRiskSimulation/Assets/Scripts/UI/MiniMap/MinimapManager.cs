@@ -254,6 +254,10 @@ public class MinimapManager : MonoBehaviour
         if (selectedPolygon.outline != null)
         {
             selectedPolygon.outline.SetOutlineColor(selectedOutlineColor);
+
+            // 선택된 구를 UI 렌더링 순서상 맨 앞으로
+            selectedPolygon.outline.transform.parent.SetAsLastSibling();
+            selectedPolygon.outline.transform.SetAsLastSibling();
         }
 
         // 이벤트 발생
