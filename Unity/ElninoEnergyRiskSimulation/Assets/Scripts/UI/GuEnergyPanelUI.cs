@@ -25,6 +25,7 @@ public class GuEnergyPanelUI : MonoBehaviour
         ResolveReferences();
     }
 
+    // 선택된 구와 날짜에 맞는 전력 사용량을 구 패널에 표시합니다.
     public void Show(
         string districtName,
         string usageChangeAmountText,
@@ -60,12 +61,14 @@ public class GuEnergyPanelUI : MonoBehaviour
         if (MidnightMwh != null) MidnightMwh.text = midnightText;
     }
 
+    // 날짜 데이터가 들어오기 전에는 구 패널을 숨깁니다.
     public void Hide()
     {
         if (Panel_Gu_Energy != null)
             Panel_Gu_Energy.SetActive(false);
     }
 
+    // 인스펙터 연결이 비어 있어도 자식 텍스트 오브젝트를 이름으로 찾아서 연결합니다.
     private void ResolveReferences()
     {
         if (Panel_Gu_Energy == null)
@@ -86,6 +89,7 @@ public class GuEnergyPanelUI : MonoBehaviour
         if (MidnightMwh == null) MidnightMwh = FindText("Text_Midnight_Value");
     }
 
+    // 라벨 텍스트가 아니라 값 텍스트만 찾아서 갱신합니다.
     private TMP_Text FindText(string objectName)
     {
         TMP_Text[] texts = GetComponentsInChildren<TMP_Text>(true);

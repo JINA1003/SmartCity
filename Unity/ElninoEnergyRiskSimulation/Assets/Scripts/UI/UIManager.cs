@@ -26,14 +26,19 @@ public class UIManager : MonoBehaviour
 
         Instance = this;
 
+        ResolveInfoPanel();
         ResolveGuEnergyPanel();
     }
 
     private void Start()
     {
+        ResolveInfoPanel();
         ResolveGuEnergyPanel();
 
-        // 날짜 데이터가 들어오기 전에는 구 패널을 숨겨 둡니다.
+        // 날짜 데이터가 들어오기 전에는 인포와 구 패널을 숨겨 둡니다.
+        if (infoPanel != null)
+            infoPanel.Hide();
+
         if (guEnergyPanel != null)
             guEnergyPanel.Hide();
     }
@@ -145,6 +150,8 @@ public class UIManager : MonoBehaviour
 
     public void SetInfoPanel(string dateText, string emergencyStage, string oniType, string oniValueText)
     {
+        ResolveInfoPanel();
+
         if (infoPanel != null)
             infoPanel.SetInfo(dateText, emergencyStage, oniType, oniValueText);
     }
@@ -183,6 +190,22 @@ public class UIManager : MonoBehaviour
                 midnightText
             );
         }
+    }
+
+    private void ResolveInfoPanel()
+    {
+        if (infoPanel != null) return;
+
+        // 인스펙터 연결이 비어 있어도 실행 중 인포 패널 컴포넌트를 찾습니다.
+        infoPanel = FindFirstObjectByType<InfoPanelUI>(FindObjectsInactive.Include);
+        if (infoPanel != null) return;
+
+        GameObject panelObject = GameObject.Find("Panel_Info");
+        if (panelObject == null) return;
+
+        infoPanel = panelObject.GetComponent<InfoPanelUI>();
+        if (infoPanel == null)
+            infoPanel = panelObject.AddComponent<InfoPanelUI>();
     }
 
     private void ResolveGuEnergyPanel()
