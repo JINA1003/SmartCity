@@ -16,6 +16,9 @@ public class DataManager : MonoBehaviour
     public event Action<List<OniRangeData>> OniRangeDataUpdated;
     public event Action OnAllDistrictsParsed;
 
+    // 블랙아웃 시뮬레이션용: 소비량 내림차순 + blackout_items 있는 구 이름 목록
+    public event Action<List<string>> OnBlackoutOrderParsed;
+
     // 현재 선택된 연월 (슬라이더 재호출 시 사용)
     private int _currentYear;
     private int _currentMonth;
@@ -182,12 +185,20 @@ public class DataManager : MonoBehaviour
             JArray districtsOrder = blackoutData["districts_order"] as JArray;
             if (districtsOrder != null)
             {
+                // 소비량 내림차순 순서 유지, blackout_items 있는 구만 추출
+                List<string> blackoutOrderedGuNames = new List<string>();
+
                 foreach (JToken distToken in districtsOrder)
                 {
                     string guName = distToken["gu"].Value<string>();
                     JArray bItems = distToken["blackout_items"] as JArray;
                     blackoutItemsDict[guName] = bItems;
+
+                    if (bItems != null && bItems.Count > 0)
+                        blackoutOrderedGuNames.Add(guName);
                 }
+
+                OnBlackoutOrderParsed?.Invoke(blackoutOrderedGuNames);
             }
         }
 
