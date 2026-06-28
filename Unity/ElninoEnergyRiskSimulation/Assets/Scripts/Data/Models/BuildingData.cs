@@ -14,6 +14,7 @@ public class BuildingData
     public List<Vector2> polygon;
     public int id;
     public int districtId;
+    public bool isBlackout = false;
 
     public int floors;
     public string name;

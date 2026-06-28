@@ -3,6 +3,7 @@ using Codice.CM.Client.Differences.Graphic;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -39,12 +40,15 @@ public struct NativeVertex
 
 public class CityManager : MonoBehaviour
 {
+    [Header("매니저 연결")]
+    [SerializeField] private DistrictManager districtManager;
+
     public Cesium3DTileset terrainTileset;
     public CesiumGeoreference cesiumGeoreference;
     public Material cityMaterial;
     public Material blackoutMaterial;
     private ComputeBuffer blackoutBuffer;
-    private NativeBuildingData[] currentDistrictData;
+    private Dictionary<int, List<BuildingData>> districtBuildings = new Dictionary<int, List<BuildingData>>(); // 구역별 건물 데이터 딕셔너리
 
     // --- C++ DLL 함수 연결 ---
     [DllImport("SeoulBuildingProcessor")]
@@ -132,6 +136,9 @@ public class CityManager : MonoBehaviour
             yield return new WaitUntil(() => spawnTask.IsCompleted);
         }
 
+        // 모든 구역 메쉬 생성 완료 후 딕셔너리 초기화
+        districtBuildings.Clear();
+        districtBuildings = null;
         Debug.Log("[CityManager] 모든 구역의 메쉬 생성이 완료되었습니다!");
     }
 
@@ -149,19 +156,44 @@ public class CityManager : MonoBehaviour
 
         byte[] rawData = binFile.bytes;
 
-        // C# 구조체 크기 계산
-        int structSize = Marshal.SizeOf(typeof(NativeBuildingData));
-        int buildingCount = rawData.Length / structSize;
-        currentDistrictData = new NativeBuildingData[buildingCount];
+        // C#에서 BuildingData 구조체로 변환하여 딕셔너리에 저장 (디버깅 및 유니티 내에서 활용 가능)
+        List<BuildingData> buildings = new List<BuildingData>();
+
+        using (BinaryReader reader = new BinaryReader(new MemoryStream(rawData)))
+        {
+            while (reader.BaseStream.Position < reader.BaseStream.Length)
+            {
+                BuildingData data = new BuildingData();
+
+                // DataBaker에서 저장한 순서와 동일
+                data.lon = reader.ReadDouble();
+                data.lat = reader.ReadDouble();
+                data.height = reader.ReadSingle();
+
+                reader.ReadSingle(); // terrainAltitude
+                reader.ReadSingle(); // reductionValue
+
+                data.id = reader.ReadInt32();
+                data.districtId = reader.ReadInt32();
+                data.districtType = (DistrictType)reader.ReadInt32();
+                data.buildingType = (BuildingType)reader.ReadInt32();
+
+                reader.ReadInt32(); // isBlackout
+                reader.ReadInt32(); // polygonVertexCount
+                reader.ReadInt32(); // polygonStartIndex
+
+                buildings.Add(data);
+            }
+            Debug.Log($"[CityManager] 구역 {districtId} [BuildingData] 파일 로드 완료. 건물 개수: {buildings.Count}");
+        }
+
+        districtBuildings[districtId] = buildings;
 
         // C# 배열을 핀(Pin) 고정하여 C++로 전달(배열이 이동해서 C++에서 잘못 읽는 문제 방지)
-        GCHandle handle = GCHandle.Alloc(currentDistrictData, GCHandleType.Pinned);
+        GCHandle handle = GCHandle.Alloc(rawData, GCHandleType.Pinned);
 
         try
         {
-            // byte[] 뭉치를 C# 구조체 배열로 한 방에 고속 복사 (Loop 필요 없음)
-            Marshal.Copy(rawData, 0, handle.AddrOfPinnedObject(), rawData.Length);
-
             // C++ 구역별 건물 데이터 로드
             LoadDistrictData(handle.AddrOfPinnedObject(), rawData.Length);
         }
@@ -313,6 +345,11 @@ public class CityManager : MonoBehaviour
         CesiumGlobeAnchor anchor = chunkObj.AddComponent<CesiumGlobeAnchor>();
         Vector2 centerCoord = DistrictCoordinates.GetCenter(districtId);
         anchor.longitudeLatitudeHeight = new Unity.Mathematics.double3(centerCoord.x, centerCoord.y, 0);
+
+        // 7. DistrictObject 컴포넌트 추가 및 초기화
+        DistrictObject districtObject = chunkObj.AddComponent<DistrictObject>();
+        districtObject.buildings = districtBuildings.ContainsKey(districtId) ? districtBuildings[districtId] : new List<BuildingData>();
+        districtManager.RegisterDistrictObject(districtObject);
     }
     #endregion
 

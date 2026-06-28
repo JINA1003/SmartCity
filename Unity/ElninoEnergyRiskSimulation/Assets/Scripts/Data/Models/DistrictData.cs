@@ -6,6 +6,7 @@ using UnityEngine;
 public class DistrictData
 {
     public DistrictType districtType;
+    public int districtId;
     public float temperature; //해당 평균기온
     public double totalPowerUsage; // total_consumption_mwh
     public Dictionary<string, float>typePowerUsage; //용도 별 사용량

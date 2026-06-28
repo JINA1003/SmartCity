@@ -58,7 +58,7 @@ public class BuildingManager : MonoBehaviour
             // 구별로 생성이 끝났다면 DistrictManager에게 리스트 전달
             if (DistrictManager.Instance != null)
             {
-                DistrictManager.Instance.UpdateDistrictBuildings(currentDistrict, districtBuildingObjects);
+                //DistrictManager.Instance.UpdateDistrictBuildings(currentDistrict, districtBuildingObjects);
             }
             else
             {
