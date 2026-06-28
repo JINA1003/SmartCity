@@ -1,24 +1,31 @@
 using CesiumForUnity;
+using Codice.CM.Client.Differences.Graphic;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.Rendering;
 
-[StructLayout(LayoutKind.Sequential)]
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
 public struct NativeBuildingData
 {
-    public int id;
-    public int districtId;
     public double lon;
     public double lat;
     public float height;
-    public float demandPriority;
+    public float terrainAltitude;
+    public int id;
+    public int districtId;
+    public int districtType;
+    public int buildingType;
     public int isBlackout;
-    public int padding;
+    public int polygonVertexCount;
+    public int polygonStartIndex;
 }
 
 [StructLayout(LayoutKind.Sequential)]
@@ -38,7 +45,7 @@ public class CityManager : MonoBehaviour
 
     // --- C++ DLL 함수 연결 ---
     [DllImport("SeoulBuildingProcessor")]
-    private static extern int LoadDistrictData(System.IntPtr dataPointer, int byteLength);
+    private static extern void LoadDistrictData(System.IntPtr dataPointer, int byteLength);
 
     [DllImport("SeoulBuildingProcessor")]
     private static extern void LoadPolygonData(IntPtr dataPointer, int elementCount);
@@ -53,7 +60,7 @@ public class CityManager : MonoBehaviour
     private static extern int GetBuildingBufferCount();
 
     [DllImport("SeoulBuildingProcessor")]
-    private static extern void BuildDistrictMesh(int districtId, System.IntPtr terrainHeights, int terrainArrayLength);
+    private static extern void BuildDistrictMesh(int districtId, System.IntPtr terrainHeights, int terrainArrayLength, double centerLon, double centerLat);
 
     [DllImport("SeoulBuildingProcessor")]
     private static extern System.IntPtr GetChunkVertices();
@@ -73,8 +80,14 @@ public class CityManager : MonoBehaviour
     [DllImport("SeoulBuildingProcessor")]
     private static extern void GetBuildingPositions(int districtId, [In, Out] double[] lons, [In, Out] double[] lats);
 
+    [DllImport("SeoulBuildingProcessor")]
+    private static extern void ClearAllNativeData();
+
     private void Start()
     {
+        // [핵심] 유니티 에디터 메모리에 남아있는 이전 플레이의 C++ 찌꺼기 데이터 초기화
+        ClearAllNativeData();
+
         Debug.Log("[CityManager] Start() - 구역별 건물 데이터 로드 및 메쉬 생성 시작...");
         // PloygonData 고속 로드
         LoadGlobalPolygonBinaryFast();
@@ -100,9 +113,23 @@ public class CityManager : MonoBehaviour
             yield return null;
         }
 
+        yield return new WaitForSeconds(2.0f);
         Debug.Log("[CityManager] Tileset 준비 완료. 구역별 메쉬 생성 시작...");
         // 지연 후 호출
-        yield return SpawnDistrictChunkAsync(11110);
+        foreach (DistrictType district in Enum.GetValues(typeof(DistrictType)))
+        {
+            if (district == DistrictType.None) continue;
+
+            int districtId = (int)district;
+            Debug.Log($"[CityManager] 구역 {districtId} 메쉬 생성 시작...");
+
+            // SpawnDistrictChunkAsync는 비동기(Task) 함수이므로, 
+            // 해당 구역 생성이 완전히 끝날 때까지 대기(WaitUntil)한 후 다음 구역으로 넘어갑니다.
+            var spawnTask = SpawnDistrictChunkAsync(districtId);
+            yield return new WaitUntil(() => spawnTask.IsCompleted);
+        }
+
+        Debug.Log("[CityManager] 모든 구역의 메쉬 생성이 완료되었습니다!");
     }
 
     // NativePlugin으로 데이터를 전달하기 위해 C# 배열을 핀(Pin) 고정하여 C++로 전달하는 방식으로 구현
@@ -124,8 +151,7 @@ public class CityManager : MonoBehaviour
         try
         {
             // C++ 구역별 건물 데이터 로드
-            int result = LoadDistrictData(handle.AddrOfPinnedObject(), rawData.Length);
-            Debug.Log(result);
+            LoadDistrictData(handle.AddrOfPinnedObject(), rawData.Length);
         }
         finally
         {
@@ -146,7 +172,7 @@ public class CityManager : MonoBehaviour
         try
         {
             // 8바이트(double) 단위이므로 요소 개수는 길이 / 8
-            LoadPolygonData(handle.AddrOfPinnedObject(), rawData.Length / 8);
+            LoadPolygonData(handle.AddrOfPinnedObject(), rawData.Length / 4);
         }
         finally
         {
@@ -174,12 +200,14 @@ public class CityManager : MonoBehaviour
             }
         }
 
+        Vector2 centerCoord = DistrictCoordinates.GetCenter(districtId);
+
         // 3. 측정된 지형 고도 배열을 핀(Pin) 고정하여 C++로 전달
         GCHandle handle = GCHandle.Alloc(heights, GCHandleType.Pinned);
         try
         {
             // C++ 공장 가동: 지형 높이를 반영하여 거대 메쉬 생성
-            BuildDistrictMesh(districtId, handle.AddrOfPinnedObject(), heights.Length);
+            BuildDistrictMesh(districtId, handle.AddrOfPinnedObject(), heights.Length, centerCoord.x, centerCoord.y);
         }
         finally
         {
@@ -194,6 +222,7 @@ public class CityManager : MonoBehaviour
     private List<double3> GetBuildingPositionsFromCpp(int districtId)
     {
         int count = GetDistrictBuildingCount(districtId);
+
         double[] lons = new double[count];
         double[] lats = new double[count];
 
@@ -216,85 +245,68 @@ public class CityManager : MonoBehaviour
 
         if (vCount == 0 || iCount == 0) return;
 
-        // C++ 메모리 복사
-        NativeVertex[] vertices = new NativeVertex[vCount];
-        int[] indices = new int[iCount];
-
         System.IntPtr vPtr = GetChunkVertices();
         System.IntPtr iPtr = GetChunkIndices();
 
-        // 고속 복사 로직 (NativeArray 래핑 등 마샬링 최적화 가능)
-        int vStride = Marshal.SizeOf(typeof(NativeVertex));
-        for (int i = 0; i < vCount; i++)
-        {
-            vertices[i] = Marshal.PtrToStructure<NativeVertex>(vPtr + (i * vStride));
-        }
+        // 1. C++ 데이터를 1차원 기본 배열로 한 번에 블록 복사 (가장 빠르고 안전한 방식)
+        // NativeVertex 구조체는 float 7개로 구성되어 있으므로 전체 크기는 vCount * 7
+        float[] rawVertices = new float[vCount * 7];
+        Marshal.Copy(vPtr, rawVertices, 0, vCount * 7);
+
+        // 인덱스 데이터도 한 번에 블록 복사
+        int[] indices = new int[iCount];
         Marshal.Copy(iPtr, indices, 0, iCount);
 
-        // Unity Mesh 생성 (60만 개가 아닌, 구역당 딱 1개)
+        // 2. 유니티 메쉬용 배열 준비
         Vector3[] unityVertices = new Vector3[vCount];
-        Vector2[] unityUV2 = new Vector2[vCount]; // UV2 채널에 buildingId 저장
+        Vector2[] unityUV2 = new Vector2[vCount];
 
+        // 3. 배열 순회하며 데이터 할당 (C# 내부 배열만 순회하므로 C++ 통신 오버헤드 없음)
         for (int i = 0; i < vCount; i++)
         {
-            // Cesium 좌표계 등 축 방향에 따라 y, z 스왑이 필요할 수 있습니다.
-            unityVertices[i] = new Vector3(vertices[i].px, vertices[i].pz, vertices[i].py);
-            unityUV2[i] = new Vector2(vertices[i].buildingId, 0); // 쉐이더 판별용 ID
+            // 1개의 버텍스당 7개의 float 칸을 차지하므로 오프셋 계산
+            int offset = i * 7;
+
+            // C++에서 넘겨준 값: px(+0), py(+1), pz(+2), nx(+3), ny(+4), nz(+5), buildingId(+6)
+            // 건물이 눕지 않도록 축 변환 (X, Z, Y) 적용
+            unityVertices[i] = new Vector3(rawVertices[offset], rawVertices[offset + 1], rawVertices[offset + 2]);
+            unityUV2[i] = new Vector2(rawVertices[offset + 6], 0); // 쉐이더 판별용 ID
         }
 
+        // 4. Mesh 생성 및 할당
         Mesh chunkMesh = new Mesh();
         chunkMesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32; // 버텍스 65535개 이상 허용
         chunkMesh.vertices = unityVertices;
         chunkMesh.uv2 = unityUV2;
         chunkMesh.triangles = indices;
+
+        // 노말(빛 반사) 및 바운딩 박스 자동 계산
         chunkMesh.RecalculateNormals();
         chunkMesh.RecalculateBounds();
 
-        // 씬에 배치
+        // 5. 씬에 배치
         GameObject chunkObj = new GameObject($"District_Chunk_{districtId}");
-
         if (cesiumGeoreference != null)
         {
             chunkObj.transform.SetParent(cesiumGeoreference.transform, false);
         }
-        else
-        {
-            // 인스펙터 할당을 깜빡했을 때를 대비한 방어 코드
-            CesiumGeoreference geo = FindFirstObjectByType<CesiumGeoreference>();
-            if (geo != null)
-            {
-                cesiumGeoreference = geo;
-                chunkObj.transform.SetParent(geo.transform, false);
-            }
-            else
-            {
-                Debug.LogError("[CityManager] 씬에 CesiumGeoreference가 존재하지 않습니다!");
-            }
-        }
 
         chunkObj.AddComponent<MeshFilter>().mesh = chunkMesh;
-
         MeshRenderer renderer = chunkObj.AddComponent<MeshRenderer>();
         renderer.material = blackoutMaterial;
 
-        // --- [추가] CesiumGlobeAnchor 부착 및 좌표 맵핑 ---
+        // 6. Cesium 좌표계 매핑
         CesiumGlobeAnchor anchor = chunkObj.AddComponent<CesiumGlobeAnchor>();
-
-        // 해당 구역(District)의 중심 위도, 경도를 알아야 합니다. (임시로 서울 시청 좌표 예시)
         Vector2 centerCoord = DistrictCoordinates.GetCenter(districtId);
-
-        // 고도는 0으로 둡니다 (메쉬의 버텍스 Y값에 지형 고도(baseZ)가 이미 더해져 있으므로)
         anchor.longitudeLatitudeHeight = new Unity.Mathematics.double3(centerCoord.x, centerCoord.y, 0);
-
-        // (선택) 이전 답변의 Compute Buffer 업데이트 로직 호출하여 블랙아웃 준비
     }
     #endregion
+
     private void InitializeComputeBuffer()
     {
         int count = GetBuildingBufferCount();
         if (count == 0) return;
 
-        // C# 구조체 크기(40바이트 - double 2개 포함)만큼 버퍼 할당
         int stride = Marshal.SizeOf(typeof(NativeBuildingData));
         blackoutBuffer = new ComputeBuffer(count, stride);
 
