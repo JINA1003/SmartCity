@@ -51,12 +51,13 @@ public class DataBaker : MonoBehaviour
                             writer.Write(b.lon);
                             writer.Write(b.lat);
                             writer.Write(b.height);
-                            writer.Write(0.0f);
+                            writer.Write(0.0f); // terrainAltitude
+                            writer.Write(0.0f); // reducationValue
                             writer.Write(b.id);
                             writer.Write(b.districtId);
                             writer.Write((int)b.districtType);
                             writer.Write((int)b.buildingType);
-                            writer.Write(0);
+                            writer.Write(0); // isBlackout
 
                             writer.Write(vertexCount);
                             writer.Write(globalPolygonIndex);

@@ -19,6 +19,7 @@ public struct NativeBuildingData
     public double lat;
     public float height;
     public float terrainAltitude;
+    public float reductionValue;
     public int id;
     public int districtId;
     public int districtType;
@@ -40,8 +41,10 @@ public class CityManager : MonoBehaviour
 {
     public Cesium3DTileset terrainTileset;
     public CesiumGeoreference cesiumGeoreference;
+    public Material cityMaterial;
     public Material blackoutMaterial;
     private ComputeBuffer blackoutBuffer;
+    private NativeBuildingData[] currentDistrictData;
 
     // --- C++ DLL 함수 연결 ---
     [DllImport("SeoulBuildingProcessor")]
@@ -92,6 +95,8 @@ public class CityManager : MonoBehaviour
         // PloygonData 고속 로드
         LoadGlobalPolygonBinaryFast();
 
+        InitializeComputeBuffer();
+
         // 서울시 25개 구별 건물 데이터(.bytes) 고속 로드
         foreach (DistrictType district in Enum.GetValues(typeof(DistrictType)))
         {
@@ -101,8 +106,6 @@ public class CityManager : MonoBehaviour
 
         StartCoroutine(InitializeDistrict());
 
-        // 2. 렌더링용 Compute Buffer 초기화
-        // InitializeComputeBuffer();
     }
 
     IEnumerator InitializeDistrict()
@@ -145,11 +148,20 @@ public class CityManager : MonoBehaviour
         }
 
         byte[] rawData = binFile.bytes;
+
+        // C# 구조체 크기 계산
+        int structSize = Marshal.SizeOf(typeof(NativeBuildingData));
+        int buildingCount = rawData.Length / structSize;
+        currentDistrictData = new NativeBuildingData[buildingCount];
+
         // C# 배열을 핀(Pin) 고정하여 C++로 전달(배열이 이동해서 C++에서 잘못 읽는 문제 방지)
-        GCHandle handle = GCHandle.Alloc(rawData, GCHandleType.Pinned);
+        GCHandle handle = GCHandle.Alloc(currentDistrictData, GCHandleType.Pinned);
 
         try
         {
+            // byte[] 뭉치를 C# 구조체 배열로 한 방에 고속 복사 (Loop 필요 없음)
+            Marshal.Copy(rawData, 0, handle.AddrOfPinnedObject(), rawData.Length);
+
             // C++ 구역별 건물 데이터 로드
             LoadDistrictData(handle.AddrOfPinnedObject(), rawData.Length);
         }
