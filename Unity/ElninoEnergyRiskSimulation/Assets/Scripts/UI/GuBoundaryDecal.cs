@@ -162,10 +162,12 @@ public class GuBoundaryDecal : MonoBehaviour
         projObj.transform.localRotation = Quaternion.Euler(-90f, 0f, 0f);
 
         DecalProjector projector = projObj.AddComponent<DecalProjector>();
-        projector.size         = new Vector3(widthM, heightM, projectionDepth);
-        projector.pivot        = new Vector3(0f, 0f, -projectionDepth * 0.5f);
-        projector.material     = _decalMatInstance;
-        projector.drawDistance = drawDistance;
+        projector.size                = new Vector3(widthM, heightM, projectionDepth);
+        projector.pivot               = new Vector3(0f, 0f, -projectionDepth * 0.5f);
+        projector.material            = _decalMatInstance;
+        projector.drawDistance        = drawDistance;
+        // Use Rendering Layers 모드 — BUILDING Rendering Layer는 제외
+        projector.renderingLayerMask  = ~RenderingLayerMask.GetMask("BUILDING");
 
         Debug.Log($"[GuBoundaryDecal] 완료 — 구 {_districts.Count}개, 텍스처 {res}px");
     }
