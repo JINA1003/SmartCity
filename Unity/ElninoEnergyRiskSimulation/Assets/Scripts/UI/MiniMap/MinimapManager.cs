@@ -1,34 +1,56 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using Newtonsoft.Json.Linq;
-// using System.Runtime.CompilerServices;
-using System;
+using TMPro;
 
 public class MinimapManager : MonoBehaviour
 {
+    // 구 오브젝트
     [Header("UI")]
-    public RectTransform districtRoot;
+    [SerializeField] private RectTransform districtRoot;
 
+    // 구 경계 geojson 파일
     [Header("GeoJSON")]
-    public string fileName = "seoul_district.geojson";
+    [SerializeField] private string fileName = "seoul_district.geojson";
 
+    // minimap 스타일 설정
     [Header("Map Style")]
-    // 시뮬레이션 시작전 미니맵 색
-    public Color districtColor = Color.white;
+    private Color districtColor = new Color(0.75f, 0.75f, 0.75f, 0.45f);
+    private Color selectedOutlineColor = Color.red;
+    private Color nonSelectedOutlineColor = Color.white;
+    private float outlineWidth = 1.5f; // 라인두께 고정
 
-    // TODO: 시뮬레이션 시작 후 cmap으로 미니맵 색 설정
-    public Color cmapDistrictColor = new Color(1f, 0.45f, 0.2f, 0.65f); 
+    // cmap 스타일 설정
+    [Header("CMap Style")]
+    [SerializeField] private Color lowPowerColor = new Color(1f, 0.9f, 0.75f, 0.8f);
+    [SerializeField] private Color highPowerColor = new Color(1f, 0.25f, 0.05f, 0.9f);
 
-    // 구 아웃라인 색
-    public Color selectedOutlineColor = Color.red;
-    public Color nonSelectedOutlineColor = Color.gray;
-    // 윤곽선 두께
-    public float outlineWidth = 1.5f;
+    [Header("Tooltip")]
+    [SerializeField] private RectTransform tooltipRoot;
+    [SerializeField] private TextMeshProUGUI tooltipText;
 
-    // 구 클릭 이벤트
-    public static event Action<string> OnDistrictSelected;
+    [Header("DataManager")]
+    [SerializeField] private DataManager dataManager;
 
+    // 구 이름, 구 폴리곤 딕셔너리
+    private Dictionary<string, List<MinimapPolygon>> districtPolygonMap =
+        new Dictionary<string, List<MinimapPolygon>>();
+
+    // 구 이름, 구 아웃라인 딕셔너리
+    private Dictionary<string, List<MinimapOutline>> districtOutlineMap =
+        new Dictionary<string, List<MinimapOutline>>();
+
+    private readonly List<OniRangeData> oniRangeEntries = new List<OniRangeData>();
+
+    private float currentOni = 0f;
+    private bool hasCurrentOni = false;
+    private bool isMapCreated = false;
+
+    private string selectedDistrictName;
+
+    // 구별 폴리곤 최대, 최소 좌표
     private double minLon = double.MaxValue;
     private double maxLon = double.MinValue;
     private double minLat = double.MaxValue;
@@ -36,37 +58,88 @@ public class MinimapManager : MonoBehaviour
 
     private float padding = 15f;
     private JArray features;
-    private MinimapPolygon selectedPolygon;
+
     private MainCameraController mainCameraController;
+
+    // 구 선택 이벤트
+    public static event Action<string> OnDistrictSelected;
+
 
     private void Awake()
     {
+        // 카메라 설정
         mainCameraController = FindFirstObjectByType<MainCameraController>();
 
         if (mainCameraController == null)
         {
-            Debug.LogError("MainCameraController를 찾을 수 없습니다.");
+            Debug.LogError("[MinimapManager] MainCameraController를 찾을 수 없습니다.");
+        }
+
+        // dataManager 연결 안했으면 직접 찾아 연결
+        if (dataManager == null)
+        {
+            dataManager = FindFirstObjectByType<DataManager>();
         }
     }
 
-    private void Start()
+    // cmap에 필요한 데이터 이벤트 구독
+    private void OnEnable()
     {
-        LoadGeoJson();
-        CreateDistricts();
+        if (dataManager != null)
+        {
+            dataManager.OniRangeDataUpdated += HandleOniRangeDataUpdated;
+            dataManager.OnPowerDataUpdated += HandlePowerDataUpdated;
+        }
+        else
+        {
+            Debug.LogWarning("[MinimapManager] DataManager가 연결되지 않았습니다.");
+        }
     }
 
+    private void OnDisable()
+    {
+        if (dataManager != null)
+        {
+            dataManager.OniRangeDataUpdated -= HandleOniRangeDataUpdated;
+            dataManager.OnPowerDataUpdated -= HandlePowerDataUpdated;
+        }
+    }
+    
+    private void Start()
+    {
+        if (tooltipRoot != null)
+        {
+            tooltipRoot.gameObject.SetActive(false);
+
+            CanvasGroup cg = tooltipRoot.GetComponent<CanvasGroup>();
+            if (cg == null)
+            {
+                cg = tooltipRoot.gameObject.AddComponent<CanvasGroup>();
+            }
+
+            cg.blocksRaycasts = false;
+            cg.interactable = false;
+        }
+
+        LoadGeoJson();
+        CreateDistricts();
+
+        isMapCreated = true;
+        ApplyCurrentOniCMap();
+    }
+
+    // geojson 로드
     private void LoadGeoJson()
     {
         string path = Path.Combine(Application.streamingAssetsPath, fileName);
 
         if (!File.Exists(path))
         {
-            Debug.LogError("GeoJSON 파일을 찾을 수 없습니다: " + path);
+            Debug.LogError("[MinimapManager] GeoJSON 파일을 찾을 수 없습니다: " + path);
             return;
         }
 
         string json = File.ReadAllText(path);
-
         JObject geoJson = JObject.Parse(json);
         features = (JArray)geoJson["features"];
 
@@ -89,6 +162,7 @@ public class MinimapManager : MonoBehaviour
         }
     }
 
+    // 구 경계 범위
     private void ScanPolygonBounds(JArray polygon)
     {
         JArray outerRing = (JArray)polygon[0];
@@ -98,13 +172,14 @@ public class MinimapManager : MonoBehaviour
             double lon = coord[0].Value<double>();
             double lat = coord[1].Value<double>();
 
-            minLon = System.Math.Min(minLon, lon);
-            maxLon = System.Math.Max(maxLon, lon);
-            minLat = System.Math.Min(minLat, lat);
-            maxLat = System.Math.Max(maxLat, lat);
+            minLon = Math.Min(minLon, lon);
+            maxLon = Math.Max(maxLon, lon);
+            minLat = Math.Min(minLat, lat);
+            maxLat = Math.Max(maxLat, lat);
         }
     }
 
+    // 구 생성
     private void CreateDistricts()
     {
         if (features == null) return;
@@ -149,6 +224,7 @@ public class MinimapManager : MonoBehaviour
         }
     }
 
+    // 구 UI 범위에 맞게 나타내기
     private void CreatePolygonUI(string districtName, JArray polygon)
     {
         JArray outerRing = (JArray)polygon[0];
@@ -193,7 +269,13 @@ public class MinimapManager : MonoBehaviour
         polygonGraphic.points = uiPoints;
         polygonGraphic.SetVerticesDirty();
 
-        // ---------------------- outline 추가----------------------
+        if (!districtPolygonMap.ContainsKey(districtName))
+        {
+            districtPolygonMap[districtName] = new List<MinimapPolygon>();
+        }
+
+        districtPolygonMap[districtName].Add(polygonGraphic);
+
         GameObject outlineObj = new GameObject("Outline_" + districtName);
         outlineObj.transform.SetParent(obj.transform, false);
 
@@ -213,8 +295,16 @@ public class MinimapManager : MonoBehaviour
         outline.SetVerticesDirty();
 
         polygonGraphic.outline = outline;
+
+        if (!districtOutlineMap.ContainsKey(districtName))
+        {
+            districtOutlineMap[districtName] = new List<MinimapOutline>();
+        }
+
+        districtOutlineMap[districtName].Add(outline);
     }
 
+    // 좌표 UI 범위에 맞게 재설정
     private Vector2 LonLatToUI(double lon, double lat)
     {
         float width = districtRoot.rect.width - padding * 2f;
@@ -239,24 +329,184 @@ public class MinimapManager : MonoBehaviour
         return new Vector2(x, y);
     }
 
-    // 구 클릭할 때(클릭 함수 in minimappolygon.cs) 실행 함수
+    // 구 클릭
     public void SelectDistrict(MinimapPolygon polygon)
     {
         if (polygon == null) return;
 
-        if (selectedPolygon != null && selectedPolygon.outline != null)
+        if (!string.IsNullOrEmpty(selectedDistrictName) &&
+            districtOutlineMap.TryGetValue(selectedDistrictName, out List<MinimapOutline> previousOutlines))
         {
-            selectedPolygon.outline.SetOutlineColor(nonSelectedOutlineColor);
+            foreach (MinimapOutline outline in previousOutlines)
+            {
+                if (outline != null)
+                {
+                    outline.SetOutlineColor(nonSelectedOutlineColor);
+                }
+            }
         }
 
-        selectedPolygon = polygon;
+        selectedDistrictName = polygon.districtName;
 
-        if (selectedPolygon.outline != null)
+        if (districtOutlineMap.TryGetValue(selectedDistrictName, out List<MinimapOutline> selectedOutlines))
         {
-            selectedPolygon.outline.SetOutlineColor(selectedOutlineColor);
+            foreach (MinimapOutline outline in selectedOutlines)
+            {
+                if (outline != null)
+                {
+                    outline.SetOutlineColor(selectedOutlineColor);
+                    outline.transform.parent.SetAsLastSibling();
+                    outline.transform.SetAsLastSibling();
+                }
+            }
         }
 
-        // 이벤트 발생
+        Debug.Log("[MinimapManager] 클릭한 구: " + polygon.districtName);
+
         OnDistrictSelected?.Invoke(polygon.districtName);
+    }
+
+    private void HandlePowerDataUpdated(PowerGridData data)
+    {
+        if (data == null) return;
+
+        currentOni = data.oni;
+        hasCurrentOni = true;
+
+        Debug.Log($"[MinimapManager] 선택 연월 ONI 수신: {currentOni}");
+
+        ApplyCurrentOniCMap();
+    }
+
+    private void HandleOniRangeDataUpdated(List<OniRangeData> data)
+    {
+        if (data == null || data.Count == 0)
+        {
+            Debug.LogWarning("[MinimapManager] OniRangeData가 비어 있습니다.");
+            return;
+        }
+
+        oniRangeEntries.Clear();
+        oniRangeEntries.AddRange(data);
+
+        Debug.Log($"[MinimapManager] OniRangeData 수신 완료: {oniRangeEntries.Count}개");
+
+        ApplyCurrentOniCMap();
+    }
+
+    private void ApplyCurrentOniCMap()
+    {
+        if (!isMapCreated) return;
+        if (oniRangeEntries.Count == 0) return;
+
+        float targetOni = hasCurrentOni ? currentOni : 0f;
+
+        OniRangeData targetData = GetClosestOniData(targetOni);
+
+        if (targetData == null || targetData.guConsumption == null)
+        {
+            Debug.LogWarning("[MinimapManager] guConsumption 데이터가 없습니다.");
+            return;
+        }
+
+        Debug.Log($"[MinimapManager] cmap 적용 기준 ONI: {targetData.oni}");
+
+        ApplyPowerUsageCMap(targetData.guConsumption);
+    }
+
+    private OniRangeData GetClosestOniData(float oniValue)
+    {
+        OniRangeData closest = null;
+        float minDistance = float.MaxValue;
+
+        foreach (OniRangeData data in oniRangeEntries)
+        {
+            float distance = Mathf.Abs(data.oni - oniValue);
+
+            if (distance < minDistance)
+            {
+                minDistance = distance;
+                closest = data;
+            }
+        }
+
+        return closest;
+    }
+
+    private void ApplyPowerUsageCMap(Dictionary<string, double> guConsumption)
+    {
+        if (guConsumption == null || guConsumption.Count == 0) return;
+
+        double minValue = double.MaxValue;
+        double maxValue = double.MinValue;
+
+        foreach (double value in guConsumption.Values)
+        {
+            minValue = Math.Min(minValue, value);
+            maxValue = Math.Max(maxValue, value);
+        }
+
+        int appliedCount = 0;
+
+        foreach (var kvp in guConsumption)
+        {
+            string districtName = kvp.Key.Trim();
+            double powerUsage = kvp.Value;
+
+            if (!districtPolygonMap.TryGetValue(districtName, out List<MinimapPolygon> polygons))
+            {
+                Debug.LogWarning("[MinimapManager] 미니맵에서 구를 찾지 못함: " + districtName);
+                continue;
+            }
+
+            float t = 0f;
+
+            if (maxValue > minValue)
+            {
+                t = (float)((powerUsage - minValue) / (maxValue - minValue));
+            }
+
+            Color cmapColor = Color.Lerp(lowPowerColor, highPowerColor, t);
+
+            foreach (MinimapPolygon polygon in polygons)
+            {
+                if (polygon != null)
+                {
+                    polygon.color = cmapColor;
+                    polygon.SetVerticesDirty();
+                    appliedCount++;
+                }
+            }
+        }
+
+        Debug.Log($"[MinimapManager] 전력 사용량 cmap 적용 완료: {appliedCount}개 polygon");
+    }
+
+    // 구 이름 Tooltip 함수
+    public void ShowDistrictTooltip(string districtName, Vector2 screenPosition)
+    {
+        if (tooltipRoot == null || tooltipText == null) return;
+
+        tooltipText.text = districtName;
+        tooltipRoot.gameObject.SetActive(true);
+
+        tooltipRoot.position = screenPosition;
+    }
+
+    public void HideDistrictTooltip()
+    {
+        if (tooltipRoot == null) return;
+
+        tooltipRoot.gameObject.SetActive(false);
+    }
+
+    public void MoveDistrictTooltip(Vector2 screenPosition)
+    {
+        if (tooltipRoot == null) return;
+
+        if (!tooltipRoot.gameObject.activeSelf)
+            return;
+
+        tooltipRoot.position = screenPosition;
     }
 }

@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
-public class MinimapPolygon : Graphic, IPointerClickHandler
+public class MinimapPolygon : Graphic, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler, IPointerMoveHandler
 {
     public List<Vector2> points = new List<Vector2>();
 
@@ -77,16 +77,42 @@ public class MinimapPolygon : Graphic, IPointerClickHandler
     // 특정 구 클릭시 실행되는 함수
     public void OnPointerClick(PointerEventData eventData)
     {
-        Debug.Log("클릭한 구: " + districtName);
-
-        // TODO: 선택 구에 대한 info panel 뜨도록 해야함
-        // guPanel.Show();
-        // guPanel.Text_District_Energy.text = districtName;
-
         if (minimapManager != null)
         {
             // 여기서 클릭한 구에 대한 실행
             minimapManager.SelectDistrict(this);
+        }
+    }
+
+    // 마우스가 구 위에 올라왔을 때
+public void OnPointerEnter(PointerEventData eventData)
+    {
+        if (minimapManager != null)
+        {
+            minimapManager.ShowDistrictTooltip(
+                districtName,
+                eventData.position
+            );
+        }
+    }
+
+    // 마우스가 움직일 때 Tooltip도 따라 이동
+    public void OnPointerMove(PointerEventData eventData)
+    {
+        if (minimapManager != null)
+        {
+            minimapManager.MoveDistrictTooltip(
+                eventData.position
+            );
+        }
+    }
+
+    // 마우스가 구 밖으로 나갔을 때
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        if (minimapManager != null)
+        {
+            minimapManager.HideDistrictTooltip();
         }
     }
 }
