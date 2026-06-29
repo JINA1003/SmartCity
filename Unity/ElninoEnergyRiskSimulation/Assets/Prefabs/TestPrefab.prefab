@@ -133,6 +133,8 @@ Transform:
   - {fileID: 2414258775001061889}
   - {fileID: 321874242400305823}
   - {fileID: 8638821275525511231}
+  - {fileID: 8016649418106814581}
+  - {fileID: 230282641741865420}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2563397207717470007
@@ -308,9 +310,56 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: SmartCity.Scripts::BlackoutSimulationController
   dataManager: {fileID: 0}
-  blackoutSimulationCanvasGroup: {fileID: 0}
-  simulationToggle: {fileID: 0}
   stayDurationPerDistrict: 3
+--- !u!1 &4780921253663895104
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 230282641741865420}
+  - component: {fileID: 8659827275220319299}
+  m_Layer: 0
+  m_Name: MinimapColorController
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &230282641741865420
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4780921253663895104}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -1014.25, y: 1482.288, z: -18498.049}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4180507456290223588}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8659827275220319299
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4780921253663895104}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6919b89ab80dc4f0b8a7c97fb05820ce, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SmartCity.Scripts::MinimapColorController
+  minimapManager: {fileID: 0}
+  dataManager: {fileID: 0}
+  lowPowerColor: {r: 1, g: 0.9, b: 0.75, a: 0.9}
+  highPowerColor: {r: 1, g: 0.25, b: 0.05, a: 0.9}
+  blackoutColor: {r: 0.2, g: 0.2, b: 0.2, a: 0.9}
 --- !u!1 &4805271982088816925
 GameObject:
   m_ObjectHideFlags: 0
@@ -600,3 +649,55 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DistrictManager
   dataManager: {fileID: 1710315119800515962}
+--- !u!1 &8626113785183535837
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8016649418106814581}
+  - component: {fileID: 6621556168656774471}
+  m_Layer: 0
+  m_Name: MinimapManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8016649418106814581
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8626113785183535837}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -1014.25, y: 1482.288, z: -18498.049}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4180507456290223588}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6621556168656774471
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8626113785183535837}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a3a662cdd366345fb9945d4c0ad4b006, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SmartCity.Scripts::MinimapManager
+  districtRoot: {fileID: 0}
+  fileName: seoul_district.geojson
+  districtColor: {r: 0.75, g: 0.75, b: 0.75, a: 0.5}
+  selectedOutlineColor: {r: 0.2, g: 0.2, b: 0.2, a: 1}
+  nonSelectedOutlineColor: {r: 1, g: 1, b: 1, a: 1}
+  outlineWidth: 1.5
+  tooltipRoot: {fileID: 0}
+  tooltipText: {fileID: 0}
