@@ -71,6 +71,7 @@ public class MinimapPolygon : Graphic, IPointerClickHandler, IPointerEnterHandle
         return IsPointInPolygon(localPoint, points);
     }
 
+    // 특정 점(마우스 포인트?)가 폴리곤 안에 있는지 확인
     private bool IsPointInPolygon(Vector2 point, List<Vector2> polygon)
     {
         bool inside = false;

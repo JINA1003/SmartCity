@@ -4,6 +4,8 @@ using System.IO;
 using UnityEngine;
 using Newtonsoft.Json.Linq;
 using TMPro;
+using System.Collections;
+using UnityEngine.UI;
 
 /// <summary>
 /// MinimapManager 역할
@@ -23,9 +25,10 @@ public class MinimapManager : MonoBehaviour
     // minimap 스타일 설정
     [Header("Map Style")]
     private Color districtColor = new Color(0.75f, 0.75f, 0.75f, 0.45f);
-    private Color selectedOutlineColor = Color.red;
+    private Color selectedOutlineColor = Color.black;
     private Color nonSelectedOutlineColor = Color.white;
-    private float outlineWidth = 1.5f; // 라인두께 고정
+    private float outlineWidth = 1.5f;
+    private Color blackoutColor = new Color(0.2f, 0.2f, 0.2f, 0.9f);
 
     // cmap 스타일 설정
     [Header("CMap Style")]
@@ -37,6 +40,9 @@ public class MinimapManager : MonoBehaviour
     [SerializeField] private RectTransform tooltipRoot;
     [SerializeField] private TextMeshProUGUI tooltipText;
 
+    [Header("Simulation Toggle")]
+    [SerializeField] private Toggle simulationToggle;
+
     [Header("DataManager")]
     [SerializeField] private DataManager dataManager;
 
@@ -47,6 +53,10 @@ public class MinimapManager : MonoBehaviour
     // 구 이름, 구 아웃라인 딕셔너리
     private Dictionary<string, List<MinimapOutline>> districtOutlineMap =
         new Dictionary<string, List<MinimapOutline>>();
+
+    // 구별 현재 cmap 색 저장
+    private Dictionary<string, Color> districtCurrentColor =
+        new Dictionary<string, Color>();
 
     // ONI 구간별 전력 데이터 목록
     private readonly List<OniRangeData> oniRangeEntries = new List<OniRangeData>();
@@ -62,6 +72,8 @@ public class MinimapManager : MonoBehaviour
 
     // 현재 선택된 구 이름
     private string selectedDistrictName;
+    // 깜박이는 구 이름
+    private string blinkingDistrictName;
 
     // 서울 전체 최소/최대 경위도
     private double minLon = double.MaxValue;
@@ -79,6 +91,9 @@ public class MinimapManager : MonoBehaviour
 
     // 구 선택 이벤트
     public static event Action<string> OnDistrictSelected;
+
+    // 현재 깜빡이는 코루틴
+    private Coroutine blackoutBlinkCoroutine;
 
     private void Awake()
     {
@@ -108,10 +123,17 @@ public class MinimapManager : MonoBehaviour
             dataManager.OniRangeDataUpdated += HandleOniRangeDataUpdated;
             // 전력 데이터 변경
             dataManager.OnPowerDataUpdated += HandlePowerDataUpdated;
+            // 블랙아웃 구 이벤트 구독
+            BlackoutSimulationController.OnBlackoutDistrictChanged += HandleBlackoutDistrictChanged;
         }
         else
         {
             Debug.LogWarning("[MinimapManager] DataManager가 연결되지 않았습니다.");
+        }
+
+        if (simulationToggle != null)
+        {
+            simulationToggle.onValueChanged.AddListener(OnSimulationToggleChanged);
         }
     }
 
@@ -121,6 +143,11 @@ public class MinimapManager : MonoBehaviour
         {
             dataManager.OniRangeDataUpdated -= HandleOniRangeDataUpdated;
             dataManager.OnPowerDataUpdated -= HandlePowerDataUpdated;
+            BlackoutSimulationController.OnBlackoutDistrictChanged -= HandleBlackoutDistrictChanged;
+        }
+        if (simulationToggle != null)
+        {
+            simulationToggle.onValueChanged.RemoveListener(OnSimulationToggleChanged);
         }
     }
     
@@ -256,6 +283,9 @@ public class MinimapManager : MonoBehaviour
                 }
             }
         }
+
+        // 초기 카메라 좌표 설정
+        mainCameraController.MoveToDistrict("종로구");
     }
 
     // 구 UI 범위에 맞게 구 그리기
@@ -449,11 +479,10 @@ public class MinimapManager : MonoBehaviour
     {
         if (data == null) return;
 
-        // currentOni = data.oni;
+        currentOni = data.oni;
+
         // 데이터 수신 여부
         hasCurrentOni = true;
-
-        // Debug.Log($"[MinimapManager] 선택 연월 ONI 수신: {currentOni}");
 
         ApplyCurrentOniCMap();
     }
@@ -535,8 +564,6 @@ public class MinimapManager : MonoBehaviour
             maxValue = Math.Max(maxValue, value);
         }
 
-        // int appliedCount = 0;
-
         // 구 마다 전력 사용량에 따라 색상 결정됨
         foreach (var kvp in guConsumption)
         {
@@ -559,6 +586,7 @@ public class MinimapManager : MonoBehaviour
 
             // 색상 계산
             Color cmapColor = Color.Lerp(lowPowerColor, highPowerColor, t);
+            districtCurrentColor[districtName] = cmapColor;
 
             // 폴리곤 색 변경
             foreach (MinimapPolygon polygon in polygons)
@@ -567,12 +595,9 @@ public class MinimapManager : MonoBehaviour
                 {
                     polygon.color = cmapColor;
                     polygon.SetVerticesDirty();
-                    // appliedCount++;
                 }
             }
         }
-
-        // Debug.Log($"[MinimapManager] 전력 사용량 cmap 적용 완료: {appliedCount}개 polygon");
     }
 
     // 구 이름 Tooltip 함수
@@ -607,4 +632,121 @@ public class MinimapManager : MonoBehaviour
         // 현재 마우스 위치로 변경
         tooltipRoot.position = screenPosition;
     }
+
+    // 블랙아웃 이벤트 함수
+    private void HandleBlackoutDistrictChanged(string districtName)
+    {
+        // 원래 정전 중인 구의 코루틴 멈추고 검정으로 색상 고정
+        if (simulationToggle != null && simulationToggle.isOn)
+        {
+            StopBlinkAndSetBlack();
+        }
+
+        // 새로운 정전 구 이름으로 갱신
+        blinkingDistrictName = districtName;
+
+        // 시뮬레이션 토클 off 이면 멈추기
+        if (simulationToggle != null && !simulationToggle.isOn)
+            return;
+
+        // 갱신된 구로 블랙아웃 코루틴 시작
+        blackoutBlinkCoroutine =
+            StartCoroutine(BlinkBlackoutDistrict(districtName));
+    }
+
+    // 정전 구 깜박임 코루틴
+    private IEnumerator BlinkBlackoutDistrict(string districtName)
+    {
+        // 구 폴리곤 가져오기
+        if (!districtPolygonMap.TryGetValue(districtName, out List<MinimapPolygon> polygons))
+            yield break;
+
+        // 구 cmap 색상 가져오기
+        if (!districtCurrentColor.TryGetValue(districtName, out Color originalColor))
+            yield break;
+
+        // 처음엔 검정 아님
+        bool dark = false;
+
+        while (true)
+        {
+            // 검정인지 아닌지 확인 -> 검정이면 cmap / 아니면 검정
+            Color target = dark ? blackoutColor : originalColor;
+
+            // 폴리곤 색상 변경
+            foreach (MinimapPolygon polygon in polygons)
+            {
+                polygon.color = target;
+                polygon.SetVerticesDirty();
+            }
+
+            // bool 검정 반대로 설정
+            dark = !dark;
+
+            // 0.3초씩 깜박임
+            yield return new WaitForSeconds(0.3f);
+        }
+    }
+
+    // 토글 OFF 처리 함수
+    private void OnSimulationToggleChanged(bool isOn)
+    {
+        if (!isOn)
+            StopBlinkAndRestore(); // off 되면 원래 cmap 색상으로
+    }
+
+    // 코루틴 stop -> 검정색으로 고정
+    private void StopBlinkAndSetBlack()
+    {
+        if (blackoutBlinkCoroutine != null)
+        {
+            StopCoroutine(blackoutBlinkCoroutine);
+            blackoutBlinkCoroutine = null;
+        }
+
+        if (string.IsNullOrEmpty(blinkingDistrictName))
+            return;
+
+        SetDistrictColor(blinkingDistrictName, Color.black);
+    }
+
+    // 코루틴 stop & 토클 off -> 원래 cmap 색으로 복원
+    private void StopBlinkAndRestore()
+    {
+        if (blackoutBlinkCoroutine != null)
+        {
+            // 깜박이는 코루틴 stop
+            StopCoroutine(blackoutBlinkCoroutine);
+            blackoutBlinkCoroutine = null;
+        }
+
+        foreach (var kvp in districtCurrentColor)
+        {
+            // 정전된 모든 구 색상을 검정 -> 원래 cmap색으로
+            string districtName = kvp.Key;
+            Color originalColor = kvp.Value;
+
+            SetDistrictColor(districtName, originalColor);
+        }
+
+        blinkingDistrictName = null;
+    }
+
+    // 구 색상 설정
+    private void SetDistrictColor(string districtName, Color targetColor)
+    {
+        // 색 변경할 구의 폴리곤 가져오기
+        if (!districtPolygonMap.TryGetValue(districtName, out List<MinimapPolygon> polygons))
+            return;
+
+        foreach (MinimapPolygon polygon in polygons)
+        {
+            if (polygon == null) continue;
+
+            // 폴리곤 색상 변경
+            polygon.color = targetColor;
+            polygon.SetVerticesDirty();
+        }
+    }
+
 }
