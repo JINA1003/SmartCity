@@ -16,8 +16,8 @@ public class DataManager : MonoBehaviour
     public event Action<List<OniRangeData>> OniRangeDataUpdated;
     public event Action OnAllDistrictsParsed;
 
-    // 블랙아웃 시뮬레이션 토글 순회용: /blackout_simulation 에서 blackout_items가 있는 구만 (소비량 내림차순)
-    public event Action<List<string>> OnBlackoutOrderParsed;
+    // 블랙아웃 시뮬레이션: /blackout_simulation 순회 구 목록 + 구별 소비량
+    public event Action<List<string>, Dictionary<string, double>> OnBlackoutSimulationParsed;
 
     // 현재 선택된 연월 (슬라이더 재호출 시 사용)
     private int _currentYear;
@@ -178,6 +178,27 @@ public class DataManager : MonoBehaviour
         if (predicted["oni_status"] != null)
             powerGridData.oniStatus = predicted["oni_status"].Value<string>();
 
+        powerGridData.alert_level = currentAlertLevel;
+
+        JObject supply = predicted["supply"] as JObject;
+        if (supply != null)
+        {
+            powerGridData.supplyPower = supply["supply_mw"] != null ? supply["supply_mw"].Value<float>() : 0f;
+            powerGridData.reserveRate = supply["reserve_rate"] != null ? supply["reserve_rate"].Value<float>() : 0f;
+        }
+
+        JArray regionsForTotal = predicted["regions"] as JArray;
+        if (regionsForTotal != null)
+        {
+            float seoulTotal = 0f;
+            foreach (JToken regionToken in regionsForTotal)
+            {
+                if (regionToken["total_consumption_mwh"] != null)
+                    seoulTotal += regionToken["total_consumption_mwh"].Value<float>();
+            }
+            powerGridData.seoulTotalConsumption = seoulTotal;
+        }
+
         OnPowerDataUpdated?.Invoke(powerGridData);
 
         // --- [ 2. 블랙아웃 순회 순서 — BlackoutSimulationController simulationToggle 전용 ] ---
@@ -189,23 +210,28 @@ public class DataManager : MonoBehaviour
                 // districts_order는 25구 전체(소비량 내림차순)이나,
                 // 순회 대상은 blackout_items가 비어 있지 않은 구만 해당한다.
                 List<string> blackoutOrderedGuNames = new List<string>();
+                Dictionary<string, double> blackoutGuConsumption = new Dictionary<string, double>();
 
                 foreach (JToken distToken in districtsOrder)
                 {
                     string guName = distToken["gu"].Value<string>();
+
+                    if (distToken["total_consumption_mwh"] != null)
+                        blackoutGuConsumption[guName] = distToken["total_consumption_mwh"].Value<double>();
+
                     JArray bItems = distToken["blackout_items"] as JArray;
 
                     if (bItems != null && bItems.Count > 0)
                         blackoutOrderedGuNames.Add(guName);
                 }
 
-                OnBlackoutOrderParsed?.Invoke(blackoutOrderedGuNames);
+                OnBlackoutSimulationParsed?.Invoke(blackoutOrderedGuNames, blackoutGuConsumption);
             }
         }
         else
         {
-            // 경보 4단계가 아니면 순회 목록 비움 (이전 ONI 값 잔류 방지)
-            OnBlackoutOrderParsed?.Invoke(new List<string>());
+            // 경보 4단계가 아니면 순회 목록·소비량 비움 (이전 ONI 값 잔류 방지)
+            OnBlackoutSimulationParsed?.Invoke(new List<string>(), new Dictionary<string, double>());
         }
 
         // --- [ 3. 구역 데이터(DistrictData) 파싱 ] ---

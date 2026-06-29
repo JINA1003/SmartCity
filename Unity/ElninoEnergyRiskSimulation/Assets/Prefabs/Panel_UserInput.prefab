@@ -1000,7 +1000,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &6642876591953239300
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2055,7 +2055,7 @@ RectTransform:
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 410, y: 560}
+  m_SizeDelta: {x: 410, y: 510}
   m_Pivot: {x: 1, y: 1}
 --- !u!222 &2110513614076476701
 CanvasRenderer:
@@ -2646,7 +2646,6 @@ MonoBehaviour:
   highPowerColor: {r: 1, g: 0.25, b: 0.05, a: 0.9}
   tooltipRoot: {fileID: 0}
   tooltipText: {fileID: 0}
-  simulationToggle: {fileID: 0}
   dataManager: {fileID: 0}
 --- !u!114 &246610292160106490
 MonoBehaviour:

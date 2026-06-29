@@ -75,6 +75,7 @@ public class UIController : MonoBehaviour
 
     public string GetSelectedYear()  => yearDropdown.options[yearDropdown.value].text;
     public string GetSelectedMonth() => monthDropdown.options[monthDropdown.value].text;
+    public float GetCurrentOni() => oniSlider != null ? oniSlider.value : 0f;
 
     private void NotifyDateSelected()
     {
