@@ -3,33 +3,47 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
+/// <summary>
+/// [인터페이스]
+/// IPointerClickHandler: 클릭 감지
+/// IPointerEnterHandler: 마우스가 올라왔을 때
+/// IPointerExitHandler: 마우스가 벗어났을 때
+/// IPointerMoveHandler: 마우스가 움직일 때
+/// </summary>
+
 public class MinimapPolygon : Graphic, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler, IPointerMoveHandler
 {
+    // 폴리곤 point 리스트
     public List<Vector2> points = new List<Vector2>();
 
     public string districtName;
 
+    // 툴팁 처리 위해
     public MinimapManager minimapManager;
 
     public MinimapOutline outline;
 
-    private  GuEnergyPanelUI guPanel;
-
-
+    // polygon 모양을 실제 UI Mesh로 그리는 함수
     protected override void OnPopulateMesh(VertexHelper vh)
     {
+        // 기존 Mesh 삭제
         vh.Clear();
 
+        // 점이 3개 미만이면 폴리곤 그릴 수 없어 종료
         if (points == null || points.Count < 3)
             return;
 
+        // 각 point를 ui mesh에 추가
         for (int i = 0; i < points.Count; i++)
         {
             vh.AddVert(points[i], color, Vector2.zero);
         }
 
+        // 폴리곤을 여러 삼각형으로
+        // : unity는 다각형이 아닌 삼각형 단위로 그리기 때문
         int[] triangles = new MinimapTrianguler(points.ToArray()).Triangulate();
 
+        // 삼각형 인덱스를 3개씩 묶어 처리
         for (int i = 0; i < triangles.Length; i += 3)
         {
             vh.AddTriangle(
@@ -40,10 +54,13 @@ public class MinimapPolygon : Graphic, IPointerClickHandler, IPointerEnterHandle
         }
     }
 
+    // 마우스가 폴리곤 안에 있는지 판단
     public override bool Raycast(Vector2 sp, Camera eventCamera)
     {
+        // 마우스 위치
         Vector2 localPoint;
 
+        // 화면 좌표(sp)를 UI 객체 기준의 로컬 좌표로 반환
         RectTransformUtility.ScreenPointToLocalPointInRectangle(
             rectTransform,
             sp,
