@@ -5,6 +5,8 @@ using UnityEngine.UI;
 public class InfoPanelUI : MonoBehaviour
 {
     [Header("상단 정보 패널")]
+    public GameObject Panel_Info;
+
     public TMP_Text Text_Date_Info;
     public TMP_Text Text_Emergency;
     public TMP_Text Text_Emergency_Value;
@@ -17,8 +19,17 @@ public class InfoPanelUI : MonoBehaviour
     private string cachedOniType;
     private string cachedOniValueText;
 
+    private void Awake()
+    {
+        ResolveReferences();
+    }
+
+    // 날짜 데이터가 들어오면 인포 패널을 켜고 상단 정보를 갱신합니다.
     public void SetInfo(string dateText, string emergencyStage, string oniType, string oniValueText)
     {
+        ResolveReferences();
+        Show();
+
         if (string.IsNullOrEmpty(emergencyStage))
             emergencyStage = "정상";
 
@@ -44,6 +55,42 @@ public class InfoPanelUI : MonoBehaviour
             Img_Emergency_Dot.color = GetStageColor(emergencyStage);
     }
 
+    // 게임 시작 직후에는 날짜 선택 전이므로 인포 패널을 숨깁니다.
+    public void Hide()
+    {
+        ResolveReferences();
+
+        if (Panel_Info != null)
+            Panel_Info.SetActive(false);
+    }
+
+    private void Show()
+    {
+        if (Panel_Info != null)
+            Panel_Info.SetActive(true);
+    }
+
+    // 인스펙터 연결이 비어 있어도 Panel_Info 오브젝트를 찾아서 사용합니다.
+    private void ResolveReferences()
+    {
+        if (Panel_Info != null) return;
+
+        Transform current = transform;
+        while (current != null)
+        {
+            if (current.name == "Panel_Info")
+            {
+                Panel_Info = current.gameObject;
+                return;
+            }
+
+            current = current.parent;
+        }
+
+        Panel_Info = gameObject;
+    }
+
+    // 경보 단계에 맞춰 상단 상태 점 색상을 정합니다.
     private Color32 GetStageColor(string emergencyStage)
     {
         switch (emergencyStage)

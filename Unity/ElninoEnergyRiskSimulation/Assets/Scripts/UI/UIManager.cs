@@ -13,14 +13,10 @@ public class UIManager : MonoBehaviour
     [SerializeField] private DataManager dataManager;
 
     private readonly Dictionary<DistrictType, DistrictData> districtDataMap = new();
-
-    // ================================
-    // 테스트용
-    // API 데이터가 Unity까지 들어오는지 확인하기 위해,
-    // 첫 로딩 때 종로구 패널을 자동으로 한 번 띄웁니다.
-    // 실제 사용 시에는 이 변수와 HandleDistrictDataUpdated 안의 테스트용 if 블록을 제거하거나 주석 처리하세요.
-    // ================================
-    private bool didShowInitialDistrictForTest = false;
+    private readonly Dictionary<DistrictType, double> baselinePowerUsageMap = new();
+    private const string DefaultDistrict = "종로구";
+    private string currentDistrict = DefaultDistrict;
+    private string currentDataPeriodKey = string.Empty;
 
     private void Awake()
     {
@@ -31,13 +27,31 @@ public class UIManager : MonoBehaviour
         }
 
         Instance = this;
+
+        ResolveInfoPanel();
+        ResolveGuEnergyPanel();
+    }
+
+    private void Start()
+    {
+        ResolveInfoPanel();
+        ResolveGuEnergyPanel();
+
+        // 날짜 데이터가 들어오기 전에는 인포와 구 패널을 숨겨 둡니다.
+        if (infoPanel != null)
+            infoPanel.Hide();
+
+        if (guEnergyPanel != null)
+            guEnergyPanel.Hide();
     }
 
     private void OnEnable()
     {
+        // 미니맵이 보내는 구 이름을 받아서, 구 패널만 갱신합니다.
+        MinimapManager.OnDistrictSelected += HandleMinimapDistrictSelected;
+
         if (dataManager == null)
         {
-            Debug.LogWarning("[UIManager] DataManager가 연결되지 않았습니다.");
             return;
         }
 
@@ -47,6 +61,8 @@ public class UIManager : MonoBehaviour
 
     private void OnDisable()
     {
+        MinimapManager.OnDistrictSelected -= HandleMinimapDistrictSelected;
+
         if (dataManager == null) return;
 
         dataManager.OnPowerDataUpdated -= HandlePowerDataUpdated;
@@ -55,17 +71,14 @@ public class UIManager : MonoBehaviour
 
     private void HandlePowerDataUpdated(PowerGridData data)
     {
-        // ================================
-        // 테스트용
-        // 인포 패널 데이터가 API에서 들어왔는지 Console에서 확인합니다.
-        // 실제 사용 시에는 Debug.Log만 제거해도 됩니다.
-        // ================================
-        Debug.Log($"[UIManager][TEST] 인포 데이터 수신: {data.year}/{data.month}, ONI={data.oni}, 상태={data.oniStatus}, 경보={data.riskLabel}");
+        string dataPeriodKey = $"{data.year}-{data.month}";
+        if (currentDataPeriodKey != dataPeriodKey)
+        {
+            currentDataPeriodKey = dataPeriodKey;
+            districtDataMap.Clear();
+            baselinePowerUsageMap.Clear();
+        }
 
-        // ================================
-        // 실제 사용
-        // API에서 받은 연월, 경보 단계, ONI 상태, ONI 값을 인포 패널에 표시합니다.
-        // ================================
         SetInfoPanel(
             $"{data.year}년 {data.month}월",
             data.riskLabel,
@@ -76,60 +89,61 @@ public class UIManager : MonoBehaviour
 
     private void HandleDistrictDataUpdated(DistrictData data)
     {
-        // ================================
-        // 실제 사용
-        // API에서 받은 구별 데이터를 Dictionary에 저장합니다.
-        // 이후 사용자가 구를 클릭하면 ShowGuEnergyPanel(districtType)에서 꺼내 씁니다.
-        // ================================
+        // 날짜 선택으로 들어온 구별 데이터를 저장하고, 현재 선택된 구만 화면에 반영합니다.
         districtDataMap[data.districtType] = data;
+        if (!baselinePowerUsageMap.ContainsKey(data.districtType))
+            baselinePowerUsageMap[data.districtType] = data.totalPowerUsage;
 
-        // ================================
-        // 테스트용
-        // 구 데이터가 API에서 들어왔는지 Console에서 확인합니다.
-        // 실제 사용 시에는 Debug.Log만 제거해도 됩니다.
-        // ================================
-        Debug.Log($"[UIManager][TEST] 구 데이터 수신: {data.districtType}, 총 사용량={data.totalPowerUsage}");
+        if (data.districtType == DataConverter.GetDistrictType(currentDistrict))
+            BuildGuEnergyPanel();
+    }
 
-        // ================================
-        // 테스트용
-        // 시작 위치가 종로구라서, 종로구 데이터가 들어오면 패널을 자동 표시합니다.
-        // 실제 사용 시에는 이 if 블록 전체를 제거하거나 주석 처리하세요.
-        // ================================
-        if (!didShowInitialDistrictForTest && data.districtType == DistrictType.JONGNO)
-        {
-            didShowInitialDistrictForTest = true;
-            ShowGuEnergyPanel(DistrictType.JONGNO);
-            Debug.Log("[UIManager][TEST] 종로구 패널 자동 표시");
-        }
+    private void HandleMinimapDistrictSelected(string districtName)
+    {
+        SetDistrict(districtName);
+    }
+
+    public void SetDistrict(string districtName)
+    {
+        currentDistrict = districtName;
+        BuildGuEnergyPanel();
     }
 
     public void ShowGuEnergyPanel(DistrictType districtType)
     {
-        // ================================
-        // 실제 사용
-        // 구 클릭 시 호출합니다.
-        // 예: UIManager.Instance.ShowGuEnergyPanel(DistrictType.JONGNO);
-        // ================================
+        currentDistrict = GetDistrictKoreanName(districtType);
+        BuildGuEnergyPanel();
+    }
+
+    private void BuildGuEnergyPanel()
+    {
+        DistrictType districtType = DataConverter.GetDistrictType(currentDistrict);
+
+        // 현재 날짜에 해당 구 데이터가 아직 없으면 마지막 표시 상태를 유지합니다.
         if (!districtDataMap.TryGetValue(districtType, out DistrictData data))
         {
-            Debug.LogWarning($"[UIManager] {districtType} 데이터가 아직 없습니다.");
             return;
         }
 
-        double seoulTotal = 0;
-        foreach (DistrictData district in districtDataMap.Values)
-            seoulTotal += district.totalPowerUsage;
+        string usageChangeAmountText = "-";
+        string usageChangeRateText = "-";
 
-        string usagePercentText = seoulTotal > 0
-            ? $"{data.totalPowerUsage / seoulTotal * 100.0:0.0}%"
-            : "-";
+        if (baselinePowerUsageMap.TryGetValue(data.districtType, out double baselineUsage) &&
+            baselineUsage > 0)
+        {
+            double usageChangeAmount = data.totalPowerUsage - baselineUsage;
+            double usageChangeRate = usageChangeAmount / baselineUsage * 100.0;
+
+            usageChangeAmountText = $"{usageChangeAmount:+0.0;-0.0;0.0} MWh";
+            usageChangeRateText = $"{usageChangeRate:+0.0;-0.0;0.0}%";
+        }
 
         ShowGuEnergyPanel(
             GetDistrictKoreanName(data.districtType),
-            "-",
-            "-",
-            $"{data.totalPowerUsage:0.0} MWh",
-            usagePercentText,
+            usageChangeAmountText,
+            usageChangeRateText,
+            $"{data.totalPowerUsage:0.0} ",
+            usageChangeRateText,
             GetUsageText(data, "주택용"),
             GetUsageText(data, "일반용"),
             GetUsageText(data, "교육용"),
@@ -145,7 +159,7 @@ public class UIManager : MonoBehaviour
         if (data.typePowerUsage != null &&
             data.typePowerUsage.TryGetValue(usageName, out float value))
         {
-            return $"{value:0.0} MWh";
+            return $"{value:0.0} ";
         }
 
         return "-";
@@ -153,6 +167,8 @@ public class UIManager : MonoBehaviour
 
     public void SetInfoPanel(string dateText, string emergencyStage, string oniType, string oniValueText)
     {
+        ResolveInfoPanel();
+
         if (infoPanel != null)
             infoPanel.SetInfo(dateText, emergencyStage, oniType, oniValueText);
     }
@@ -172,6 +188,8 @@ public class UIManager : MonoBehaviour
         string midnightText
     )
     {
+        ResolveGuEnergyPanel();
+
         if (guEnergyPanel != null)
         {
             guEnergyPanel.Show(
@@ -189,6 +207,50 @@ public class UIManager : MonoBehaviour
                 midnightText
             );
         }
+    }
+
+    private void ResolveInfoPanel()
+    {
+        if (infoPanel != null) return;
+
+        // 인스펙터 연결이 비어 있어도 실행 중 인포 패널 컴포넌트를 찾습니다.
+        infoPanel = FindFirstObjectByType<InfoPanelUI>(FindObjectsInactive.Include);
+        if (infoPanel != null) return;
+
+        GameObject panelObject = FindSceneObjectByName("Panel_Info");
+        if (panelObject == null) return;
+
+        infoPanel = panelObject.GetComponent<InfoPanelUI>();
+        if (infoPanel == null)
+            infoPanel = panelObject.AddComponent<InfoPanelUI>();
+    }
+
+    private void ResolveGuEnergyPanel()
+    {
+        if (guEnergyPanel != null) return;
+
+        // 인스펙터 연결이 비어 있어도 실행 중 패널 컴포넌트를 찾습니다.
+        guEnergyPanel = FindFirstObjectByType<GuEnergyPanelUI>(FindObjectsInactive.Include);
+        if (guEnergyPanel != null) return;
+
+        GameObject panelObject = FindSceneObjectByName("Panel_Gu_Energy");
+        if (panelObject == null) return;
+
+        guEnergyPanel = panelObject.GetComponent<GuEnergyPanelUI>();
+        if (guEnergyPanel == null)
+            guEnergyPanel = panelObject.AddComponent<GuEnergyPanelUI>();
+    }
+
+    private GameObject FindSceneObjectByName(string objectName)
+    {
+        Transform[] transforms = FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        foreach (Transform target in transforms)
+        {
+            if (target.name == objectName)
+                return target.gameObject;
+        }
+
+        return null;
     }
 
     private string GetDistrictKoreanName(DistrictType districtType)
@@ -223,4 +285,5 @@ public class UIManager : MonoBehaviour
             default: return districtType.ToString();
         }
     }
+
 }
