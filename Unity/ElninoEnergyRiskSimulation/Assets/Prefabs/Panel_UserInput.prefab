@@ -217,8 +217,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4281545523
-  m_fontColor: {r: 0.2, g: 0.2, b: 0.2, a: 1}
+    rgba: 4278190080
+  m_fontColor: {r: 0, g: 0, b: 0, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -2642,11 +2642,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: SmartCity.Scripts::MinimapManager
   districtRoot: {fileID: 5144681533452703237}
   fileName: seoul_district.geojson
-  districtColor: {r: 1, g: 1, b: 1, a: 1}
-  cmapDistrictColor: {r: 1, g: 0.45, b: 0.2, a: 0.65}
-  selectedOutlineColor: {r: 1, g: 0, b: 0, a: 1}
-  nonSelectedOutlineColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
-  outlineWidth: 3
+  lowPowerColor: {r: 1, g: 0.9, b: 0.75, a: 0.8}
+  highPowerColor: {r: 1, g: 0.25, b: 0.05, a: 0.9}
+  tooltipRoot: {fileID: 0}
+  tooltipText: {fileID: 0}
+  simulationToggle: {fileID: 0}
+  dataManager: {fileID: 0}
 --- !u!114 &246610292160106490
 MonoBehaviour:
   m_ObjectHideFlags: 0
