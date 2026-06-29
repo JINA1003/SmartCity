@@ -2,7 +2,16 @@ Shader "SmartCity/BuildingUsage"
 {
     Properties
     {
-        _ColorPalette ("Color Palette", 2D) = "white" {}
+        [Header(Heatmap Colors)]
+        _SafeColor   ("Safe Color (Low)",     Color) = (0.0, 0.5, 1.0, 1.0)
+        _WarningColor("Warning Color (Mid)",  Color) = (1.0, 0.8, 0.0, 1.0)
+        _DangerColor ("Danger Color (High)",  Color) = (1.0, 0.1, 0.1, 1.0)
+
+        [Header(Blackout)]
+        _BlackoutColor("Blackout Color",      Color) = (0.02, 0.02, 0.02, 1.0)
+
+        [Header(Lighting)]
+        _AmbientStrength("Ambient Strength", Range(0, 1)) = 0.35
     }
 
     SubShader
@@ -20,6 +29,7 @@ Shader "SmartCity/BuildingUsage"
             Tags { "LightMode" = "UniversalForward" }
 
             HLSLPROGRAM
+            #pragma target 4.5
             #pragma vertex vert
             #pragma fragment frag
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE
@@ -28,48 +38,91 @@ Shader "SmartCity/BuildingUsage"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
-            TEXTURE2D(_ColorPalette);
-            SAMPLER(sampler_ColorPalette);
+            // ── 렌더링 전용 경량 구조체 (C# BuildingRenderData와 동일) ──
+            struct BuildingRenderData
+            {
+                float reductionValue;  // 4 bytes — 수요감축 필요도 (0~1)
+                int   isBlackout;      // 4 bytes — 정전 여부 (0 or 1)
+            };
+
+            StructuredBuffer<BuildingRenderData> _BuildingRenderBuffer;
+
+            CBUFFER_START(UnityPerMaterial)
+                float4 _SafeColor;
+                float4 _WarningColor;
+                float4 _DangerColor;
+                float4 _BlackoutColor;
+                float  _AmbientStrength;
+            CBUFFER_END
 
             struct Attributes
             {
                 float4 positionOS : POSITION;
-                float3 normalOS : NORMAL;
-                float2 uv2 : TEXCOORD1;
+                float3 normalOS   : NORMAL;
+                float2 uv2        : TEXCOORD1;   // uv2.x = buildingDataIndex
             };
 
             struct Varyings
             {
-                float4 positionCS : SV_POSITION;
-                float3 normalWS : TEXCOORD0;
-                float t : TEXCOORD1;
+                float4 positionCS  : SV_POSITION;
+                float3 normalWS    : TEXCOORD0;
+                float3 positionWS  : TEXCOORD1;
+                nointerpolation uint dataIndex : TEXCOORD2;
             };
 
             Varyings vert(Attributes input)
             {
                 Varyings output;
                 output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
-                output.normalWS = TransformObjectToWorldNormal(input.normalOS);
-                // UV2.y: C#에서 기록한 정규화 수요감축 필요도 (0=낮음/초록, 1=높음/빨강)
-                output.t = saturate(input.uv2.y);
+                output.normalWS   = TransformObjectToWorldNormal(input.normalOS);
+                output.positionWS = TransformObjectToWorld(input.positionOS.xyz);
+
+                // UV2.x 에 기록된 buildingId를 버퍼 인덱스로 사용
+                output.dataIndex = (uint)input.uv2.x;
                 return output;
+            }
+
+            // 수요감축 필요도(0~1)를 3단 보간 히트맵 색상으로 변환
+            float3 EvaluateHeatmap(float t)
+            {
+                t = saturate(t);
+
+                // 0.0 → Safe(파랑)  |  0.5 → Warning(노랑)  |  1.0 → Danger(빨강)
+                if (t < 0.5)
+                {
+                    return lerp(_SafeColor.rgb, _WarningColor.rgb, t * 2.0);
+                }
+                else
+                {
+                    return lerp(_WarningColor.rgb, _DangerColor.rgb, (t - 0.5) * 2.0);
+                }
             }
 
             half4 frag(Varyings input) : SV_Target
             {
-                float4 baseColor = SAMPLE_TEXTURE2D(_ColorPalette, sampler_ColorPalette, float2(input.t, 0.5));
+                BuildingRenderData data = _BuildingRenderBuffer[input.dataIndex];
 
+                // ── 1. 블랙아웃 처리 ──
+                if (data.isBlackout == 1)
+                {
+                    return half4(_BlackoutColor.rgb, 1.0);
+                }
+
+                // ── 2. 수요감축 필요도 히트맵 색상 ──
+                float3 baseColor = EvaluateHeatmap(data.reductionValue);
+
+                // ── 3. 기본 디퓨즈 라이팅 ──
                 Light mainLight = GetMainLight();
-                float3 normal = normalize(input.normalWS);
-                float ndotl = saturate(dot(normal, mainLight.direction));
-                float3 diffuse = baseColor.rgb * (mainLight.color * ndotl + 0.35);
+                float3 normal   = normalize(input.normalWS);
+                float  ndotl    = saturate(dot(normal, mainLight.direction));
+                float3 diffuse  = baseColor * (mainLight.color * ndotl + _AmbientStrength);
 
-                return half4(diffuse, baseColor.a);
+                return half4(diffuse, 1.0);
             }
             ENDHLSL
         }
 
-        // Decal Layers 필터링용 — URP Lit과 같이 rendering layer를 depth-normal 버퍼에 기록
+        // ── DepthNormalsOnly 패스 (Decal Layers 필터링용) ──
         Pass
         {
             Name "DepthNormalsOnly"
@@ -95,14 +148,14 @@ Shader "SmartCity/BuildingUsage"
             struct AttributesDN
             {
                 float4 positionOS : POSITION;
-                float3 normalOS : NORMAL;
+                float3 normalOS   : NORMAL;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct VaryingsDN
             {
                 float4 positionCS : SV_POSITION;
-                float3 normalWS : TEXCOORD0;
+                float3 normalWS   : TEXCOORD0;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
                 UNITY_VERTEX_OUTPUT_STEREO
             };
@@ -114,7 +167,7 @@ Shader "SmartCity/BuildingUsage"
                 UNITY_TRANSFER_INSTANCE_ID(input, output);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
                 output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
-                output.normalWS = TransformObjectToWorldNormal(input.normalOS);
+                output.normalWS   = TransformObjectToWorldNormal(input.normalOS);
                 return output;
             }
 

@@ -1,329 +1,255 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using UnityEngine;
-using UnityEngine.Rendering;
+//using System;
+//using System.Collections;
+//using System.Collections.Generic;
+//using System.Runtime.InteropServices;
+//using UnityEngine;
+//using UnityEngine.Rendering;
 
-/// <summary>
-/// District_Chunk 메쉬에 수요감축 필요도 기반 색상을 적용한다.
-/// UV2.y에 정규화 점수(0~1)를 기록하고, _ColorPalette 텍스처를 머티리얼에 넘긴다.
-/// 셰이더(HLSL) 쪽 구현은 별도 담당.
-/// </summary>
-public class BuildingUsageColorManager : MonoBehaviour
-{
-    [Header("References")]
-    [SerializeField] private DistrictManager districtManager;
-    [SerializeField] private DataManager dataManager;
-    [SerializeField] private Material buildingUsageMaterial;
+///// <summary>
+///// 수요감축 필요도(reduction_need_score)를 StructuredBuffer 기반으로 실시간 반영한다.
+/////
+///// [동작 원리]
+///// 1. DataManager에서 구별/건물유형별 reduction_need_score를 수신
+///// 2. CityManager의 CachedBuildingData 배열에서 각 건물의 reductionValue를 갱신
+///// 3. CityManager.FlushBufferToGPU()로 GPU에 즉시 업로드
+///// 4. 셰이더(SmartCity/BuildingUsage)가 StructuredBuffer에서 값을 읽어 히트맵 색상 적용
+/////
+///// ※ 기존 UV2.y 패칭 방식 완전 대체 — 메쉬 재생성 없이 매 프레임 색상 변경 가능
+///// </summary>
+//public class BuildingUsageColorManager : MonoBehaviour
+//{
+//    [Header("References")]
+//    [SerializeField] private CityManager cityManager;
+//    [SerializeField] private DistrictManager districtManager;
+//    [SerializeField] private DataManager dataManager;
 
-    [Header("Chunk Detection")]
-    [SerializeField] private string districtChunkNamePrefix = "District_Chunk_";
-    [SerializeField] private int expectedDistrictCount = 25;
-    [SerializeField] private int stableFrameCount = 60;
+//    // buildingId → 배열 인덱스 룩업 (한 번만 빌드)
+//    private Dictionary<int, int> _buildingIdToBufferIndex;
 
-    private readonly Dictionary<int, MeshRenderer> districtRenderers = new();
-    private readonly Dictionary<int, BuildingType> buildingIdToType = new();
-    private Dictionary<DistrictType, DistrictData> latestDistrictData;
+//    // 최신 구별 데이터 임시 저장
+//    private Dictionary<DistrictType, DistrictData> _latestDistrictData;
 
-    private MaterialPropertyBlock propertyBlock;
-    private Texture2D paletteTexture;
-    private Coroutine applyCoroutine;
+//    // buildingId → BuildingType 룩업 (바이너리에서 한 번 빌드)
+//    private readonly Dictionary<int, BuildingType> _buildingIdToType = new();
 
-    private void OnEnable()
-    {
-        if (districtManager == null)
-            districtManager = FindFirstObjectByType<DistrictManager>();
-        if (dataManager == null)
-            dataManager = FindFirstObjectByType<DataManager>();
+//    private bool _lookupReady;
 
-        if (districtManager != null)
-            districtManager.OnAllDistrictsDataUpdated += HandleAllDistrictsDataUpdated;
+//    private void OnEnable()
+//    {
+//        if (cityManager == null)
+//            cityManager = FindFirstObjectByType<CityManager>();
+//        if (districtManager == null)
+//            districtManager = FindFirstObjectByType<DistrictManager>();
+//        if (dataManager == null)
+//            dataManager = FindFirstObjectByType<DataManager>();
 
-        if (dataManager != null)
-        {
-            dataManager.OnDistrictDataUpdated += HandleDistrictDataUpdated;
-            dataManager.OnAllDistrictsParsed += HandleAllDistrictsParsed;
-        }
-    }
+//        if (districtManager != null)
+//            districtManager.OnAllDistrictsDataUpdated += HandleAllDistrictsDataUpdated;
 
-    private void OnDisable()
-    {
-        if (districtManager != null)
-            districtManager.OnAllDistrictsDataUpdated -= HandleAllDistrictsDataUpdated;
+//        if (dataManager != null)
+//        {
+//            dataManager.OnDistrictDataUpdated += HandleDistrictDataUpdated;
+//            dataManager.OnAllDistrictsParsed  += HandleAllDistrictsParsed;
+//        }
+//    }
 
-        if (dataManager != null)
-        {
-            dataManager.OnDistrictDataUpdated -= HandleDistrictDataUpdated;
-            dataManager.OnAllDistrictsParsed -= HandleAllDistrictsParsed;
-        }
-    }
+//    private void OnDisable()
+//    {
+//        if (districtManager != null)
+//            districtManager.OnAllDistrictsDataUpdated -= HandleAllDistrictsDataUpdated;
 
-    private void Start()
-    {
-        propertyBlock = new MaterialPropertyBlock();
-        BuildBuildingTypeLookupFromResources();
-        paletteTexture = ReductionColormap.CreatePaletteTexture();
-        applyCoroutine = StartCoroutine(WaitAndApplyColors());
-    }
+//        if (dataManager != null)
+//        {
+//            dataManager.OnDistrictDataUpdated -= HandleDistrictDataUpdated;
+//            dataManager.OnAllDistrictsParsed  -= HandleAllDistrictsParsed;
+//        }
+//    }
 
-    private void OnDestroy()
-    {
-        if (applyCoroutine != null)
-            StopCoroutine(applyCoroutine);
+//    private void Start()
+//    {
+//        BuildBuildingTypeLookupFromResources();
+//        StartCoroutine(WaitForBufferAndBuildLookup());
+//    }
 
-        if (paletteTexture != null)
-            Destroy(paletteTexture);
-    }
+//    /// <summary>
+//    /// CityManager의 CachedBuildingData가 준비될 때까지 대기한 후
+//    /// buildingId → 버퍼 인덱스 룩업 테이블을 구축한다.
+//    /// </summary>
+//    private IEnumerator WaitForBufferAndBuildLookup()
+//    {
+//        // CityManager가 모든 구역 메쉬 생성 + 버퍼 초기화를 마칠 때까지 대기
+//        yield return new WaitUntil(() =>
+//            cityManager != null &&
+//            cityManager.CachedBuildingData != null &&
+//            cityManager.CachedBuildingData.Length > 0);
 
-    private void HandleDistrictDataUpdated(DistrictData data)
-    {
-        latestDistrictData ??= new Dictionary<DistrictType, DistrictData>();
-        latestDistrictData[data.districtType] = data;
-    }
+//        BuildBufferIndexLookup();
+//        _lookupReady = true;
 
-    private void HandleAllDistrictsParsed()
-    {
-        if (latestDistrictData != null && latestDistrictData.Count > 0)
-            HandleAllDistrictsDataUpdated(latestDistrictData);
-    }
+//        Debug.Log($"[BuildingUsageColorManager] 버퍼 인덱스 룩업 완료 ({_buildingIdToBufferIndex.Count}개 건물)");
 
-    private void HandleAllDistrictsDataUpdated(Dictionary<DistrictType, DistrictData> districts)
-    {
-        PatchDistrictChunkUv2(districts);
-        ApplyColorsToKnownDistricts();
-        Debug.Log("[BuildingUsageColorManager] 수요감축 필요도 색상 적용 완료.");
-    }
+//        // 이미 수신된 데이터가 있으면 즉시 적용
+//        if (_latestDistrictData != null && _latestDistrictData.Count > 0)
+//            ApplyReductionScoresToBuffer(_latestDistrictData);
+//    }
 
-    private IEnumerator WaitAndApplyColors()
-    {
-        yield return WaitForDistrictChunks();
+//    // ── 이벤트 핸들러 ──
 
-        CacheDistrictRenderers();
+//    private void HandleDistrictDataUpdated(DistrictData data)
+//    {
+//        _latestDistrictData ??= new Dictionary<DistrictType, DistrictData>();
+//        _latestDistrictData[data.districtType] = data;
+//    }
 
-        if (latestDistrictData != null && latestDistrictData.Count > 0)
-            HandleAllDistrictsDataUpdated(latestDistrictData);
-    }
+//    private void HandleAllDistrictsParsed()
+//    {
+//        if (_latestDistrictData != null && _latestDistrictData.Count > 0)
+//            HandleAllDistrictsDataUpdated(_latestDistrictData);
+//    }
 
-    private IEnumerator WaitForDistrictChunks()
-    {
-        int lastCount = 0;
-        int stableFrames = 0;
+//    private void HandleAllDistrictsDataUpdated(Dictionary<DistrictType, DistrictData> districts)
+//    {
+//        if (!_lookupReady)
+//        {
+//            // 아직 룩업이 준비되지 않았으면 데이터만 저장해두고 대기
+//            _latestDistrictData = new Dictionary<DistrictType, DistrictData>(districts);
+//            return;
+//        }
 
-        while (stableFrames < stableFrameCount)
-        {
-            int count = CountDistrictChunks();
-            if (count >= expectedDistrictCount || (count > 0 && count == lastCount))
-                stableFrames++;
-            else
-                stableFrames = 0;
+//        ApplyReductionScoresToBuffer(districts);
+//    }
 
-            lastCount = count;
-            yield return null;
-        }
-    }
+//    // ── 핵심: StructuredBuffer에 reductionValue 기록 ──
 
-    private int CountDistrictChunks()
-    {
-        int count = 0;
-        foreach (Transform root in SceneRoots())
-            count += CountChunksUnder(root);
-        return count;
-    }
+//    /// <summary>
+//    /// 모든 구의 건물 reductionValue를 갱신하고 GPU에 업로드한다.
+//    /// </summary>
+//    private void ApplyReductionScoresToBuffer(
+//        IReadOnlyDictionary<DistrictType, DistrictData> districts)
+//    {
+//        NativeBuildingData[] buffer = cityManager.CachedBuildingData;
+//        if (buffer == null || buffer.Length == 0) return;
 
-    private int CountChunksUnder(Transform node)
-    {
-        int count = 0;
-        if (node.name.StartsWith(districtChunkNamePrefix, StringComparison.Ordinal))
-            count++;
+//        // 전체 구에서 min/max 계산 (정규화용)
+//        GetScoreRange(districts, out float minScore, out float maxScore);
 
-        for (int i = 0; i < node.childCount; i++)
-            count += CountChunksUnder(node.GetChild(i));
+//        int updatedCount = 0;
 
-        return count;
-    }
+//        for (int i = 0; i < buffer.Length; i++)
+//        {
+//            ref NativeBuildingData building = ref buffer[i];
 
-    private void CacheDistrictRenderers()
-    {
-        districtRenderers.Clear();
+//            // 이 건물이 속한 구의 DistrictData 찾기
+//            DistrictType dt = (DistrictType)building.districtType;
+//            if (!districts.TryGetValue(dt, out DistrictData districtData))
+//            {
+//                building.reductionValue = 0f;
+//                continue;
+//            }
 
-        foreach (Transform root in SceneRoots())
-            CacheDistrictRenderersUnder(root);
-    }
+//            // 이 건물의 BuildingType에 해당하는 점수 찾기
+//            BuildingType bt = (BuildingType)building.buildingType;
+//            if (districtData.buildingReductionScores != null &&
+//                districtData.buildingReductionScores.TryGetValue(bt, out float score))
+//            {
+//                // min-max 정규화 (0 ~ 1)
+//                building.reductionValue = (maxScore > minScore)
+//                    ? Mathf.Clamp01((score - minScore) / (maxScore - minScore))
+//                    : 0f;
+//                updatedCount++;
+//            }
+//            else
+//            {
+//                building.reductionValue = 0f;
+//            }
+//        }
 
-    private void CacheDistrictRenderersUnder(Transform node)
-    {
-        if (node.name.StartsWith(districtChunkNamePrefix, StringComparison.Ordinal))
-        {
-            string suffix = node.name.Substring(districtChunkNamePrefix.Length);
-            if (int.TryParse(suffix, out int districtId))
-            {
-                MeshRenderer renderer = node.GetComponent<MeshRenderer>();
-                if (renderer != null)
-                    districtRenderers[districtId] = renderer;
-            }
-        }
+//        // GPU에 반영
+//        cityManager.MarkBufferDirty();
+//        cityManager.FlushBufferToGPU();
 
-        for (int i = 0; i < node.childCount; i++)
-            CacheDistrictRenderersUnder(node.GetChild(i));
-    }
+//        Debug.Log($"[BuildingUsageColorManager] reductionValue 갱신 완료 ({updatedCount}개 건물, 범위 {minScore:F3}~{maxScore:F3})");
+//    }
 
-    private static IEnumerable<Transform> SceneRoots()
-    {
-        var scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
-        if (!scene.isLoaded) yield break;
+//    // ── 유틸리티 ──
 
-        foreach (GameObject root in scene.GetRootGameObjects())
-            yield return root.transform;
-    }
+//    /// <summary>
+//    /// CachedBuildingData에서 buildingId → 배열 인덱스 매핑을 빌드한다.
+//    /// (현재는 직접 순회 방식이라 미사용이지만, 개별 건물 제어가 필요할 때 활용)
+//    /// </summary>
+//    private void BuildBufferIndexLookup()
+//    {
+//        NativeBuildingData[] data = cityManager.CachedBuildingData;
+//        _buildingIdToBufferIndex = new Dictionary<int, int>(data.Length);
 
-    private void BuildBuildingTypeLookupFromResources()
-    {
-        buildingIdToType.Clear();
+//        for (int i = 0; i < data.Length; i++)
+//        {
+//            _buildingIdToBufferIndex[data[i].id] = i;
+//        }
+//    }
 
-        foreach (DistrictType district in Enum.GetValues(typeof(DistrictType)))
-        {
-            if (district == DistrictType.None) continue;
+//    private void BuildBuildingTypeLookupFromResources()
+//    {
+//        _buildingIdToType.Clear();
 
-            TextAsset binFile = Resources.Load<TextAsset>($"Districts/District_{(int)district}");
-            if (binFile == null) continue;
+//        foreach (DistrictType district in Enum.GetValues(typeof(DistrictType)))
+//        {
+//            if (district == DistrictType.None) continue;
 
-            ReadBuildingTypesFromBytes(binFile.bytes);
-        }
-    }
+//            TextAsset binFile = Resources.Load<TextAsset>($"Districts/District_{(int)district}");
+//            if (binFile == null) continue;
 
-    private void ReadBuildingTypesFromBytes(byte[] rawData)
-    {
-        int structSize = Marshal.SizeOf(typeof(NativeBuildingData));
-        if (structSize <= 0 || rawData.Length < structSize)
-            return;
+//            ReadBuildingTypesFromBytes(binFile.bytes);
+//        }
+//    }
 
-        int buildingCount = rawData.Length / structSize;
-        GCHandle handle = GCHandle.Alloc(rawData, GCHandleType.Pinned);
+//    private void ReadBuildingTypesFromBytes(byte[] rawData)
+//    {
+//        int structSize = Marshal.SizeOf(typeof(NativeBuildingData));
+//        if (structSize <= 0 || rawData.Length < structSize) return;
 
-        try
-        {
-            IntPtr basePtr = handle.AddrOfPinnedObject();
-            for (int i = 0; i < buildingCount; i++)
-            {
-                IntPtr itemPtr = IntPtr.Add(basePtr, i * structSize);
-                NativeBuildingData building = Marshal.PtrToStructure<NativeBuildingData>(itemPtr);
-                buildingIdToType[building.id] = (BuildingType)building.buildingType;
-            }
-        }
-        finally
-        {
-            if (handle.IsAllocated)
-                handle.Free();
-        }
-    }
+//        int buildingCount = rawData.Length / structSize;
+//        GCHandle handle = GCHandle.Alloc(rawData, GCHandleType.Pinned);
 
-    private void PatchDistrictChunkUv2(IReadOnlyDictionary<DistrictType, DistrictData> districts)
-    {
-        GetScoreRange(districts, out float minScore, out float maxScore);
+//        try
+//        {
+//            IntPtr basePtr = handle.AddrOfPinnedObject();
+//            for (int i = 0; i < buildingCount; i++)
+//            {
+//                IntPtr itemPtr = IntPtr.Add(basePtr, i * structSize);
+//                NativeBuildingData building = Marshal.PtrToStructure<NativeBuildingData>(itemPtr);
+//                _buildingIdToType[building.id] = (BuildingType)building.buildingType;
+//            }
+//        }
+//        finally
+//        {
+//            if (handle.IsAllocated)
+//                handle.Free();
+//        }
+//    }
 
-        foreach (var kvp in districtRenderers)
-        {
-            if (!districts.TryGetValue((DistrictType)kvp.Key, out DistrictData districtData))
-                continue;
+//    private static void GetScoreRange(
+//        IReadOnlyDictionary<DistrictType, DistrictData> districts,
+//        out float minScore, out float maxScore)
+//    {
+//        minScore = float.MaxValue;
+//        maxScore = float.MinValue;
 
-            MeshFilter meshFilter = kvp.Value.GetComponent<MeshFilter>();
-            if (meshFilter == null || meshFilter.sharedMesh == null)
-                continue;
+//        foreach (DistrictData data in districts.Values)
+//        {
+//            if (data?.buildingReductionScores == null) continue;
 
-            Mesh mesh = meshFilter.sharedMesh;
-            Vector2[] uv2 = mesh.uv2;
-            if (uv2 == null || uv2.Length == 0)
-                continue;
+//            foreach (float score in data.buildingReductionScores.Values)
+//            {
+//                minScore = Mathf.Min(minScore, score);
+//                maxScore = Mathf.Max(maxScore, score);
+//            }
+//        }
 
-            for (int i = 0; i < uv2.Length; i++)
-            {
-                int buildingId = Mathf.RoundToInt(uv2[i].x);
-                float normalized = GetNormalizedScore(
-                    buildingId, districtData, minScore, maxScore);
-
-                uv2[i] = new Vector2(uv2[i].x, normalized);
-            }
-
-            mesh.uv2 = uv2;
-        }
-    }
-
-    private static void GetScoreRange(
-        IReadOnlyDictionary<DistrictType, DistrictData> districts,
-        out float minScore, out float maxScore)
-    {
-        minScore = float.MaxValue;
-        maxScore = float.MinValue;
-
-        foreach (DistrictData data in districts.Values)
-        {
-            if (data?.buildingReductionScores == null) continue;
-
-            foreach (float score in data.buildingReductionScores.Values)
-            {
-                minScore = Mathf.Min(minScore, score);
-                maxScore = Mathf.Max(maxScore, score);
-            }
-        }
-
-        if (minScore > maxScore)
-        {
-            minScore = 0f;
-            maxScore = 1f;
-        }
-    }
-
-    private float GetNormalizedScore(
-        int buildingId, DistrictData districtData, float minScore, float maxScore)
-    {
-        if (!buildingIdToType.TryGetValue(buildingId, out BuildingType buildingType))
-            return 0f;
-
-        if (districtData.buildingReductionScores == null
-            || !districtData.buildingReductionScores.TryGetValue(buildingType, out float score))
-            return 0f;
-
-        if (maxScore <= minScore)
-            return 0f;
-
-        return Mathf.Clamp01((score - minScore) / (maxScore - minScore));
-    }
-
-    private void ApplyColorsToKnownDistricts()
-    {
-        Material material = ResolveBuildingMaterial();
-        if (material == null || paletteTexture == null)
-            return;
-
-        material.SetTexture("_ColorPalette", paletteTexture);
-
-        uint buildingLayerMask = RenderingLayerMask.GetMask("BUILDING");
-
-        foreach (MeshRenderer renderer in districtRenderers.Values)
-        {
-            if (renderer.sharedMaterial != material)
-                renderer.sharedMaterial = material;
-
-            // CityManager와 동일 — Decal Layers에서 건물 청크 제외
-            renderer.renderingLayerMask = buildingLayerMask;
-
-            renderer.GetPropertyBlock(propertyBlock);
-            propertyBlock.SetTexture("_ColorPalette", paletteTexture);
-            renderer.SetPropertyBlock(propertyBlock);
-        }
-    }
-
-    private Material ResolveBuildingMaterial()
-    {
-        if (buildingUsageMaterial != null)
-            return buildingUsageMaterial;
-
-        Shader shader = Shader.Find("SmartCity/BuildingUsage");
-        if (shader == null)
-            return null;
-
-        buildingUsageMaterial = new Material(shader) { name = "M_BuildingUsage_Runtime" };
-        return buildingUsageMaterial;
-    }
-}
+//        if (minScore > maxScore)
+//        {
+//            minScore = 0f;
+//            maxScore = 1f;
+//        }
+//    }
+//}
