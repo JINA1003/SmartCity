@@ -11,6 +11,12 @@ public class PowerGridManager : MonoBehaviour
 
     public event Action<PowerGridData> OnPowerGridDataUpdated;
 
+    public bool TryGetCurrentData(out PowerGridData current)
+    {
+        current = data;
+        return data != null;
+    }
+
     private void Awake()
     {
         if (Instance == null) Instance = this;

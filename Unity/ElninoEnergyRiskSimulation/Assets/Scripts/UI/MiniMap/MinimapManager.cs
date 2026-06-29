@@ -1,10 +1,10 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using UnityEngine;
 using Newtonsoft.Json.Linq;
 using TMPro;
-using System.Collections;
+using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
@@ -40,8 +40,7 @@ public class MinimapManager : MonoBehaviour
     [SerializeField] private RectTransform tooltipRoot;
     [SerializeField] private TextMeshProUGUI tooltipText;
 
-    [Header("Simulation Toggle")]
-    [SerializeField] private Toggle simulationToggle;
+    private bool _isSimulationOn;
 
     [Header("DataManager")]
     [SerializeField] private DataManager dataManager;
@@ -125,15 +124,11 @@ public class MinimapManager : MonoBehaviour
             dataManager.OnPowerDataUpdated += HandlePowerDataUpdated;
             // 블랙아웃 구 이벤트 구독
             BlackoutSimulationController.OnBlackoutDistrictChanged += HandleBlackoutDistrictChanged;
+            BlackoutSimulationController.OnBlackoutSimulationToggled += HandleSimulationToggled;
         }
         else
         {
             Debug.LogWarning("[MinimapManager] DataManager가 연결되지 않았습니다.");
-        }
-
-        if (simulationToggle != null)
-        {
-            simulationToggle.onValueChanged.AddListener(OnSimulationToggleChanged);
         }
     }
 
@@ -144,13 +139,17 @@ public class MinimapManager : MonoBehaviour
             dataManager.OniRangeDataUpdated -= HandleOniRangeDataUpdated;
             dataManager.OnPowerDataUpdated -= HandlePowerDataUpdated;
             BlackoutSimulationController.OnBlackoutDistrictChanged -= HandleBlackoutDistrictChanged;
-        }
-        if (simulationToggle != null)
-        {
-            simulationToggle.onValueChanged.RemoveListener(OnSimulationToggleChanged);
+            BlackoutSimulationController.OnBlackoutSimulationToggled -= HandleSimulationToggled;
         }
     }
-    
+
+    private void HandleSimulationToggled(bool isOn)
+    {
+        _isSimulationOn = isOn;
+        if (!isOn)
+            StopBlinkAndRestore();
+    }
+
     private void Start()
     {
         // Geojson 로드 & 구 생성
@@ -637,7 +636,7 @@ public class MinimapManager : MonoBehaviour
     private void HandleBlackoutDistrictChanged(string districtName)
     {
         // 원래 정전 중인 구의 코루틴 멈추고 검정으로 색상 고정
-        if (simulationToggle != null && simulationToggle.isOn)
+        if (_isSimulationOn)
         {
             StopBlinkAndSetBlack();
         }
@@ -645,8 +644,7 @@ public class MinimapManager : MonoBehaviour
         // 새로운 정전 구 이름으로 갱신
         blinkingDistrictName = districtName;
 
-        // 시뮬레이션 토클 off 이면 멈추기
-        if (simulationToggle != null && !simulationToggle.isOn)
+        if (!_isSimulationOn)
             return;
 
         // 갱신된 구로 블랙아웃 코루틴 시작
@@ -686,13 +684,6 @@ public class MinimapManager : MonoBehaviour
             // 0.3초씩 깜박임
             yield return new WaitForSeconds(0.3f);
         }
-    }
-
-    // 토글 OFF 처리 함수
-    private void OnSimulationToggleChanged(bool isOn)
-    {
-        if (!isOn)
-            StopBlinkAndRestore(); // off 되면 원래 cmap 색상으로
     }
 
     // 코루틴 stop -> 검정색으로 고정
