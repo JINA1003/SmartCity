@@ -2,18 +2,17 @@ using System.Collections.Generic;
 using UnityEngine;
 using CesiumForUnity;
 using Unity.Mathematics;
-using UnityEngine.UI;
+using TMPro;
 
 public class MainCameraController : MonoBehaviour
 {
-    // 메인 카메라 붙여넣기
     [Header("Main Camera")]
     [SerializeField] private Camera mainCamera;
 
-    // 시뮬레이션 ing 알려줄 토클 연결
-    // 이거에 따라 카메라 이동 설정 변환
-    [Header("Simulation Toggle")]
-    [SerializeField] private Toggle simulationToggle;
+    private bool _isSimulationOn;
+
+    [Header("CilkedGuName")]
+    [SerializeField] private TMP_Text cilkedGuName;
 
     // 카메라가 화면을 비출때 방향 조정
     private Vector3 lookDownRotation = new Vector3(65f, 0f, 0f);
@@ -55,13 +54,17 @@ public class MainCameraController : MonoBehaviour
     {
         MinimapManager.OnDistrictSelected += MoveToClickedDistrict;
         BlackoutSimulationController.OnBlackoutDistrictChanged += MoveToBlackoutDistrict;
+        BlackoutSimulationController.OnBlackoutSimulationToggled += HandleSimulationToggled;
     }
 
     private void OnDisable()
     {
         MinimapManager.OnDistrictSelected -= MoveToClickedDistrict;
         BlackoutSimulationController.OnBlackoutDistrictChanged -= MoveToBlackoutDistrict;
+        BlackoutSimulationController.OnBlackoutSimulationToggled -= HandleSimulationToggled;
     }
+
+    private void HandleSimulationToggled(bool isOn) => _isSimulationOn = isOn;
 
     public void RegisterDistrictPosition(string districtName, double lon, double lat)
     {
@@ -77,7 +80,7 @@ public class MainCameraController : MonoBehaviour
     public void MoveToClickedDistrict(string districtName)
     {
         // 토글 ON이면 구 클릭으로 카메라 이동 금지
-        if (simulationToggle != null && simulationToggle.isOn)
+        if (_isSimulationOn)
         {
             Debug.Log("[MainCameraController] 시뮬레이션 ON 상태이므로 구 클릭 카메라 이동 비활성화");
             return;
@@ -94,7 +97,7 @@ public class MainCameraController : MonoBehaviour
     }
 
     // 특정 구로 카메라 이동
-    private void MoveToDistrict(string districtName)
+    public void MoveToDistrict(string districtName)
     {
         if (cameraAnchor == null)
         {
@@ -119,5 +122,7 @@ public class MainCameraController : MonoBehaviour
 
         // 카메라가 아래를 보도록
         mainCamera.transform.rotation = Quaternion.Euler(lookDownRotation);
+
+        cilkedGuName.text = "현재 위치: " + districtName;
     }
 }
