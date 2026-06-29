@@ -81,6 +81,7 @@ public class UIManager : MonoBehaviour
 
         SetInfoPanel(
             $"{data.year}년 {data.month}월",
+            $"{data.temperature:0.0}°C",
             data.riskLabel,
             data.oniStatus,
             data.oni.ToString("0.00")
@@ -165,12 +166,12 @@ public class UIManager : MonoBehaviour
         return "-";
     }
 
-    public void SetInfoPanel(string dateText, string emergencyStage, string oniType, string oniValueText)
+    public void SetInfoPanel(string dateText, string temperatureText, string emergencyStage, string oniType, string oniValueText)
     {
         ResolveInfoPanel();
 
         if (infoPanel != null)
-            infoPanel.SetInfo(dateText, emergencyStage, oniType, oniValueText);
+            infoPanel.SetInfo(dateText, temperatureText, emergencyStage, oniType, oniValueText);
     }
 
     public void ShowGuEnergyPanel(
