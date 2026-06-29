@@ -29,6 +29,11 @@ public class MinimapOutline : Graphic
         Vector2 dir = (end - start).normalized;
         Vector2 normal = new Vector2(-dir.y, dir.x) * (lineWidth * 0.5f);
 
+        // 선 끝을 살짝 연장해서 꼭짓점 틈 줄이기
+        float extend = lineWidth * 0.5f;
+        start -= dir * extend;
+        end += dir * extend;
+
         int index = vh.currentVertCount;
 
         vh.AddVert(start - normal, color, Vector2.zero);
