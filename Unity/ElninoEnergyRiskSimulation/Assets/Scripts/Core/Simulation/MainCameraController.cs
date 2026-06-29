@@ -3,6 +3,7 @@ using UnityEngine;
 using CesiumForUnity;
 using Unity.Mathematics;
 using UnityEngine.UI;
+using TMPro;
 
 public class MainCameraController : MonoBehaviour
 {
@@ -14,6 +15,9 @@ public class MainCameraController : MonoBehaviour
     // 이거에 따라 카메라 이동 설정 변환
     [Header("Simulation Toggle")]
     [SerializeField] private Toggle simulationToggle;
+
+    [Header("CilkedGuName")]
+    [SerializeField] private TMP_Text cilkedGuName;
 
     // 카메라가 화면을 비출때 방향 조정
     private Vector3 lookDownRotation = new Vector3(65f, 0f, 0f);
@@ -94,7 +98,7 @@ public class MainCameraController : MonoBehaviour
     }
 
     // 특정 구로 카메라 이동
-    private void MoveToDistrict(string districtName)
+    public void MoveToDistrict(string districtName)
     {
         if (cameraAnchor == null)
         {
@@ -119,5 +123,7 @@ public class MainCameraController : MonoBehaviour
 
         // 카메라가 아래를 보도록
         mainCamera.transform.rotation = Quaternion.Euler(lookDownRotation);
+
+        cilkedGuName.text = "현재 위치: " + districtName;
     }
 }
