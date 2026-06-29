@@ -383,14 +383,18 @@ def blackout_simulation():
             "reduction_need_score": item["reduction_need_score"],
         })
 
-    # 구별 ta_gu 조회
+    # 구별 ta_gu · 소비량 조회
     ta_by_gu = {r["gu"]: round(r["ta_gu"], 2) for r in predicted["regions"]}
+    consumption_by_gu = {
+        r["gu"]: round(r["total_consumption_mwh"], 2) for r in predicted["regions"]
+    }
 
     districts_order = [
         {
-            "gu":             gu,
-            "ta_gu":          ta_by_gu.get(gu, 0.0),
-            "blackout_items": items_by_gu.get(gu, []),
+            "gu":                    gu,
+            "ta_gu":                 ta_by_gu.get(gu, 0.0),
+            "total_consumption_mwh": consumption_by_gu.get(gu, 0.0),
+            "blackout_items":        items_by_gu.get(gu, []),
         }
         for gu in result["districts_order"]
     ]
