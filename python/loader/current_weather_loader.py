@@ -2,8 +2,11 @@ import os
 import requests
 import pandas as pd
 from io import StringIO
+from dotenv import load_dotenv
 
-KMA_API_KEY = "2CXA78d-TKelwO_HfoynZg"
+load_dotenv()
+
+KMA_API_KEY = os.getenv("KMA_API_KEY")
 
 KMA_URL = "https://apihub.kma.go.kr/api/typ01/url/kma_sfctm2.php"
 
@@ -26,7 +29,7 @@ def load_current_weather():
         "authKey": KMA_API_KEY
     }
 
-    response = requests.get(KMA_URL, params=params, timeout=20)
+    response = requests.get(KMA_URL, params=params, timeout=10)
     response.raise_for_status()
 
     data_lines = []
@@ -67,7 +70,7 @@ def load_current_weather():
         "time": str(row["time"]),
         "station": int(row["station"]),
         "station_name": "서울",
-        "temperature": None if pd.isna(row["temperature"]) else float(row["temperature"]),
+        "temperature": "None" if pd.isna(row["temperature"]) else float(row["temperature"]),
         "humidity": None if pd.isna(row["humidity"]) else float(row["humidity"]),
         "rainfall": "NONE" if pd.isna(row["rainfall"]) else float(row["rainfall"]),
         "wind_speed": None if pd.isna(row["wind_speed"]) else float(row["wind_speed"]),

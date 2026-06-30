@@ -6,7 +6,7 @@ using UnityEngine;
 public class CurrentDataTestUI : MonoBehaviour
 {
     [Header("Current Data")]
-    [SerializeField] private TMP_Text Text_Temperature_Info; // 기온
+    [SerializeField] private TMP_Text TMP_temp; // 기온
     // [SerializeField] private TMP_Text currentHum; // 습도
     // [SerializeField] private TMP_Text currentRainfall; // 강수량
     // [SerializeField] private TMP_Text currentWindSpeed; // 풍속
@@ -28,7 +28,7 @@ public class CurrentDataTestUI : MonoBehaviour
 
     public void DataUpdated(JObject weather)
     {
-        Text_Temperature_Info.text = $"{weather["temperature"]}°C";
+        TMP_temp.text = $"{weather["temperature"]}°C";
         // currentHum.text = $"{weather["humidity"]}%";
         // currentRainfall.text = weather["rainfall"]?.ToString();
         // currentWindSpeed.text = $"{weather["wind_speed"]}m/s";
