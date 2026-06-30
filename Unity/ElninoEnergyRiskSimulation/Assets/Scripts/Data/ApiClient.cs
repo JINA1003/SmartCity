@@ -48,6 +48,12 @@ public class ApiClient : MonoBehaviour
         StartCoroutine(Post($"{serverUrl}/blackout_simulation", body, onSuccess));
     }
 
+    // 현재 기온 - 0630 예정 추가
+    public void FetchCurrentWeather(Action<JObject> onSuccess)
+    {
+        StartCoroutine(GetJObject($"{serverUrl}/weather/current", onSuccess));
+    }
+
     // -----------------------------------------------------------------------
     // 내부 Coroutine
     // -----------------------------------------------------------------------

@@ -14,6 +14,9 @@ public class DataManager : MonoBehaviour
     public event Action<PowerGridData> OnPowerDataUpdated;
     public event Action<DistrictData> OnDistrictDataUpdated;
     public event Action<List<OniRangeData>> OniRangeDataUpdated;
+
+    // public event Action<CurrentData> OnCurrentDataUpdated; // 예정 추가
+    public event Action<JObject> OnCurrentDataUpdated; // 예정 추가
     public event Action OnAllDistrictsParsed;
 
     // 블랙아웃 시뮬레이션: /blackout_simulation 순회 구 목록 + 구별 소비량
@@ -28,6 +31,15 @@ public class DataManager : MonoBehaviour
 
     private static readonly WaitForSeconds SliderDelay = new WaitForSeconds(0.15f);
     private Coroutine _sliderCoroutine;
+
+    // 추가 - 실시간 데이터 갱신
+    private static readonly WaitForSeconds WeatherRefreshDelay = new WaitForSeconds(3600f);
+    private Coroutine _weatherCoroutine;
+
+    private void Start()
+    {
+        _weatherCoroutine = StartCoroutine(WeatherRefreshLoop());
+    }
 
     private void OnEnable()
     {
@@ -44,6 +56,12 @@ public class DataManager : MonoBehaviour
         {
             uiController.OnDateSelected       -= HandleDateSelected;
             uiController.OnOniSliderReleased  -= HandleSliderReleased;
+        }
+
+        if (_weatherCoroutine != null) // 추가
+        {
+            StopCoroutine(_weatherCoroutine);
+            _weatherCoroutine = null;
         }
     }
 
@@ -67,6 +85,36 @@ public class DataManager : MonoBehaviour
         yield return SliderDelay;
         yield return StartCoroutine(LoadPredictOnly(_currentYear, _currentMonth, oniValue));
         _sliderCoroutine = null;
+    }
+
+    // 예정 추가
+    private void LoadCurrentData()
+    {
+        apiClient.FetchCurrentWeather((data) =>
+        {
+            if (data == null)
+            {
+                Debug.LogError("Current Weather API 응답 Null");
+                return;
+            }
+
+            JObject weather = data["weather"] as JObject;
+
+            if (weather == null)
+                return;
+
+            OnCurrentDataUpdated?.Invoke(weather);
+        });
+    }
+
+    private IEnumerator WeatherRefreshLoop()
+    {
+        while (true)
+        {
+            LoadCurrentData();
+
+            yield return WeatherRefreshDelay;
+        }
     }
 
     IEnumerator LoadOnDateSelected(int year, int month)
