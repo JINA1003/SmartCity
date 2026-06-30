@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8697634171751152284}
   - component: {fileID: 1710315119800515962}
+  - component: {fileID: 1283499144733354322}
   m_Layer: 0
   m_Name: DataManager
   m_TagString: Untagged
@@ -46,6 +47,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DataManager
   apiClient: {fileID: 7922431310694080807}
   uiController: {fileID: 1970570418660836511}
+--- !u!114 &1283499144733354322
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1048224929685079936}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8e4f1c2a9b7d6e5f40318293a7b6c5d4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SmartCity.Scripts::HideCesiumCredit
+  retryFrames: 60
 --- !u!1 &1108918767898206306
 GameObject:
   m_ObjectHideFlags: 0
@@ -310,7 +324,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: SmartCity.Scripts::BlackoutSimulationController
   dataManager: {fileID: 0}
-  stayDurationPerDistrict: 3
 --- !u!1 &4780921253663895104
 GameObject:
   m_ObjectHideFlags: 0

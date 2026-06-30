@@ -306,6 +306,10 @@ PrefabInstance:
       propertyPath: cityManager
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 6712415921854460043, guid: 811e02f6b40f5c64a9c5aee485c83582, type: 3}
+      propertyPath: buildingManager
+      value: 
+      objectReference: {fileID: 1334697141}
     - target: {fileID: 6730944337062574733, guid: 811e02f6b40f5c64a9c5aee485c83582, type: 3}
       propertyPath: dataManager
       value: 
@@ -1338,8 +1342,8 @@ MonoBehaviour:
   _longitude: 126.9908
   _height: 2000
   _ecefX: -3048017.2610839223
-  _ecefY: 4046207.1254533823
-  _ecefZ: 3865652.3985625315
+  _ecefY: 4046207.125453382
+  _ecefZ: 3865652.398562532
   _scale: 1
 --- !u!4 &916403144
 Transform:
@@ -1674,6 +1678,17 @@ MonoBehaviour:
   Img_Emergency_Dot: {fileID: 2079032308}
   Text_Info_ONIType: {fileID: 1968693883}
   Text_Info_ONINum: {fileID: 1480386858}
+--- !u!114 &1334697141 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2116474168996002242, guid: 811e02f6b40f5c64a9c5aee485c83582, type: 3}
+  m_PrefabInstance: {fileID: 360179007}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4ae0dc313c1b214a89185f7ee6c3faf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SmartCity.Scripts::BuildingManager
 --- !u!224 &1349164298 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 8915040833366684850, guid: 7e12480103609416486b8f4b70f4bb07, type: 3}
@@ -1721,7 +1736,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1394554671}
   serializedVersion: 2
-  m_LocalRotation: {x: -9.020562e-16, y: 2.0021613e-16, z: 4.160088e-16, w: 1}
+  m_LocalRotation: {x: -9.436896e-16, y: 2.0130502e-16, z: 4.2905006e-16, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -1897,22 +1912,22 @@ MonoBehaviour:
     c0:
       x: -0.7987321333648472
       y: -0.6016867782579571
-      z: 0.00000000000000018010585288798387
+      z: 0.00000000000000021344655708631999
       w: 0
     c1:
-      x: -0.4771413573014904
-      y: 0.6333995494091252
-      z: 0.6092135388850191
+      x: -0.4771413573014903
+      y: 0.6333995494091254
+      z: 0.6092135388850192
       w: 0
     c2:
       x: 0.366555731482856
-      y: -0.48659842958837957
-      z: 0.7930062194202463
+      y: -0.4865984295883795
+      z: 0.7930062194202461
       w: 0
     c3:
       x: -3048017.2610839223
-      y: 4046207.1254533823
-      z: 3865652.3985625315
+      y: 4046207.125453382
+      z: 3865652.398562532
       w: 1
   _localToGlobeFixedMatrixIsValid: 1
 --- !u!114 &1394554677
