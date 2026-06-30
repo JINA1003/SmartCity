@@ -49,7 +49,7 @@ public struct NativeVertex
     public float buildingId;
 }
 
-public class CityManager : MonoBehaviour
+public class BuildingManager : MonoBehaviour
 {
     [Header("매니저 연결")]
     [SerializeField] private DistrictManager districtManager;
@@ -202,7 +202,7 @@ public class CityManager : MonoBehaviour
 
             var spawnTask = SpawnDistrictChunkAsync(districtId);
             yield return new WaitUntil(() => spawnTask.IsCompleted);
-            // break; // 한 번에 하나씩 처리
+            break; // 한 번에 하나씩 처리
         }
 
         Debug.Log("[CityManager] 모든 구역의 메쉬 생성이 완료되었습니다!");

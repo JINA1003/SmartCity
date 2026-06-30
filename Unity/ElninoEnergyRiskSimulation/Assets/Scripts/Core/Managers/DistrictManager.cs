@@ -8,7 +8,7 @@ public class DistrictManager : MonoBehaviour
     public Dictionary<DistrictType, DistrictObject> districtObjects = new Dictionary<DistrictType, DistrictObject>();
 
     [SerializeField] private DataManager dataManager;
-    [SerializeField] private CityManager cityManager;
+    [SerializeField] private BuildingManager buildingManager;
 
     public event Action<Dictionary<DistrictType, DistrictData>> OnAllDistrictsDataUpdated;
     public event Action<Dictionary<DistrictType, DistrictObject>> OnAllDistrictsObjectsUpdated;
@@ -53,19 +53,19 @@ public class DistrictManager : MonoBehaviour
     /// </summary>
     private IEnumerator WaitForBufferReady()
     {
-        if (cityManager == null)
-            cityManager = FindFirstObjectByType<CityManager>();
+        if (buildingManager == null)
+            buildingManager = FindFirstObjectByType<BuildingManager>();
 
         yield return new WaitUntil(() =>
-            cityManager != null &&
-            cityManager.CachedRenderData != null &&
-            cityManager.CachedRenderData.Length > 0);
+            buildingManager != null &&
+            buildingManager.CachedRenderData != null &&
+            buildingManager.CachedRenderData.Length > 0);
 
         // 전체 건물 데이터에서 구/건물유형 매핑 테이블 생성
         BuildBuildingTypeMapping();
         _bufferReady = true;
 
-        Debug.Log($"[DistrictManager] GPU 버퍼 준비 완료 ({cityManager.CachedRenderData.Length}개 건물)");
+        Debug.Log($"[DistrictManager] GPU 버퍼 준비 완료 ({buildingManager.CachedRenderData.Length}개 건물)");
 
         // 버퍼 준비 전에 이미 API 데이터가 도착했으면 즉시 반영
         if (districtObjects.Count > 0)
@@ -83,7 +83,7 @@ public class DistrictManager : MonoBehaviour
     /// </summary>
     private void BuildBuildingTypeMapping()
     {
-        NativeBuildingData[] fullData = cityManager.GetFullBuildingData();
+        NativeBuildingData[] fullData = buildingManager.GetFullBuildingData();
         _buildingDistrictTypes = new int[fullData.Length];
         _buildingBuildingTypes = new int[fullData.Length];
 
@@ -158,7 +158,7 @@ public class DistrictManager : MonoBehaviour
     private void ApplyReductionScoresToBuffer(
         IReadOnlyDictionary<DistrictType, DistrictData> districts)
     {
-        BuildingRenderData[] buffer = cityManager.CachedRenderData;
+        BuildingRenderData[] buffer = buildingManager.CachedRenderData;
         if (buffer == null || buffer.Length == 0) return;
 
         // 전체 구에서 min/max 계산 (정규화용)
@@ -193,8 +193,8 @@ public class DistrictManager : MonoBehaviour
         }
 
         // GPU에 반영
-        cityManager.MarkBufferDirty();
-        cityManager.FlushBufferToGPU();
+        buildingManager.MarkBufferDirty();
+        buildingManager.FlushBufferToGPU();
 
         Debug.Log($"[DistrictManager] reductionValue 갱신 완료 ({updatedCount}개 건물, 범위 {minScore:F3}~{maxScore:F3})");
     }
