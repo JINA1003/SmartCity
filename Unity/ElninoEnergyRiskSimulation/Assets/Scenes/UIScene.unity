@@ -1342,8 +1342,8 @@ MonoBehaviour:
   _longitude: 126.9908
   _height: 2000
   _ecefX: -3048017.2610839223
-  _ecefY: 4046207.125453382
-  _ecefZ: 3865652.398562532
+  _ecefY: 4046207.1254533823
+  _ecefZ: 3865652.3985625315
   _scale: 1
 --- !u!4 &916403144
 Transform:
@@ -1736,7 +1736,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1394554671}
   serializedVersion: 2
-  m_LocalRotation: {x: -9.436896e-16, y: 2.0130502e-16, z: 4.2905006e-16, w: 1}
+  m_LocalRotation: {x: -9.15934e-16, y: 2.6264737e-16, z: 6.508435e-16, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -1910,24 +1910,24 @@ MonoBehaviour:
   _detectTransformChanges: 1
   _localToGlobeFixedMatrix:
     c0:
-      x: -0.7987321333648472
-      y: -0.6016867782579571
-      z: 0.00000000000000021344655708631999
+      x: -0.7987321333648475
+      y: -0.6016867782579569
+      z: 0.00000000000000035520290413527124
       w: 0
     c1:
-      x: -0.4771413573014903
-      y: 0.6333995494091254
-      z: 0.6092135388850192
+      x: -0.47714135730149
+      y: 0.6333995494091256
+      z: 0.6092135388850191
       w: 0
     c2:
-      x: 0.366555731482856
-      y: -0.4865984295883795
-      z: 0.7930062194202461
+      x: 0.36655573148285586
+      y: -0.4865984295883796
+      z: 0.7930062194202463
       w: 0
     c3:
       x: -3048017.2610839223
-      y: 4046207.125453382
-      z: 3865652.398562532
+      y: 4046207.1254533823
+      z: 3865652.3985625315
       w: 1
   _localToGlobeFixedMatrixIsValid: 1
 --- !u!114 &1394554677
@@ -2094,6 +2094,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: SmartCity.Scripts::MainCameraController
   mainCamera: {fileID: 1394554679}
   cilkedGuName: {fileID: 1881954750}
+  simulationController: {fileID: 1131763331}
 --- !u!1 &1395941688 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1407221617161225727, guid: 7e12480103609416486b8f4b70f4bb07, type: 3}
@@ -2856,6 +2857,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: SmartCity.Scripts::MinimapColorController
   minimapManager: {fileID: 360179008}
   dataManager: {fileID: 1567278800}
+  simulationController: {fileID: 1131763331}
   lowPowerColor: {r: 1, g: 0.9, b: 0.75, a: 0.9}
   highPowerColor: {r: 1, g: 0.25, b: 0.05, a: 0.9}
   blackoutColor: {r: 0.2, g: 0.2, b: 0.2, a: 0.9}
