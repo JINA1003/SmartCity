@@ -19,6 +19,9 @@ public class DataManager : MonoBehaviour
     // 블랙아웃 시뮬레이션: /blackout_simulation 순회 구 목록 + 구별 소비량
     public event Action<List<string>, Dictionary<string, double>> OnBlackoutSimulationParsed;
 
+    // 블랙아웃 건물유형 상세: {구 이름 → [{building_type, reduction_need_score}]}
+    public event Action<Dictionary<string, List<BlackoutBuildingItem>>> OnBlackoutItemsParsed;
+
     // 현재 선택된 연월 (슬라이더 재호출 시 사용)
     private int _currentYear;
     private int _currentMonth;
@@ -212,6 +215,8 @@ public class DataManager : MonoBehaviour
                 List<string> blackoutOrderedGuNames = new List<string>();
                 Dictionary<string, double> blackoutGuConsumption = new Dictionary<string, double>();
 
+                var blackoutItemsMap = new Dictionary<string, List<BlackoutBuildingItem>>();
+
                 foreach (JToken distToken in districtsOrder)
                 {
                     string guName = distToken["gu"].Value<string>();
@@ -222,16 +227,31 @@ public class DataManager : MonoBehaviour
                     JArray bItems = distToken["blackout_items"] as JArray;
 
                     if (bItems != null && bItems.Count > 0)
+                    {
                         blackoutOrderedGuNames.Add(guName);
+
+                        var items = new List<BlackoutBuildingItem>();
+                        foreach (JToken item in bItems)
+                        {
+                            items.Add(new BlackoutBuildingItem
+                            {
+                                buildingType        = item["building_type"]?.Value<string>() ?? "",
+                                reductionNeedScore  = item["reduction_need_score"]?.Value<float>() ?? 0f,
+                            });
+                        }
+                        blackoutItemsMap[guName] = items;
+                    }
                 }
 
                 OnBlackoutSimulationParsed?.Invoke(blackoutOrderedGuNames, blackoutGuConsumption);
+                OnBlackoutItemsParsed?.Invoke(blackoutItemsMap);
             }
         }
         else
         {
             // 경보 4단계가 아니면 순회 목록·소비량 비움 (이전 ONI 값 잔류 방지)
             OnBlackoutSimulationParsed?.Invoke(new List<string>(), new Dictionary<string, double>());
+            OnBlackoutItemsParsed?.Invoke(new Dictionary<string, List<BlackoutBuildingItem>>());
         }
 
         // --- [ 3. 구역 데이터(DistrictData) 파싱 ] ---

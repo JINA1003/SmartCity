@@ -8,9 +8,6 @@ public class BlackoutSimulationController : MonoBehaviour
     [Header("데이터")]
     [SerializeField] private DataManager dataManager;
 
-    [Header("시뮬레이션 설정")]
-    [SerializeField] private float stayDurationPerDistrict = 3f;
-
     public static event Action<string>           OnBlackoutDistrictChanged;
     public static event Action<bool>             OnBlackoutSimulationToggled;
     public static event Action<string, double>   OnDistrictBlackedOut;
@@ -20,6 +17,7 @@ public class BlackoutSimulationController : MonoBehaviour
     private Dictionary<string, double> _guConsumption = new();
     private Coroutine                  _simulationCoroutine;
     private bool                       _isOn;
+    private bool                       _waitingForFinish;
 
     public void RequestToggle(bool isOn)
     {
@@ -63,6 +61,12 @@ public class BlackoutSimulationController : MonoBehaviour
         dataManager.OnBlackoutSimulationParsed  -= HandleBlackoutSimulationParsed;
     }
 
+    // BlackoutLogger가 한 구의 로그를 모두 출력하면 호출
+    public void NotifyDistrictFinished()
+    {
+        _waitingForFinish = false;
+    }
+
     private void HandlePowerDataUpdated(PowerGridData data)
     {
         if (data.riskLevel < 4 && _isOn)
@@ -84,11 +88,11 @@ public class BlackoutSimulationController : MonoBehaviour
             OnBlackoutDistrictChanged?.Invoke(gu);
 
             double consumption = _guConsumption.TryGetValue(gu, out double v) ? v : 0.0;
+            _waitingForFinish = true;
             OnDistrictBlackedOut?.Invoke(gu, consumption);
 
-            Debug.Log($"[BlackoutSimulationController] 단전 중: {gu} ({consumption:F1} MWh)");
-
-            yield return new WaitForSeconds(stayDurationPerDistrict);
+            // BlackoutLogger가 NotifyDistrictFinished()를 호출할 때까지 대기
+            yield return new WaitUntil(() => !_waitingForFinish);
         }
 
         Debug.Log("[BlackoutSimulationController] 시뮬레이션 완료");
