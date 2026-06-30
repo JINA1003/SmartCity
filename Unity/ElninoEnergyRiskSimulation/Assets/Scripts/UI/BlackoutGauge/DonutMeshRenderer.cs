@@ -80,7 +80,10 @@ public class DonutMeshRenderer : Graphic
         if (borderWidth > 0f)
         {
             DrawArc(vh, outerRadius, outerRadius + borderWidth, startAngleDeg, endAngleDeg, borderColor);
-            DrawArc(vh, innerRadius - borderWidth, innerRadius, startAngleDeg, endAngleDeg, borderColor);
+
+            // innerRadius=0(채운 원)이면 내경 테두리를 그리지 않음 — 중심에 점이 찍히는 현상 방지
+            if (innerRadius > 0.001f)
+                DrawArc(vh, innerRadius - borderWidth, innerRadius, startAngleDeg, endAngleDeg, borderColor);
         }
     }
 

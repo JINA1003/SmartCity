@@ -35,19 +35,19 @@ public class MinimapManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI tooltipText;
 
     // 구 이름, 구 폴리곤 딕셔너리
-    private Dictionary<string, List<MinimapPolygon>> districtPolygonMap =
-        new Dictionary<string, List<MinimapPolygon>>();
+    private Dictionary<DistrictType, List<MinimapPolygon>> districtPolygonMap =
+        new Dictionary<DistrictType, List<MinimapPolygon>>();
 
     // 구 이름, 구 아웃라인 딕셔너리
-    private Dictionary<string, List<MinimapOutline>> districtOutlineMap =
-        new Dictionary<string, List<MinimapOutline>>();
+    private Dictionary<DistrictType, List<MinimapOutline>> districtOutlineMap =
+        new Dictionary<DistrictType, List<MinimapOutline>>();
 
     // 구별 현재 cmap 색 저장
-    private Dictionary<string, Color> districtCurrentColor =
-        new Dictionary<string, Color>();
+    private Dictionary<DistrictType, Color> districtCurrentColor =
+        new Dictionary<DistrictType, Color>();
 
     // 현재 선택된 구 이름
-    private string selectedDistrictName;
+    private DistrictType selectedDistrictType;
 
     // 서울 전체 최소/최대 경위도
     private double minLon = double.MaxValue;
@@ -64,7 +64,7 @@ public class MinimapManager : MonoBehaviour
     private MainCameraController mainCameraController;
 
     // 구 선택 이벤트
-    public static event Action<string> OnDistrictSelected;
+    public event Action<DistrictType> OnDistrictSelected;
 
     private void Awake()
     {
@@ -173,6 +173,7 @@ public class MinimapManager : MonoBehaviour
         {
             string districtName =
                 feature["properties"]?["SIGUNGU_NM"]?.ToString() ?? "Unknown";
+            DistrictType districtType = DataConverter.GetDistrictType(districtName); // 구 이름 -> DistrictType 변환
 
             JToken props = feature["properties"];
 
@@ -189,7 +190,7 @@ public class MinimapManager : MonoBehaviour
 
                 // 카메라 이동 좌표 저장: mainCamera에 구별 좌표 등록
                 mainCameraController.RegisterDistrictPosition(
-                    districtName,
+                    districtType,
                     repLon,
                     repLat
                 );
@@ -201,13 +202,13 @@ public class MinimapManager : MonoBehaviour
 
             if (type == "Polygon")
             {
-                CreatePolygonUI(districtName, (JArray)geometry["coordinates"]);
+                CreatePolygonUI(districtType, (JArray)geometry["coordinates"]);
             }
             else if (type == "MultiPolygon")
             {
                 foreach (JArray polygon in geometry["coordinates"])
                 {
-                    CreatePolygonUI(districtName, polygon);
+                    CreatePolygonUI(districtType, polygon);
                 }
             }
         }
@@ -215,17 +216,17 @@ public class MinimapManager : MonoBehaviour
         // 초기 카메라 좌표 설정
         if (mainCameraController != null)
         {
-            mainCameraController.MoveToDistrict("종로구");
+            mainCameraController.MoveToDistrict(DistrictType.JONGNO);
         }
     }
 
     // 구 UI 범위에 맞게 구 그리기
-    private void CreatePolygonUI(string districtName, JArray polygon)
+    private void CreatePolygonUI(DistrictType districtType, JArray polygon)
     {
         JArray outerRing = (JArray)polygon[0];
 
         // 각 구를 나타낼 게임 오브젝트 생성
-        GameObject obj = new GameObject("UI_District_" + districtName);
+        GameObject obj = new GameObject("UI_District_" + DataConverter.GetDistrictName(districtType));
 
         // 각 구를 districtRoot에 자식으로 변환
         obj.transform.SetParent(districtRoot, false);
@@ -249,7 +250,7 @@ public class MinimapManager : MonoBehaviour
         // Graphic 상속받기
         MinimapPolygon polygonGraphic = obj.AddComponent<MinimapPolygon>();
         polygonGraphic.color = districtColor;
-        polygonGraphic.districtName = districtName;
+        polygonGraphic.districtType = districtType;
         polygonGraphic.minimapManager = this;
 
         // ui 좌표 리스트
@@ -284,19 +285,19 @@ public class MinimapManager : MonoBehaviour
 
         // districtPolygonMap에 폴리곤 list 생성
         // : 왜 list? -> 구 하나에 여러 폴리곤 있을 수 있음(ex: 섬)
-        if (!districtPolygonMap.ContainsKey(districtName))
+        if (!districtPolygonMap.ContainsKey(districtType))
         {
-            districtPolygonMap[districtName] = new List<MinimapPolygon>();
+            districtPolygonMap[districtType] = new List<MinimapPolygon>();
         }
 
         // 폴리곤 추가
-        districtPolygonMap[districtName].Add(polygonGraphic);
+        districtPolygonMap[districtType].Add(polygonGraphic);
 
-        CreateOutline(districtName, obj.transform, uiPoints, polygonGraphic);
+        CreateOutline(districtType, obj.transform, uiPoints, polygonGraphic);
     }
 
     private void CreateOutline(
-        string districtName,
+        DistrictType districtType,
         Transform parent,
         List<Vector2> uiPoints,
         MinimapPolygon polygonGraphic
@@ -304,7 +305,7 @@ public class MinimapManager : MonoBehaviour
     {
        // 구(폴리곤)의 아웃라인 생성
         // 새 outline object 생성
-        GameObject outlineObj = new GameObject("Outline_" + districtName);
+        GameObject outlineObj = new GameObject("Outline_" + DataConverter.GetDistrictName(districtType));
 
         // obj(폴리곤)의 자식으로 추가
         // outlineObj.transform.SetParent(obj.transform, false);
@@ -337,12 +338,12 @@ public class MinimapManager : MonoBehaviour
 
         // outline 딕셔너리 추가
         // : 나중에 선택된 구의 모든 외곽선을 불러와 색상 변경 가능하도록
-        if (!districtOutlineMap.ContainsKey(districtName))
+        if (!districtOutlineMap.ContainsKey(districtType))
         {
-            districtOutlineMap[districtName] = new List<MinimapOutline>();
+            districtOutlineMap[districtType] = new List<MinimapOutline>();
         }
 
-        districtOutlineMap[districtName].Add(outline); 
+        districtOutlineMap[districtType].Add(outline); 
     }
 
     // 좌표 UI 범위에 맞게 재설정
@@ -377,8 +378,7 @@ public class MinimapManager : MonoBehaviour
 
         // 현재 구 상태 변경 전 이전 선택 구 상태 변경
         // : 이전 선택된 구 아웃라인 -> 원래 색으로
-        if (!string.IsNullOrEmpty(selectedDistrictName) &&
-            districtOutlineMap.TryGetValue(selectedDistrictName, out List<MinimapOutline> previousOutlines))
+        if (districtOutlineMap.TryGetValue(selectedDistrictType, out List<MinimapOutline> previousOutlines))
         {
             foreach (MinimapOutline outline in previousOutlines)
             {
@@ -391,10 +391,10 @@ public class MinimapManager : MonoBehaviour
         }
 
         // 현재 클릭 구로 선택 구 이름 변경
-        selectedDistrictName = polygon.districtName;
+        selectedDistrictType = polygon.districtType;
 
         // 새로 선택된 구 outline 가져오기
-        if (districtOutlineMap.TryGetValue(selectedDistrictName, out List<MinimapOutline> selectedOutlines))
+        if (districtOutlineMap.TryGetValue(selectedDistrictType, out List<MinimapOutline> selectedOutlines))
         {
             foreach (MinimapOutline outline in selectedOutlines)
             {
@@ -411,17 +411,17 @@ public class MinimapManager : MonoBehaviour
             }
         }
 
-        Debug.Log("[MinimapManager] 클릭한 구: " + polygon.districtName);
+        Debug.Log("[MinimapManager] 클릭한 구: " + DataConverter.GetDistrictName(polygon.districtType));
 
         // 구 선택 이벤트 발생
-        OnDistrictSelected?.Invoke(polygon.districtName);
+        OnDistrictSelected?.Invoke(polygon.districtType);
     }
 
     // 구 색상 설정
-    public void SetDistrictColor(string districtName, Color targetColor)
+    public void SetDistrictColor(DistrictType districtType, Color targetColor)
     {
         // 색 변경할 구의 폴리곤 가져오기
-        if (!districtPolygonMap.TryGetValue(districtName, out List<MinimapPolygon> polygons))
+        if (!districtPolygonMap.TryGetValue(districtType, out List<MinimapPolygon> polygons))
             return;
 
         foreach (MinimapPolygon polygon in polygons)
@@ -435,11 +435,11 @@ public class MinimapManager : MonoBehaviour
     }
 
     // 구 이름 Tooltip 함수
-    public void ShowDistrictTooltip(string districtName, Vector2 screenPosition)
+    public void ShowDistrictTooltip(DistrictType districtType, Vector2 screenPosition)
     {
         if (tooltipRoot == null || tooltipText == null) return;
 
-        tooltipText.text = districtName;
+        tooltipText.text = DataConverter.GetDistrictName(districtType);
         tooltipRoot.gameObject.SetActive(true);
 
         // 마우스 위치로 설정

@@ -15,8 +15,8 @@ public class BlackoutLogger : MonoBehaviour
     [Header("로그 설정")]
     [SerializeField] private float logIntervalSeconds = 0.5f;
 
-    private Dictionary<string, List<BlackoutBuildingItem>> _itemsMap = new();
-    private Dictionary<string, double> _consumptionMap = new();
+    private Dictionary<DistrictType, List<BlackoutBuildingItem>> _itemsMap = new();
+    private Dictionary<DistrictType, double> _consumptionMap = new();
 
     private Coroutine _logCoroutine;
 
@@ -42,22 +42,22 @@ public class BlackoutLogger : MonoBehaviour
 
     // -----------------------------------------------------------------------
 
-    private void HandleSimulationParsed(List<string> orderedGu, Dictionary<string, double> consumption)
+    private void HandleSimulationParsed(List<DistrictType> districtsType, Dictionary<DistrictType, double> consumption)
     {
-        _consumptionMap = consumption ?? new Dictionary<string, double>();
+        _consumptionMap = consumption ?? new Dictionary<DistrictType, double>();
 
-        Debug.Log($"[BlackoutLogger] 단전 순회 목록 수신 ({orderedGu.Count}개 구)");
-        for (int i = 0; i < orderedGu.Count; i++)
+        Debug.Log($"[BlackoutLogger] 단전 순회 목록 수신 ({districtsType.Count}개 구)");
+        for (int i = 0; i < districtsType.Count; i++)
         {
-            string gu = orderedGu[i];
-            double mwh = _consumptionMap.TryGetValue(gu, out double v) ? v : 0.0;
-            Debug.Log($"[BlackoutLogger]   {i + 1}. {gu}  ({mwh:F1} MWh)");
+            DistrictType districtType = districtsType[i];
+            double mwh = _consumptionMap.TryGetValue(districtType, out double v) ? v : 0.0;
+            Debug.Log($"[BlackoutLogger]   {i + 1}. {DataConverter.GetDistrictName(districtType)}  ({mwh:F1} MWh)");
         }
     }
 
-    private void HandleItemsParsed(Dictionary<string, List<BlackoutBuildingItem>> itemsMap)
+    private void HandleItemsParsed(Dictionary<DistrictType, List<BlackoutBuildingItem>> itemsMap)
     {
-        _itemsMap = itemsMap ?? new Dictionary<string, List<BlackoutBuildingItem>>();
+        _itemsMap = itemsMap ?? new Dictionary<DistrictType, List<BlackoutBuildingItem>>();
     }
 
     private void HandleToggled(bool isOn)
@@ -76,19 +76,20 @@ public class BlackoutLogger : MonoBehaviour
         }
     }
 
-    private void HandleDistrictBlackedOut(string guName, double consumptionMwh)
+    private void HandleDistrictBlackedOut(DistrictType districtType, double consumptionMwh)
     {
         if (_logCoroutine != null)
             StopCoroutine(_logCoroutine);
 
-        _logCoroutine = StartCoroutine(LogDistrictBlackout(guName, consumptionMwh));
+        _logCoroutine = StartCoroutine(LogDistrictBlackout(districtType, consumptionMwh));
     }
 
-    private IEnumerator LogDistrictBlackout(string guName, double consumptionMwh)
+    private IEnumerator LogDistrictBlackout(DistrictType districtType, double consumptionMwh)
     {
+        string guName = DataConverter.GetDistrictName(districtType);    
         Debug.Log($"[BlackoutLogger] ▶ [{guName}] 단전 시작  (소비량: {consumptionMwh:F1} MWh)");
 
-        if (_itemsMap.TryGetValue(guName, out var items) && items.Count > 0)
+        if (_itemsMap.TryGetValue(districtType, out var items) && items.Count > 0)
         {
             Debug.Log($"[BlackoutLogger]   단전 대상 건물유형 ({items.Count}개 용도)");
 

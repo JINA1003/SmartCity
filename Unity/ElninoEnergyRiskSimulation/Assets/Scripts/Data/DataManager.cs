@@ -20,10 +20,10 @@ public class DataManager : MonoBehaviour
     public event Action OnAllDistrictsParsed;
 
     // 블랙아웃 시뮬레이션: /blackout_simulation 순회 구 목록 + 구별 소비량
-    public event Action<List<string>, Dictionary<string, double>> OnBlackoutSimulationParsed;
+    public event Action<List<DistrictType>, Dictionary<DistrictType, double>> OnBlackoutSimulationParsed;
 
     // 블랙아웃 건물유형 상세: {구 이름 → [{building_type, reduction_need_score}]}
-    public event Action<Dictionary<string, List<BlackoutBuildingItem>>> OnBlackoutItemsParsed;
+    public event Action<Dictionary<DistrictType, List<BlackoutBuildingItem>>> OnBlackoutItemsParsed;
 
     // 현재 선택된 연월 (슬라이더 재호출 시 사용)
     private int _currentYear;
@@ -260,23 +260,24 @@ public class DataManager : MonoBehaviour
             {
                 // districts_order는 25구 전체(소비량 내림차순)이나,
                 // 순회 대상은 blackout_items가 비어 있지 않은 구만 해당한다.
-                List<string> blackoutOrderedGuNames = new List<string>();
-                Dictionary<string, double> blackoutGuConsumption = new Dictionary<string, double>();
+                List<DistrictType> blackoutOrderedDistrictType = new List<DistrictType>();
+                Dictionary<DistrictType, double> blackoutGuConsumption = new Dictionary<DistrictType, double>();
 
-                var blackoutItemsMap = new Dictionary<string, List<BlackoutBuildingItem>>();
+                var blackoutItemsMap = new Dictionary<DistrictType, List<BlackoutBuildingItem>>();
 
                 foreach (JToken distToken in districtsOrder)
                 {
                     string guName = distToken["gu"].Value<string>();
+                    DistrictType districtType = DataConverter.GetDistrictType(guName);
 
                     if (distToken["total_consumption_mwh"] != null)
-                        blackoutGuConsumption[guName] = distToken["total_consumption_mwh"].Value<double>();
+                        blackoutGuConsumption[districtType] = distToken["total_consumption_mwh"].Value<double>();
 
                     JArray bItems = distToken["blackout_items"] as JArray;
 
                     if (bItems != null && bItems.Count > 0)
                     {
-                        blackoutOrderedGuNames.Add(guName);
+                        blackoutOrderedDistrictType.Add(districtType);
 
                         var items = new List<BlackoutBuildingItem>();
                         foreach (JToken item in bItems)
@@ -287,19 +288,19 @@ public class DataManager : MonoBehaviour
                                 reductionNeedScore  = item["reduction_need_score"]?.Value<float>() ?? 0f,
                             });
                         }
-                        blackoutItemsMap[guName] = items;
+                        blackoutItemsMap[districtType] = items;
                     }
                 }
 
-                OnBlackoutSimulationParsed?.Invoke(blackoutOrderedGuNames, blackoutGuConsumption);
+                OnBlackoutSimulationParsed?.Invoke(blackoutOrderedDistrictType, blackoutGuConsumption);
                 OnBlackoutItemsParsed?.Invoke(blackoutItemsMap);
             }
         }
         else
         {
             // 경보 4단계가 아니면 순회 목록·소비량 비움 (이전 ONI 값 잔류 방지)
-            OnBlackoutSimulationParsed?.Invoke(new List<string>(), new Dictionary<string, double>());
-            OnBlackoutItemsParsed?.Invoke(new Dictionary<string, List<BlackoutBuildingItem>>());
+            OnBlackoutSimulationParsed?.Invoke(new List<DistrictType>(), new Dictionary<DistrictType, double>());
+            OnBlackoutItemsParsed?.Invoke(new Dictionary<DistrictType, List<BlackoutBuildingItem>>());
         }
 
         // --- [ 3. 구역 데이터(DistrictData) 파싱 ] ---
@@ -370,8 +371,8 @@ public class DataManager : MonoBehaviour
                 data.alert_level = item["alert_level"].Value<int>();
 
                 // 2. 구역별(regions) 데이터 파싱
-                data.guTemperature = new Dictionary<string, float>();
-                data.guConsumption = new Dictionary<string, double>();
+                data.guTemperature = new Dictionary<DistrictType, float>();
+                data.guConsumption = new Dictionary<DistrictType, double>();
 
                 JArray regions = item["regions"] as JArray;
                 if (regions != null)
@@ -385,8 +386,8 @@ public class DataManager : MonoBehaviour
                         double consumption = regionToken["total_consumption_mwh"] != null ? regionToken["total_consumption_mwh"].Value<double>() : 0.0;
 
                         // 딕셔너리에 데이터 저장
-                        data.guTemperature[guName] = temp;
-                        data.guConsumption[guName] = consumption;
+                        data.guTemperature[DataConverter.GetDistrictType(guName)] = temp;
+                        data.guConsumption[DataConverter.GetDistrictType(guName)] = consumption;
                     }
                 }
 

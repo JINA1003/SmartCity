@@ -11,11 +11,12 @@ public class UIManager : MonoBehaviour
 
     [Header("데이터")]
     [SerializeField] private DataManager dataManager;
+    [SerializeField] private MinimapManager minimapManager;
 
     private readonly Dictionary<DistrictType, DistrictData> districtDataMap = new();
     private readonly Dictionary<DistrictType, double> baselinePowerUsageMap = new();
     private const string DefaultDistrict = "종로구";
-    private string currentDistrict = DefaultDistrict;
+    private DistrictType currentDistrict = DistrictType.JONGNO;
     private string currentDataPeriodKey = string.Empty;
 
     private void Awake()
@@ -48,7 +49,7 @@ public class UIManager : MonoBehaviour
     private void OnEnable()
     {
         // 미니맵이 보내는 구 이름을 받아서, 구 패널만 갱신합니다.
-        MinimapManager.OnDistrictSelected += HandleMinimapDistrictSelected;
+        minimapManager.OnDistrictSelected += HandleMinimapDistrictSelected;
 
         if (dataManager == null)
         {
@@ -61,7 +62,7 @@ public class UIManager : MonoBehaviour
 
     private void OnDisable()
     {
-        MinimapManager.OnDistrictSelected -= HandleMinimapDistrictSelected;
+        minimapManager.OnDistrictSelected -= HandleMinimapDistrictSelected;
 
         if (dataManager == null) return;
 
@@ -95,30 +96,30 @@ public class UIManager : MonoBehaviour
         if (!baselinePowerUsageMap.ContainsKey(data.districtType))
             baselinePowerUsageMap[data.districtType] = data.totalPowerUsage;
 
-        if (data.districtType == DataConverter.GetDistrictType(currentDistrict))
+        if (data.districtType == currentDistrict)
             BuildGuEnergyPanel();
     }
 
-    private void HandleMinimapDistrictSelected(string districtName)
+    private void HandleMinimapDistrictSelected(DistrictType districtType)
     {
-        SetDistrict(districtName);
+        SetDistrict(districtType);
     }
 
-    public void SetDistrict(string districtName)
+    public void SetDistrict(DistrictType districtType)
     {
-        currentDistrict = districtName;
+        currentDistrict = districtType;
         BuildGuEnergyPanel();
     }
 
     public void ShowGuEnergyPanel(DistrictType districtType)
     {
-        currentDistrict = GetDistrictKoreanName(districtType);
+        currentDistrict = districtType;
         BuildGuEnergyPanel();
     }
 
     private void BuildGuEnergyPanel()
     {
-        DistrictType districtType = DataConverter.GetDistrictType(currentDistrict);
+        DistrictType districtType = currentDistrict;
 
         // 현재 날짜에 해당 구 데이터가 아직 없으면 마지막 표시 상태를 유지합니다.
         if (!districtDataMap.TryGetValue(districtType, out DistrictData data))

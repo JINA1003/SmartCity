@@ -21,8 +21,8 @@ public class MinimapColorController : MonoBehaviour
 
 
     // 구별 현재 cmap 색 저장
-    private Dictionary<string, Color> districtCurrentColor =
-        new Dictionary<string, Color>();
+    private Dictionary<DistrictType, Color> districtCurrentColor =
+        new Dictionary<DistrictType, Color>();
 
     private readonly List<OniRangeData> oniRangeEntries = new List<OniRangeData>();
 
@@ -37,7 +37,7 @@ public class MinimapColorController : MonoBehaviour
     private bool _isSimulationOn; // 추가
 
     // 깜박이는 구 이름
-    private string blinkingDistrictName;
+    private DistrictType blinkingDistrictType;
 
     // 현재 깜빡이는 코루틴
     private Coroutine blackoutBlinkCoroutine;
@@ -167,7 +167,7 @@ public class MinimapColorController : MonoBehaviour
     }
 
     // cmap 그리기
-    private void ApplyPowerUsageCMap(Dictionary<string, double> guConsumption)
+    private void ApplyPowerUsageCMap(Dictionary<DistrictType, double> guConsumption)
     {
         if (guConsumption == null || guConsumption.Count == 0) return;
 
@@ -185,7 +185,7 @@ public class MinimapColorController : MonoBehaviour
         // 구 마다 전력 사용량에 따라 색상 결정됨
         foreach (var kvp in guConsumption)
         {
-            string districtName = kvp.Key.Trim();
+            DistrictType districtType = kvp.Key;
             double powerUsage = kvp.Value;
 
             // 전력 사용량 정규화 (0-1)
@@ -197,16 +197,16 @@ public class MinimapColorController : MonoBehaviour
 
             // 색상 계산
             Color cmapColor = Color.Lerp(lowPowerColor, highPowerColor, t);
-            districtCurrentColor[districtName] = cmapColor;
+            districtCurrentColor[districtType] = cmapColor;
 
             // 폴리곤 색 변경
-            minimapManager.SetDistrictColor(districtName, cmapColor);
+            minimapManager.SetDistrictColor(districtType, cmapColor);
 
         }
     }
 
     // 블랙아웃 이벤트 함수
-    private void HandleBlackoutDistrictChanged(string districtName)
+    private void HandleBlackoutDistrictChanged(DistrictType districtType)
     {
         // 원래 정전 중인 구의 코루틴 멈추고 검정으로 색상 고정
         if (_isSimulationOn)
@@ -215,7 +215,7 @@ public class MinimapColorController : MonoBehaviour
         }
 
         // 새로운 정전 구 이름으로 갱신
-        blinkingDistrictName = districtName;
+        blinkingDistrictType = districtType;
 
         // 시뮬레이션 토클 off 이면 멈추기
         if (!_isSimulationOn)
@@ -223,14 +223,14 @@ public class MinimapColorController : MonoBehaviour
 
         // 갱신된 구로 블랙아웃 코루틴 시작
         blackoutBlinkCoroutine =
-            StartCoroutine(BlinkBlackoutDistrict(districtName));
+            StartCoroutine(BlinkBlackoutDistrict(districtType));
     }
 
     // 정전 구 깜박임 코루틴
-    private IEnumerator BlinkBlackoutDistrict(string districtName)
+    private IEnumerator BlinkBlackoutDistrict(DistrictType districtType)
     {
         // 구 cmap 색상 가져오기
-        if (!districtCurrentColor.TryGetValue(districtName, out Color originalColor))
+        if (!districtCurrentColor.TryGetValue(districtType, out Color originalColor))
             yield break;
 
         // 처음엔 검정 아님
@@ -242,7 +242,7 @@ public class MinimapColorController : MonoBehaviour
             Color target = dark ? blackoutColor : originalColor;
 
             // 구 색상 변경
-            minimapManager.SetDistrictColor(districtName, target);
+            minimapManager.SetDistrictColor(districtType, target);
 
             // bool 검정 반대로 설정
             dark = !dark;
@@ -261,10 +261,7 @@ public class MinimapColorController : MonoBehaviour
             blackoutBlinkCoroutine = null;
         }
 
-        if (!string.IsNullOrEmpty(blinkingDistrictName))
-        {
-            minimapManager.SetDistrictColor(blinkingDistrictName, blackoutColor);
-        }
+        minimapManager.SetDistrictColor(blinkingDistrictType, blackoutColor);
     }
 
     // 코루틴 stop & 토클 off -> 원래 cmap 색으로 복원
@@ -280,13 +277,13 @@ public class MinimapColorController : MonoBehaviour
         foreach (var kvp in districtCurrentColor)
         {
             // 정전된 모든 구 색상을 검정 -> 원래 cmap색으로
-            string districtName = kvp.Key;
+            DistrictType districtName = kvp.Key;
             Color originalColor = kvp.Value;
 
             minimapManager.SetDistrictColor(districtName, originalColor);
         }
 
-        blinkingDistrictName = null;
+        blinkingDistrictType = DistrictType.None;
     }
 
 }

@@ -214,7 +214,7 @@ public class BlackoutGaugePanel : MonoBehaviour
             RefreshToggleVisual();
     }
 
-    private void HandleDistrictBlackedOut(string gu, double consumption)
+    private void HandleDistrictBlackedOut(DistrictType districtType, double consumption)
     {
         if (!_simOn || _seoulTotal <= 0f) return;
 
