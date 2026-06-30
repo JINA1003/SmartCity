@@ -14,6 +14,9 @@ public class MainCameraController : MonoBehaviour
     [Header("CilkedGuName")]
     [SerializeField] private TMP_Text cilkedGuName;
 
+    [Header("SimulationController")]
+    [SerializeField] private BlackoutSimulationController simulationController;
+
     // 카메라가 화면을 비출때 방향 조정
     private Vector3 lookDownRotation = new Vector3(65f, 0f, 0f);
 
@@ -53,15 +56,15 @@ public class MainCameraController : MonoBehaviour
     private void OnEnable()
     {
         MinimapManager.OnDistrictSelected += MoveToClickedDistrict;
-        BlackoutSimulationController.OnBlackoutDistrictChanged += MoveToBlackoutDistrict;
-        BlackoutSimulationController.OnBlackoutSimulationToggled += HandleSimulationToggled;
+        simulationController.OnBlackoutDistrictChanged += MoveToBlackoutDistrict;
+        simulationController.OnBlackoutSimulationToggled += HandleSimulationToggled;
     }
 
     private void OnDisable()
     {
         MinimapManager.OnDistrictSelected -= MoveToClickedDistrict;
-        BlackoutSimulationController.OnBlackoutDistrictChanged -= MoveToBlackoutDistrict;
-        BlackoutSimulationController.OnBlackoutSimulationToggled -= HandleSimulationToggled;
+        simulationController.OnBlackoutDistrictChanged -= MoveToBlackoutDistrict;
+        simulationController.OnBlackoutSimulationToggled -= HandleSimulationToggled;
     }
 
     private void HandleSimulationToggled(bool isOn) => _isSimulationOn = isOn;
