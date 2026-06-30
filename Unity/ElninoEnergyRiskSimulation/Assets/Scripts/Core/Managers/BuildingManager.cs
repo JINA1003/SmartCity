@@ -74,7 +74,7 @@ public class BuildingManager : MonoBehaviour
     private Dictionary<int, int[]> sortedDistrictIndices = new();
 
     [Header("정전 연출 설정")]
-    [SerializeField] private int buildingsPerBatch = 50;      // 한 번에 꺼질 건물 수
+    [SerializeField] private int buildingsPerBatch = 100;      // 한 번에 꺼질 건물 수
     [SerializeField] private float secondsBetweenBatch = 0.05f; // 배치 간 딜레이
     private Coroutine blackoutCoroutine;
 
@@ -195,7 +195,7 @@ public class BuildingManager : MonoBehaviour
 
     private void OnDisable()
     {
-        simulationController.OnBlackoutSimulationToggled += HandleBlackoutSimulationStart;
+        simulationController.OnBlackoutSimulationToggled -= HandleBlackoutSimulationStart;
         simulationController.OnBlackoutDistrictChanged -= HandleDistrictBlackedOut;
     }
 
@@ -210,19 +210,19 @@ public class BuildingManager : MonoBehaviour
         yield return new WaitForSeconds(2.0f);
         Debug.Log("[CityManager] Tileset 준비 완료. 구역별 메쉬 생성 시작...");
         // 지연 후 호출
-        //foreach (DistrictType district in Enum.GetValues(typeof(DistrictType)))
-        //{
-        //    if (district == DistrictType.None) continue;
+        foreach (DistrictType district in Enum.GetValues(typeof(DistrictType)))
+        {
+            if (district == DistrictType.None) continue;
 
-        //    int districtId = (int)district;
-        //    Debug.Log($"[CityManager] 구역 {districtId} 메쉬 생성 시작...");
+            int districtId = (int)district;
+            Debug.Log($"[CityManager] 구역 {districtId} 메쉬 생성 시작...");
 
-        //    var spawnTask = SpawnDistrictChunkAsync(districtId);
-        //    yield return new WaitUntil(() => spawnTask.IsCompleted);
-        //    break; // 한 번에 하나씩 처리
-        //}
-        var spawnTask = SpawnDistrictChunkAsync(11680);
-        yield return new WaitUntil(() => spawnTask.IsCompleted);
+            var spawnTask = SpawnDistrictChunkAsync(districtId);
+            yield return new WaitUntil(() => spawnTask.IsCompleted);
+            // break; // 한 번에 하나씩 처리
+        }
+        //var spawnTask = SpawnDistrictChunkAsync(11680);
+        //yield return new WaitUntil(() => spawnTask.IsCompleted);
         Debug.Log("[CityManager] 모든 구역의 메쉬 생성이 완료되었습니다!");
     }
 
@@ -422,7 +422,38 @@ public class BuildingManager : MonoBehaviour
             if (GetDistrictRange(districtId, out int start, out int count))
             {
                 districtRanges[districtId] = (start, count);
+                BuildSortedIndices(districtId, start, count);
             }
+        }
+    }
+
+    private void BuildSortedIndices(int districtId, int start, int count)
+    {
+        int[] indices = new int[count];
+        for (int i = 0; i < count; i++)
+            indices[i] = start + i;
+
+        // reductionValue 내림차순 정렬 (물리적 배열은 그대로, 인덱스 순서만 정렬)
+        Array.Sort(indices, (a, b) =>
+            cachedRenderData[b].reductionValue.CompareTo(cachedRenderData[a].reductionValue));
+
+        sortedDistrictIndices[districtId] = indices;
+    }
+
+    /// <summary>
+    /// 모든 구역의 정렬된 건물 인덱스를 reductionValue 기준으로 다시 계산한다.
+    /// BuildSortedIndices()는 Start() 시점(아직 API의 실제 reductionValue가 도착하기 전,
+    /// 즉 전부 0인 상태)에 한 번 호출되므로 그대로 두면 정전이 항상 배열 순서대로 발생한다.
+    /// DistrictManager가 실제 reductionValue를 buffer에 반영(ApplyReductionScoresToBuffer)한
+    /// 직후 이 메서드를 호출해 정렬을 갱신해야 reductionValue가 높은 건물부터 정확히 꺼진다.
+    /// </summary>
+    public void RebuildSortedIndices()
+    {
+        if (districtRanges.Count == 0) return;
+
+        foreach (var kvp in districtRanges)
+        {
+            BuildSortedIndices(kvp.Key, kvp.Value.start, kvp.Value.count);
         }
     }
 
@@ -437,6 +468,7 @@ public class BuildingManager : MonoBehaviour
 
     private void HandleDistrictBlackedOut(DistrictType districtType)
     {
+        Debug.Log("[BuildingManager] 구역 정전 연출 시작: " + DataConverter.GetDistrictName(districtType));
         int districtId = (int)districtType;
         if (!sortedDistrictIndices.TryGetValue(districtId, out var sortedIndices))
         {
@@ -469,11 +501,33 @@ public class BuildingManager : MonoBehaviour
 
         blackoutCoroutine = null;
         Debug.Log("[BuildingManager] 구역 정전 연출 완료");
+
+        // 시각적 정전 연출이 끝났으므로 컨트롤러에 알려 다음 구로 진행시킨다.
+        // (기존에는 BlackoutLogger가 로그 출력을 다 마친 뒤 호출했지만,
+        //  BlackoutLogger를 씬에서 제거하면서 이 책임을 BuildingManager로 옮김)
+        simulationController.NotifyDistrictFinished();
     }
 
     private void ResetAllBlackoutStates()
     {
+        // 진행 중인 정전 연출 코루틴이 있다면 중단
+        if (blackoutCoroutine != null)
+        {
+            StopCoroutine(blackoutCoroutine);
+            blackoutCoroutine = null;
+        }
 
+        if (cachedRenderData == null || cachedRenderData.Length == 0) return;
+
+        for (int i = 0; i < cachedRenderData.Length; i++)
+        {
+            cachedRenderData[i].isBlackout = 0;
+        }
+
+        MarkBufferDirty();
+        FlushBufferToGPU();
+
+        Debug.Log("[BuildingManager] 모든 건물 정전 상태 초기화 완료");
     }
     #endregion
 

@@ -94,14 +94,11 @@ public class MainCameraController : MonoBehaviour
         MoveToDistrict(districtType);
     }
 
-    int cnt = 0;
     // 모드 2. 시뮬레이션 ⭕️: 구 클릭 이동 안됨 / 정전 순회 중인 구로 카메라 이동
     // TODO: 시뮬레이션 on 될때 제대로 실행되는지 확인하기
     public void MoveToBlackoutDistrict(DistrictType districtType)
     {
-        if (cnt > 0) return;
         MoveToDistrict(districtType);
-        cnt++;
     }
 
     // 특정 구로 카메라 이동
