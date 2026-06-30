@@ -8,6 +8,7 @@ using Unity.Mathematics;
 
 public class GuBoundaryDecal : MonoBehaviour
 {
+    [SerializeField] private MinimapManager minimapManager;
     [Header("GeoJSON")]
     public string fileName = "seoul_district.geojson";
 
@@ -45,12 +46,12 @@ public class GuBoundaryDecal : MonoBehaviour
 
     private void OnEnable()
     {
-        MinimapManager.OnDistrictSelected += HandleDistrictSelected;
+        minimapManager.OnDistrictSelected += HandleDistrictSelected;
     }
 
     private void OnDisable()
     {
-        MinimapManager.OnDistrictSelected -= HandleDistrictSelected;
+        minimapManager.OnDistrictSelected -= HandleDistrictSelected;
     }
 
     private void Start()
@@ -58,9 +59,9 @@ public class GuBoundaryDecal : MonoBehaviour
         LoadAndSpawn();
     }
 
-    private void HandleDistrictSelected(string districtName)
+    private void HandleDistrictSelected(DistrictType districtType)
     {
-        SetSelectedDistrict(districtName);
+        SetSelectedDistrict(DataConverter.GetDistrictName(districtType));
     }
 
     public void SetSelectedDistrict(string districtName)

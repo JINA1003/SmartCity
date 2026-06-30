@@ -17,6 +17,8 @@ public class MainCameraController : MonoBehaviour
     [Header("SimulationController")]
     [SerializeField] private BlackoutSimulationController simulationController;
 
+    [SerializeField] private MinimapManager minimapManager;
+
     // 카메라가 화면을 비출때 방향 조정
     private Vector3 lookDownRotation = new Vector3(65f, 0f, 0f);
 
@@ -25,8 +27,8 @@ public class MainCameraController : MonoBehaviour
 
     // 구 이름/구 센터 좌표 저장
     // 좌표는 MinimapManager에서 가져옴
-    private Dictionary<string, double2> districtLonLatMap =
-        new Dictionary<string, double2>();
+    private Dictionary<DistrictType, double2> districtLonLatMap =
+        new Dictionary<DistrictType, double2>();
 
     private void Awake()
     {
@@ -55,32 +57,32 @@ public class MainCameraController : MonoBehaviour
     // 클릭시 해당 구로 카메라 이동
     private void OnEnable()
     {
-        MinimapManager.OnDistrictSelected += MoveToClickedDistrict;
+        minimapManager.OnDistrictSelected += MoveToClickedDistrict;
         simulationController.OnBlackoutDistrictChanged += MoveToBlackoutDistrict;
         simulationController.OnBlackoutSimulationToggled += HandleSimulationToggled;
     }
 
     private void OnDisable()
     {
-        MinimapManager.OnDistrictSelected -= MoveToClickedDistrict;
+        minimapManager.OnDistrictSelected -= MoveToClickedDistrict;
         simulationController.OnBlackoutDistrictChanged -= MoveToBlackoutDistrict;
         simulationController.OnBlackoutSimulationToggled -= HandleSimulationToggled;
     }
 
     private void HandleSimulationToggled(bool isOn) => _isSimulationOn = isOn;
 
-    public void RegisterDistrictPosition(string districtName, double lon, double lat)
+    public void RegisterDistrictPosition(DistrictType districtType, double lon, double lat)
     {
-        if (string.IsNullOrEmpty(districtName)) return;
+        if (string.IsNullOrEmpty(DataConverter.GetDistrictName(districtType))) return;
 
-        if (!districtLonLatMap.ContainsKey(districtName))
+        if (!districtLonLatMap.ContainsKey(districtType))
         {
-            districtLonLatMap.Add(districtName, new double2(lon, lat));
+            districtLonLatMap.Add(districtType, new double2(lon, lat));
         }
     }
 
     // 모드 1. 시뮬레이션 ❌: 구 클릭 가능 -> 클릭된 구로 카메라 이동
-    public void MoveToClickedDistrict(string districtName)
+    public void MoveToClickedDistrict(DistrictType districtType)
     {
         // 토글 ON이면 구 클릭으로 카메라 이동 금지
         if (_isSimulationOn)
@@ -89,18 +91,18 @@ public class MainCameraController : MonoBehaviour
             return;
         }
 
-        MoveToDistrict(districtName);
+        MoveToDistrict(districtType);
     }
 
     // 모드 2. 시뮬레이션 ⭕️: 구 클릭 이동 안됨 / 정전 순회 중인 구로 카메라 이동
     // TODO: 시뮬레이션 on 될때 제대로 실행되는지 확인하기
-    public void MoveToBlackoutDistrict(string districtName)
+    public void MoveToBlackoutDistrict(DistrictType districtType)
     {
-        MoveToDistrict(districtName);
+        MoveToDistrict(districtType);
     }
 
     // 특정 구로 카메라 이동
-    public void MoveToDistrict(string districtName)
+    public void MoveToDistrict(DistrictType districtType)
     {
         if (cameraAnchor == null)
         {
@@ -109,9 +111,9 @@ public class MainCameraController : MonoBehaviour
         }
 
         // 구 이름(key)으로 좌표 찾고 없으면 Warning
-        if (!districtLonLatMap.TryGetValue(districtName, out double2 lonLat))
+        if (!districtLonLatMap.TryGetValue(districtType, out double2 lonLat))
         {
-            Debug.LogWarning("[MainCameraController] 이동 좌표를 찾을 수 없습니다: " + districtName);
+            Debug.LogWarning("[MainCameraController] 이동 좌표를 찾을 수 없습니다: " + DataConverter.GetDistrictName(districtType));
             return;
         }
 
@@ -126,6 +128,6 @@ public class MainCameraController : MonoBehaviour
         // 카메라가 아래를 보도록
         mainCamera.transform.rotation = Quaternion.Euler(lookDownRotation);
 
-        cilkedGuName.text = "현재 위치: " + districtName;
+        cilkedGuName.text = "현재 위치: " + DataConverter.GetDistrictName(districtType);
     }
 }

@@ -143,6 +143,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 2100000, guid: 129a4714f408e42a3bbd547c816a6f0a, type: 2}
     - target: {fileID: 103108500650921485, guid: 811e02f6b40f5c64a9c5aee485c83582, type: 3}
+      propertyPath: minimapManager
+      value: 
+      objectReference: {fileID: 360179008}
+    - target: {fileID: 103108500650921485, guid: 811e02f6b40f5c64a9c5aee485c83582, type: 3}
       propertyPath: cesiumGeoreference
       value: 
       objectReference: {fileID: 916403143}
@@ -206,6 +210,10 @@ PrefabInstance:
       propertyPath: cesiumGeoreference
       value: 
       objectReference: {fileID: 916403143}
+    - target: {fileID: 2116474168996002242, guid: 811e02f6b40f5c64a9c5aee485c83582, type: 3}
+      propertyPath: simulationController
+      value: 
+      objectReference: {fileID: 1131763331}
     - target: {fileID: 4180507456290223588, guid: 811e02f6b40f5c64a9c5aee485c83582, type: 3}
       propertyPath: m_LocalPosition.x
       value: 9401.609
@@ -286,6 +294,10 @@ PrefabInstance:
       propertyPath: uiController
       value: 
       objectReference: {fileID: 708179733}
+    - target: {fileID: 5628084255731729884, guid: 811e02f6b40f5c64a9c5aee485c83582, type: 3}
+      propertyPath: minimapManager
+      value: 
+      objectReference: {fileID: 360179008}
     - target: {fileID: 6621556168656774471, guid: 811e02f6b40f5c64a9c5aee485c83582, type: 3}
       propertyPath: m_Enabled
       value: 1
@@ -1736,7 +1748,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1394554671}
   serializedVersion: 2
-  m_LocalRotation: {x: -9.15934e-16, y: 2.6264737e-16, z: 6.508435e-16, w: 1}
+  m_LocalRotation: {x: -9.15934e-16, y: 2.6963968e-16, z: 8.4398935e-16, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -1910,13 +1922,13 @@ MonoBehaviour:
   _detectTransformChanges: 1
   _localToGlobeFixedMatrix:
     c0:
-      x: -0.7987321333648475
-      y: -0.6016867782579569
-      z: 0.00000000000000035520290413527124
+      x: -0.7987321333648477
+      y: -0.6016867782579567
+      z: 0.0000000000000005299357879708382
       w: 0
     c1:
-      x: -0.47714135730149
-      y: 0.6333995494091256
+      x: -0.4771413573014897
+      y: 0.6333995494091258
       z: 0.6092135388850191
       w: 0
     c2:
@@ -2095,6 +2107,7 @@ MonoBehaviour:
   mainCamera: {fileID: 1394554679}
   cilkedGuName: {fileID: 1881954750}
   simulationController: {fileID: 1131763331}
+  minimapManager: {fileID: 360179008}
 --- !u!1 &1395941688 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1407221617161225727, guid: 7e12480103609416486b8f4b70f4bb07, type: 3}
@@ -3785,6 +3798,7 @@ MonoBehaviour:
   infoPanel: {fileID: 1234313566}
   guEnergyPanel: {fileID: 0}
   dataManager: {fileID: 1567278800}
+  minimapManager: {fileID: 360179008}
 --- !u!4 &2069202531
 Transform:
   m_ObjectHideFlags: 0

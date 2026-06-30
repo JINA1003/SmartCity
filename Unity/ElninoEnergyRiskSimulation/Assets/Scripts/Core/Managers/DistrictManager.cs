@@ -26,6 +26,7 @@ public class DistrictManager : MonoBehaviour
         {
             dataManager.OnDistrictDataUpdated += HandleDistrictDataUpdated;
             dataManager.OnAllDistrictsParsed += HandleAllDistrictsParsed;
+            buildingManager.OnDistrictObjectCreated += RegisterDistrictObject;
         }
         else
         {
@@ -39,6 +40,7 @@ public class DistrictManager : MonoBehaviour
         {
             dataManager.OnDistrictDataUpdated -= HandleDistrictDataUpdated;
             dataManager.OnAllDistrictsParsed -= HandleAllDistrictsParsed;
+            buildingManager.OnDistrictObjectCreated -= RegisterDistrictObject;
         }
     }
 

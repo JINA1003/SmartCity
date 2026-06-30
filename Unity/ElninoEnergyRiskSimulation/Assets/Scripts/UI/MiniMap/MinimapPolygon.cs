@@ -16,7 +16,7 @@ public class MinimapPolygon : Graphic, IPointerClickHandler, IPointerEnterHandle
     // 폴리곤 point 리스트
     public List<Vector2> points = new List<Vector2>();
 
-    public string districtName;
+    public DistrictType districtType;
 
     // 툴팁 처리 위해
     public MinimapManager minimapManager;
@@ -108,7 +108,7 @@ public void OnPointerEnter(PointerEventData eventData)
         if (minimapManager != null)
         {
             minimapManager.ShowDistrictTooltip(
-                districtName,
+                districtType,
                 eventData.position
             );
         }

@@ -53,6 +53,7 @@ public class BuildingManager : MonoBehaviour
 {
     [Header("매니저 연결")]
     [SerializeField] private DistrictManager districtManager;
+    [SerializeField] private BlackoutSimulationController simulationController;
 
     public Cesium3DTileset terrainTileset;
     public CesiumGeoreference cesiumGeoreference;
@@ -62,6 +63,11 @@ public class BuildingManager : MonoBehaviour
     // ── 렌더링 버퍼 캐시 (C++ renderingBuffer의 C# 사본) ──
     private BuildingRenderData[] _cachedRenderData;
     private bool _bufferDirty;
+
+    private Dictionary<int, List<int>> _districtBuildingIndices = new Dictionary<int, List<int>>();
+
+    // DistirctObject 생성 시 이벤트(DistrictManager에 등록용)
+    public event Action<DistrictObject> OnDistrictObjectCreated;
 
     /// <summary>
     /// GPU에 올라갈 BuildingRenderData 배열.
@@ -178,8 +184,43 @@ public class BuildingManager : MonoBehaviour
         // 모든 건물 데이터 로드 후 렌더링 버퍼 구축
         BuildRenderingBuffer();
         InitializeRenderBuffer();
+        BuildingDistrictIndexMap();
 
         StartCoroutine(InitializeDistrict());
+    }
+
+    private void OnEnable()
+    {
+        simulationController.OnBlackoutSimulationToggled += HandleBlackoutSimulationStart;
+        simulationController.OnDistrictBlackedOut += HandleDistrictBlackoutSequence;
+    }
+
+    private void OnDisable()
+    {
+        simulationController.OnBlackoutSimulationToggled += HandleBlackoutSimulationStart;
+        simulationController.OnDistrictBlackedOut -= HandleDistrictBlackoutSequence;
+    }
+
+    private void HandleBlackoutSimulationStart(bool obj)
+    {
+        if (!obj)
+        {
+            // 시뮬레이션 종료 시 모든 구역의 정전 상태를 초기화
+            ResetAllBlackoutStates();
+        }
+    }
+
+    private void HandleDistrictBlackoutSequence(DistrictType districtType, double consumption)
+    {
+        
+    }
+    private void ResetAllBlackoutStates()
+    {
+
+    }
+    private void ApplyBlackoutToDistrict(DistrictType districtType)
+    {
+        throw new NotImplementedException();
     }
 
     IEnumerator InitializeDistrict()
@@ -348,7 +389,7 @@ public class BuildingManager : MonoBehaviour
 
         DistrictObject districtObject = chunkObj.AddComponent<DistrictObject>();
         districtObject.districtId = districtId;
-        districtManager.RegisterDistrictObject(districtObject);
+        OnDistrictObjectCreated?.Invoke(districtObject);
     }
     #endregion
 
@@ -389,6 +430,27 @@ public class BuildingManager : MonoBehaviour
             IntPtr itemPtr = new IntPtr(ptr.ToInt64() + (i * stride));
             _cachedRenderData[i] = Marshal.PtrToStructure<BuildingRenderData>(itemPtr);
         }
+    }
+    #endregion
+
+    #region BlackoutHandling
+    // 프레임마다 GetFullBuildingData()를 호출하지 않도록, 구별 건물 인덱스 매핑을 초기화 시점에 한 번만 수행
+    private void BuildingDistrictIndexMap()
+    {
+        NativeBuildingData[] allBuildings = GetFullBuildingData();
+
+        for (int i = 0; i < allBuildings.Length; i++)
+        {
+            int districtId = allBuildings[i].districtId;
+            if (!_districtBuildingIndices.TryGetValue(districtId, out var list))
+            {
+                list = new List<int>();
+                _districtBuildingIndices[districtId] = list;
+            }
+            list.Add(i);
+        }
+
+        Debug.Log($"[BuildingManager] 구별 건물 인덱스 매핑 완료 ({_districtBuildingIndices.Count}개 구)");
     }
     #endregion
 
