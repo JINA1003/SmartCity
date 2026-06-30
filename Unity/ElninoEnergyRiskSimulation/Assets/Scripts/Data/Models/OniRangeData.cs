@@ -9,6 +9,6 @@ public class OniRangeData
     public float reserveRate;
     public float seoulTotalConsumption;
     public int alert_level;
-    public Dictionary<string, float> guTemperature;
-    public Dictionary<string, double> guConsumption;
+    public Dictionary<DistrictType, float> guTemperature;
+    public Dictionary<DistrictType, double> guConsumption;
 }

@@ -24,6 +24,7 @@ public class XchartUIManager : MonoBehaviour
     [Header("UIController 연동")]
     [SerializeField] private UIController uiController;
 
+    [SerializeField] private MinimapManager minimapManager;
     // ═══════════════════════════════════════════════════════════════════════
     // 색상 상수
     // ═══════════════════════════════════════════════════════════════════════
@@ -46,7 +47,7 @@ public class XchartUIManager : MonoBehaviour
     // 상수
     // ═══════════════════════════════════════════════════════════════════════
 
-    private const string DEFAULT_DISTRICT = "종로구";
+    private const DistrictType DEFAULT_DISTRICT = DistrictType.JONGNO;
     private const double Y_MIN = 0.0;
     private const double Y_MAX = 25.0;
 
@@ -55,7 +56,7 @@ public class XchartUIManager : MonoBehaviour
     // ═══════════════════════════════════════════════════════════════════════
 
     private readonly List<OniRangeData> _entries = new List<OniRangeData>();
-    private string _currentDistrict = DEFAULT_DISTRICT;
+    private DistrictType _currentDistrict = DEFAULT_DISTRICT;
     private float _currentOni = 0f;
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -77,12 +78,12 @@ public class XchartUIManager : MonoBehaviour
 
     private void OnEnable()
     {
-        MinimapManager.OnDistrictSelected += SetDistrict;
+        minimapManager.OnDistrictSelected += SetDistrict;
     }
 
     private void OnDisable()
     {
-        MinimapManager.OnDistrictSelected -= SetDistrict;
+        minimapManager  .OnDistrictSelected -= SetDistrict;
     }
 
     private void OnDestroy()
@@ -172,7 +173,7 @@ public class XchartUIManager : MonoBehaviour
     }
 
     // 구 클릭 시 외부에서 호출 — 해당 구 데이터로 차트 갱신
-    public void SetDistrict(string districtName)
+    public void SetDistrict(DistrictType districtName)
     {
         _currentDistrict = districtName;
         if (_entries.Count > 0)
@@ -187,7 +188,7 @@ public class XchartUIManager : MonoBehaviour
     {
         if (oniChart == null || _entries.Count == 0) return;
 
-        SetTitle($"{_currentDistrict} ONI별 에너지 현황");
+        SetTitle($"{DataConverter.GetDistrictName(_currentDistrict)} ONI별 에너지 현황");
 
         oniChart.RemoveChartComponents<MarkArea>();
         oniChart.RemoveChartComponents<MarkLine>();

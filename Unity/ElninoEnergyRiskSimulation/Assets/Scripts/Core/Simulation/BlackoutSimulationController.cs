@@ -8,13 +8,13 @@ public class BlackoutSimulationController : MonoBehaviour
     [Header("데이터")]
     [SerializeField] private DataManager dataManager;
 
-    public event Action<string>           OnBlackoutDistrictChanged;
+    public event Action<DistrictType>           OnBlackoutDistrictChanged;
     public event Action<bool>             OnBlackoutSimulationToggled;
-    public event Action<string, double>   OnDistrictBlackedOut;
+    public event Action<DistrictType, double>   OnDistrictBlackedOut;
     public event Action                   OnSimulationCompleted;
 
-    private List<string>               _orderedDistricts = new();
-    private Dictionary<string, double> _guConsumption = new();
+    private List<DistrictType>               _orderedDistricts = new();
+    private Dictionary<DistrictType, double> _guConsumption = new();
     private Coroutine                  _simulationCoroutine;
     private bool                       _isOn;
     private bool                       _waitingForFinish;
@@ -73,23 +73,21 @@ public class BlackoutSimulationController : MonoBehaviour
             RequestToggle(false);
     }
 
-    private void HandleBlackoutSimulationParsed(
-        List<string> orderedGuNames,
-        Dictionary<string, double> guConsumption)
+    private void HandleBlackoutSimulationParsed(List<DistrictType> orderedGuNames, Dictionary<DistrictType, double> guConsumption)
     {
-        _orderedDistricts = orderedGuNames ?? new List<string>();
-        _guConsumption = guConsumption ?? new Dictionary<string, double>();
+        _orderedDistricts = orderedGuNames ?? new List<DistrictType>();
+        _guConsumption = guConsumption ?? new Dictionary<DistrictType, double>();
     }
 
     private IEnumerator RunSimulation()
     {
-        foreach (string gu in _orderedDistricts)
+        foreach (DistrictType distirctType in _orderedDistricts)
         {
-            OnBlackoutDistrictChanged?.Invoke(gu);
+            OnBlackoutDistrictChanged?.Invoke(distirctType);
 
-            double consumption = _guConsumption.TryGetValue(gu, out double v) ? v : 0.0;
+            double consumption = _guConsumption.TryGetValue(distirctType, out double v) ? v : 0.0;
             _waitingForFinish = true;
-            OnDistrictBlackedOut?.Invoke(gu, consumption);
+            OnDistrictBlackedOut?.Invoke(distirctType, consumption);
 
             // BlackoutLogger가 NotifyDistrictFinished()를 호출할 때까지 대기
             yield return new WaitUntil(() => !_waitingForFinish);
