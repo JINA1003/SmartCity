@@ -86,9 +86,9 @@ public class BlackoutGaugePanel : MonoBehaviour
         if (uiController != null)
             uiController.OnOniValueChanged += HandleOniSliderChanged;
 
-        BlackoutSimulationController.OnBlackoutSimulationToggled += HandleSimToggled;
-        BlackoutSimulationController.OnDistrictBlackedOut += HandleDistrictBlackedOut;
-        BlackoutSimulationController.OnSimulationCompleted += HandleSimCompleted;
+        simulationController.OnBlackoutSimulationToggled += HandleSimToggled;
+        simulationController.OnDistrictBlackedOut += HandleDistrictBlackedOut;
+        simulationController.OnSimulationCompleted += HandleSimCompleted;
 
         gameObject.SetActive(false);
     }
@@ -107,9 +107,9 @@ public class BlackoutGaugePanel : MonoBehaviour
         if (uiController != null)
             uiController.OnOniValueChanged -= HandleOniSliderChanged;
 
-        BlackoutSimulationController.OnBlackoutSimulationToggled -= HandleSimToggled;
-        BlackoutSimulationController.OnDistrictBlackedOut -= HandleDistrictBlackedOut;
-        BlackoutSimulationController.OnSimulationCompleted -= HandleSimCompleted;
+        simulationController.OnBlackoutSimulationToggled -= HandleSimToggled;
+        simulationController.OnDistrictBlackedOut -= HandleDistrictBlackedOut;
+        simulationController.OnSimulationCompleted -= HandleSimCompleted;
     }
 
     private void HandleOniRangeDataUpdated(List<OniRangeData> data)

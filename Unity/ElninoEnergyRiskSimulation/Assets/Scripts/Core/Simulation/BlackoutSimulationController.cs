@@ -8,10 +8,10 @@ public class BlackoutSimulationController : MonoBehaviour
     [Header("데이터")]
     [SerializeField] private DataManager dataManager;
 
-    public static event Action<string>           OnBlackoutDistrictChanged;
-    public static event Action<bool>             OnBlackoutSimulationToggled;
-    public static event Action<string, double>   OnDistrictBlackedOut;
-    public static event Action                   OnSimulationCompleted;
+    public event Action<string>           OnBlackoutDistrictChanged;
+    public event Action<bool>             OnBlackoutSimulationToggled;
+    public event Action<string, double>   OnDistrictBlackedOut;
+    public event Action                   OnSimulationCompleted;
 
     private List<string>               _orderedDistricts = new();
     private Dictionary<string, double> _guConsumption = new();

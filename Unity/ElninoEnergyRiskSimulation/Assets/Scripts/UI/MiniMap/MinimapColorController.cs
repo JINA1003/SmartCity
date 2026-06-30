@@ -9,6 +9,7 @@ public class MinimapColorController : MonoBehaviour
     [Header("References")]
     [SerializeField] private MinimapManager minimapManager;
     [SerializeField] private DataManager dataManager;
+    [SerializeField] private BlackoutSimulationController simulationController;
 
     // cmap 스타일 설정
     [Header("CMap Style")]
@@ -61,8 +62,8 @@ public class MinimapColorController : MonoBehaviour
             // 전력 데이터 변경
             dataManager.OnPowerDataUpdated += HandlePowerDataUpdated;
             // 블랙아웃 구 이벤트 구독
-            BlackoutSimulationController.OnBlackoutDistrictChanged += HandleBlackoutDistrictChanged;
-            BlackoutSimulationController.OnBlackoutSimulationToggled += HandleSimulationToggled;
+            simulationController.OnBlackoutDistrictChanged += HandleBlackoutDistrictChanged;
+            simulationController.OnBlackoutSimulationToggled += HandleSimulationToggled;
         }
         else
         {
@@ -76,8 +77,8 @@ public class MinimapColorController : MonoBehaviour
         {
             dataManager.OniRangeDataUpdated -= HandleOniRangeDataUpdated;
             dataManager.OnPowerDataUpdated -= HandlePowerDataUpdated;
-            BlackoutSimulationController.OnBlackoutDistrictChanged -= HandleBlackoutDistrictChanged;
-            BlackoutSimulationController.OnBlackoutSimulationToggled -= HandleSimulationToggled;
+            simulationController.OnBlackoutDistrictChanged -= HandleBlackoutDistrictChanged;
+            simulationController.OnBlackoutSimulationToggled -= HandleSimulationToggled;
         }
     }
 

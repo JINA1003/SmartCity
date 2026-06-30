@@ -25,9 +25,9 @@ public class BlackoutLogger : MonoBehaviour
         dataManager.OnBlackoutSimulationParsed += HandleSimulationParsed;
         dataManager.OnBlackoutItemsParsed += HandleItemsParsed;
 
-        BlackoutSimulationController.OnBlackoutSimulationToggled += HandleToggled;
-        BlackoutSimulationController.OnDistrictBlackedOut += HandleDistrictBlackedOut;
-        BlackoutSimulationController.OnSimulationCompleted += HandleSimulationCompleted;
+        simulationController.OnBlackoutSimulationToggled += HandleToggled;
+        simulationController.OnDistrictBlackedOut += HandleDistrictBlackedOut;
+        simulationController.OnSimulationCompleted += HandleSimulationCompleted;
     }
 
     private void OnDisable()
@@ -35,9 +35,9 @@ public class BlackoutLogger : MonoBehaviour
         dataManager.OnBlackoutSimulationParsed -= HandleSimulationParsed;
         dataManager.OnBlackoutItemsParsed -= HandleItemsParsed;
 
-        BlackoutSimulationController.OnBlackoutSimulationToggled -= HandleToggled;
-        BlackoutSimulationController.OnDistrictBlackedOut -= HandleDistrictBlackedOut;
-        BlackoutSimulationController.OnSimulationCompleted -= HandleSimulationCompleted;
+        simulationController.OnBlackoutSimulationToggled -= HandleToggled;
+        simulationController.OnDistrictBlackedOut -= HandleDistrictBlackedOut;
+        simulationController.OnSimulationCompleted -= HandleSimulationCompleted;
     }
 
     // -----------------------------------------------------------------------
