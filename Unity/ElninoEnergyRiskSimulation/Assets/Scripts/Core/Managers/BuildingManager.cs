@@ -1,147 +1,402 @@
 using CesiumForUnity;
+using Codice.CM.Client.Differences.Graphic;
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.Rendering;
+
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
+public struct NativeBuildingData
+{
+    public double lon;
+    public double lat;
+    public float height;
+    public float terrainAltitude;
+    public float reductionValue;
+    public int id;
+    public int districtId;
+    public int districtType;
+    public int buildingType;
+    public int isBlackout;
+    public int polygonVertexCount;
+    public int polygonStartIndex;
+}
+
+/// <summary>
+/// 셰이더 전용 경량 구조체 (C++ BuildingRenderData와 동일 레이아웃).
+/// GPU에는 이 8바이트만 전달된다.
+/// </summary>
+[StructLayout(LayoutKind.Sequential)]
+public struct BuildingRenderData
+{
+    public float reductionValue;   // 수요감축 필요도 (0~1)
+    public int isBlackout;       // 정전 여부 (0 or 1)
+}
+
+[StructLayout(LayoutKind.Sequential)]
+public struct NativeVertex
+{
+    public float px, py, pz;
+    public float nx, ny, nz;
+    public float buildingId;
+}
 
 public class BuildingManager : MonoBehaviour
 {
-    [Header("설정")]
-    public string geoJsonFileName = "seoul_buildings.geojson";
-    public Material buildingMaterial;
+    [Header("매니저 연결")]
+    [SerializeField] private DistrictManager districtManager;
 
-    [Header("Cesium 설정")]
-    public CesiumGeoreference cesiumGeoreference;
     public Cesium3DTileset terrainTileset;
+    public CesiumGeoreference cesiumGeoreference;
+    public Material buildingMaterial;
+    private ComputeBuffer renderBuffer;
 
-    private async void Start()
+    // ── 렌더링 버퍼 캐시 (C++ renderingBuffer의 C# 사본) ──
+    private BuildingRenderData[] _cachedRenderData;
+    private bool _bufferDirty;
+
+    /// <summary>
+    /// GPU에 올라갈 BuildingRenderData 배열.
+    /// DistrictManager 등 외부에서 reductionValue를 수정할 때 사용.
+    /// 수정 후 MarkBufferDirty() → FlushBufferToGPU() 호출 필요.
+    /// </summary>
+    public BuildingRenderData[] CachedRenderData => _cachedRenderData;
+
+    /// <summary>
+    /// 캐시 데이터가 변경되었음을 표시.
+    /// </summary>
+    public void MarkBufferDirty() => _bufferDirty = true;
+
+    /// <summary>
+    /// 변경된 캐시를 GPU ComputeBuffer에 업로드한다.
+    /// </summary>
+    public void FlushBufferToGPU()
     {
-        await LoadAndSpawnDistrictsAsync();
+        if (!_bufferDirty || _cachedRenderData == null || renderBuffer == null)
+            return;
+
+        renderBuffer.SetData(_cachedRenderData);
+        _bufferDirty = false;
     }
 
-    public async Task LoadAndSpawnDistrictsAsync()
+    /// <summary>
+    /// 전체 건물의 NativeBuildingData를 읽어온다 (구/건물유형 매핑용).
+    /// 렌더링과는 무관하며, DistrictManager가 reductionValue 계산 시 참조.
+    /// </summary>
+    public NativeBuildingData[] GetFullBuildingData()
     {
-        DataParser parser = new DataParser();
+        int count = GetBuildingBufferCount();
+        if (count == 0) return Array.Empty<NativeBuildingData>();
 
-        Debug.Log("[BuildingManager] GeoJSON 파싱 시작...");
-        List<BuildingData> allBuildings = await parser.ParseGeoJson(geoJsonFileName);
+        NativeBuildingData[] data = new NativeBuildingData[count];
+        IntPtr ptr = GetBuildingBufferPointer();
+        int stride = Marshal.SizeOf(typeof(NativeBuildingData));
 
-        // 파싱된 전체 건물을 DistrictType(구)을 기준으로 그룹화(Group)합니다.
-        var buildingsByDistrict = allBuildings.GroupBy(b => b.districtType);
-
-        foreach (var districtGroup in buildingsByDistrict)
+        for (int i = 0; i < count; i++)
         {
-            DistrictType currentDistrict = districtGroup.Key;
-            List<BuildingObject> districtBuildingObjects = new List<BuildingObject>();
-
-            int count = 0;
-            // 해당 구에 속한 건물들을 하나씩 생성
-            foreach (BuildingData bData in districtGroup)   
-            {
-                GameObject spawnedObj = SpawnBuilding(bData);
-                count++;
-                if (count % 50 == 0) await Task.Yield();
-                if (spawnedObj != null)
-                {
-                    // BuildingObject 컴포넌트를 붙이고 데이터 초기화
-                    BuildingObject bObj = spawnedObj.AddComponent<BuildingObject>();
-                    bObj.data = bData;
-
-                    districtBuildingObjects.Add(bObj);
-
-                    StartCoroutine(PlaceBuilding(spawnedObj, bData.lon, bData.lat));
-                }
-            }
-
-            // 구별로 생성이 끝났다면 DistrictManager에게 리스트 전달
-            if (DistrictManager.Instance != null)
-            {
-                DistrictManager.Instance.UpdateDistrictBuildings(currentDistrict, districtBuildingObjects);
-            }
-            else
-            {
-                Debug.LogWarning("[BuildingManager] DistrictManager 인스턴스를 찾을 수 없습니다.");
-            }
+            IntPtr itemPtr = new IntPtr(ptr.ToInt64() + (i * stride));
+            data[i] = Marshal.PtrToStructure<NativeBuildingData>(itemPtr);
         }
 
-        Debug.Log("[BuildingManager] 모든 구 건물 스폰 및 등록 완료");
+        return data;
     }
 
-    public GameObject SpawnBuilding(BuildingData data)
+    // --- C++ DLL 함수 연결 ---
+    [DllImport("SeoulBuildingProcessor")]
+    private static extern void LoadDistrictData(System.IntPtr dataPointer, int byteLength);
+
+    [DllImport("SeoulBuildingProcessor")]
+    private static extern void LoadPolygonData(IntPtr dataPointer, int elementCount);
+
+    [DllImport("SeoulBuildingProcessor")]
+    private static extern System.IntPtr GetBuildingBufferPointer();
+
+    [DllImport("SeoulBuildingProcessor")]
+    private static extern int GetBuildingBufferCount();
+
+    [DllImport("SeoulBuildingProcessor")]
+    private static extern void BuildDistrictMesh(int districtId, System.IntPtr terrainHeights, int terrainArrayLength, double centerLon, double centerLat);
+
+    [DllImport("SeoulBuildingProcessor")]
+    private static extern System.IntPtr GetChunkVertices();
+
+    [DllImport("SeoulBuildingProcessor")]
+    private static extern int GetChunkVertexCount();
+
+    [DllImport("SeoulBuildingProcessor")]
+    private static extern System.IntPtr GetChunkIndices();
+
+    [DllImport("SeoulBuildingProcessor")]
+    private static extern int GetChunkIndexCount();
+
+    [DllImport("SeoulBuildingProcessor")]
+    private static extern int GetDistrictBuildingCount(int districtId);
+
+    [DllImport("SeoulBuildingProcessor")]
+    private static extern void GetBuildingPositions(int districtId, [In, Out] double[] lons, [In, Out] double[] lats);
+
+    [DllImport("SeoulBuildingProcessor")]
+    private static extern void ClearAllNativeData();
+
+    // ── 렌더링 버퍼 전용 DLL 함수 ──
+    [DllImport("SeoulBuildingProcessor")]
+    private static extern void BuildRenderingBuffer();
+
+    [DllImport("SeoulBuildingProcessor")]
+    private static extern void SetReductionValues([In] float[] values, int count);
+
+    [DllImport("SeoulBuildingProcessor")]
+    private static extern IntPtr GetRenderingBufferPointer();
+
+    [DllImport("SeoulBuildingProcessor")]
+    private static extern int GetRenderingBufferCount();
+
+    private void Start()
     {
-        Mesh buildingMesh = MeshBuilder.BuildPolygonMesh(data.polygon, data.height);
+        // [핵심] 유니티 에디터 메모리에 남아있는 이전 플레이의 C++ 찌꺼기 데이터 초기화
+        ClearAllNativeData();
 
-        if (buildingMesh == null)
+        Debug.Log("[CityManager] Start() - 구역별 건물 데이터 로드 및 메쉬 생성 시작...");
+        // PloygonData 고속 로드
+        LoadGlobalPolygonBinaryFast();
+
+        // 서울시 25개 구별 건물 데이터(.bytes) 고속 로드
+        foreach (DistrictType district in Enum.GetValues(typeof(DistrictType)))
         {
-            return null;
+            if (district == DistrictType.None) continue;
+            LoadDistrictBinaryFast((int)district);
         }
 
-        GameObject buildingObj = new GameObject($"Building_{data.id}");
+        // 모든 건물 데이터 로드 후 렌더링 버퍼 구축
+        BuildRenderingBuffer();
+        InitializeRenderBuffer();
 
-        MeshFilter meshFilter = buildingObj.AddComponent<MeshFilter>();
-        MeshRenderer meshRenderer = buildingObj.AddComponent<MeshRenderer>();
+        StartCoroutine(InitializeDistrict());
+    }
 
-        meshFilter.mesh = buildingMesh;
-
-        if (buildingMaterial != null)
+    IEnumerator InitializeDistrict()
+    {
+        // Tileset이 준비될 때까지 대기
+        while (terrainTileset == null || !terrainTileset.enabled)
         {
-            meshRenderer.material = buildingMaterial;
+            yield return null;
         }
 
+        yield return new WaitForSeconds(2.0f);
+        Debug.Log("[CityManager] Tileset 준비 완료. 구역별 메쉬 생성 시작...");
+        // 지연 후 호출
+        foreach (DistrictType district in Enum.GetValues(typeof(DistrictType)))
+        {
+            if (district == DistrictType.None) continue;
 
-        // 1. 하이어라키 원점 이동: 떨림(Jittering) 방지를 위해 반드시 Georeference의 자식으로 둡니다.
+            int districtId = (int)district;
+            Debug.Log($"[CityManager] 구역 {districtId} 메쉬 생성 시작...");
+
+            var spawnTask = SpawnDistrictChunkAsync(districtId);
+            yield return new WaitUntil(() => spawnTask.IsCompleted);
+            break; // 한 번에 하나씩 처리
+        }
+
+        Debug.Log("[CityManager] 모든 구역의 메쉬 생성이 완료되었습니다!");
+    }
+
+    #region DataLoad
+    private void LoadDistrictBinaryFast(int districtId)
+    {
+        TextAsset binFile = Resources.Load<TextAsset>($"Districts/District_{districtId}");
+        if (binFile == null)
+        {
+            Debug.Log($"[CityManager] 구역 {districtId} 바이너리 파일을 Resources에서 찾을 수 없음.");
+            return;
+        }
+
+        byte[] rawData = binFile.bytes;
+        GCHandle handle = GCHandle.Alloc(rawData, GCHandleType.Pinned);
+
+        try
+        {
+            LoadDistrictData(handle.AddrOfPinnedObject(), rawData.Length);
+        }
+        finally
+        {
+            if (handle.IsAllocated) handle.Free();
+        }
+    }
+
+    private void LoadGlobalPolygonBinaryFast()
+    {
+        TextAsset polyFile = Resources.Load<TextAsset>("Districts/PolygonData");
+        if (polyFile == null) return;
+
+        byte[] rawData = polyFile.bytes;
+        GCHandle handle = GCHandle.Alloc(rawData, GCHandleType.Pinned);
+        try
+        {
+            LoadPolygonData(handle.AddrOfPinnedObject(), rawData.Length / 4);
+        }
+        finally
+        {
+            if (handle.IsAllocated) handle.Free();
+        }
+    }
+    #endregion
+
+    #region MeshSpawn
+    private async Task SpawnDistrictChunkAsync(int districtId)
+    {
+        List<double3> buildingPositions = GetBuildingPositionsFromCpp(districtId);
+        float[] heights = new float[buildingPositions.Count];
+
+        if (terrainTileset != null && buildingPositions.Count > 0)
+        {
+            var result = await terrainTileset.SampleHeightMostDetailed(buildingPositions.ToArray());
+            for (int i = 0; i < buildingPositions.Count; i++)
+            {
+                heights[i] = result.sampleSuccess[i] ? (float)result.longitudeLatitudeHeightPositions[i].z : 0f;
+            }
+        }
+
+        Vector2 centerCoord = DistrictCoordinates.GetCenter(districtId);
+
+        GCHandle handle = GCHandle.Alloc(heights, GCHandleType.Pinned);
+        try
+        {
+            BuildDistrictMesh(districtId, handle.AddrOfPinnedObject(), heights.Length, centerCoord.x, centerCoord.y);
+        }
+        finally
+        {
+            if (handle.IsAllocated) handle.Free();
+        }
+
+        ApplyChunkMeshToUnity(districtId);
+    }
+
+    private List<double3> GetBuildingPositionsFromCpp(int districtId)
+    {
+        int count = GetDistrictBuildingCount(districtId);
+
+        double[] lons = new double[count];
+        double[] lats = new double[count];
+
+        GetBuildingPositions(districtId, lons, lats);
+
+        List<double3> positions = new List<double3>();
+        for (int i = 0; i < count; i++)
+        {
+            positions.Add(new double3(lons[i], lats[i], 0));
+        }
+        return positions;
+    }
+
+    private void ApplyChunkMeshToUnity(int districtId)
+    {
+        int vCount = GetChunkVertexCount();
+        int iCount = GetChunkIndexCount();
+
+        if (vCount == 0 || iCount == 0) return;
+
+        System.IntPtr vPtr = GetChunkVertices();
+        System.IntPtr iPtr = GetChunkIndices();
+
+        float[] rawVertices = new float[vCount * 7];
+        Marshal.Copy(vPtr, rawVertices, 0, vCount * 7);
+
+        int[] indices = new int[iCount];
+        Marshal.Copy(iPtr, indices, 0, iCount);
+
+        Vector3[] unityVertices = new Vector3[vCount];
+        Vector2[] unityUV2 = new Vector2[vCount];
+
+        for (int i = 0; i < vCount; i++)
+        {
+            int offset = i * 7;
+            unityVertices[i] = new Vector3(rawVertices[offset], rawVertices[offset + 1], rawVertices[offset + 2]);
+            unityUV2[i] = new Vector2(rawVertices[offset + 6], 0); // 쉐이더 판별용 ID
+        }
+
+        Mesh chunkMesh = new Mesh();
+        chunkMesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
+        chunkMesh.vertices = unityVertices;
+        chunkMesh.uv2 = unityUV2;
+        chunkMesh.triangles = indices;
+
+        chunkMesh.RecalculateNormals();
+        chunkMesh.RecalculateBounds();
+
+        GameObject chunkObj = new GameObject($"District_Chunk_{districtId}");
         if (cesiumGeoreference != null)
         {
-            buildingObj.transform.SetParent(cesiumGeoreference.transform, false);
-        }
-        else
-        {
-            buildingObj.transform.SetParent(this.transform, false);
-            Debug.LogWarning("CesiumGeoreference가 할당되지 않았습니다!");
+            chunkObj.transform.SetParent(cesiumGeoreference.transform, false);
         }
 
-        return buildingObj;
+        chunkObj.AddComponent<MeshFilter>().mesh = chunkMesh;
+        MeshRenderer renderer = chunkObj.AddComponent<MeshRenderer>();
+        renderer.sharedMaterial = buildingMaterial;
+        renderer.renderingLayerMask = RenderingLayerMask.GetMask("BUILDING");
+
+        CesiumGlobeAnchor anchor = chunkObj.AddComponent<CesiumGlobeAnchor>();
+        Vector2 centerCoord = DistrictCoordinates.GetCenter(districtId);
+        anchor.longitudeLatitudeHeight = new Unity.Mathematics.double3(centerCoord.x, centerCoord.y, 0);
+
+        DistrictObject districtObject = chunkObj.AddComponent<DistrictObject>();
+        districtObject.districtId = districtId;
+        districtManager.RegisterDistrictObject(districtObject);
+    }
+    #endregion
+
+    #region RenderBuffer
+    /// <summary>
+    /// 렌더링 전용 ComputeBuffer 초기화.
+    /// C++의 renderingBuffer로부터 데이터를 읽어 GPU에 업로드한다.
+    /// </summary>
+    private void InitializeRenderBuffer()
+    {
+        int count = GetRenderingBufferCount();
+        if (count == 0) return;
+
+        int stride = Marshal.SizeOf(typeof(BuildingRenderData));
+        renderBuffer = new ComputeBuffer(count, stride);
+
+        SyncRenderCacheFromNative();
+        renderBuffer.SetData(_cachedRenderData);
+        buildingMaterial.SetBuffer("_BuildingRenderBuffer", renderBuffer);
+
+        Debug.Log($"[CityManager] 렌더링 버퍼 초기화 완료 ({count}개, {stride}바이트/건물)");
     }
 
-    IEnumerator PlaceBuilding(GameObject obj, double lon, double lat)
+    /// <summary>
+    /// C++ renderingBuffer → C# 캐시 배열로 복사.
+    /// </summary>
+    private void SyncRenderCacheFromNative()
     {
-        yield return null;
-        if (obj == null) yield break;
+        int count = GetRenderingBufferCount();
+        IntPtr ptr = GetRenderingBufferPointer();
 
-        // 1. 지구상에 똑바로 세우기 위한 앵커 추가 및 활성화 대기
-        CesiumGlobeAnchor anchor = obj.AddComponent<CesiumGlobeAnchor>();
-        yield return new WaitUntil(() => anchor != null && anchor.isActiveAndEnabled);
+        if (_cachedRenderData == null || _cachedRenderData.Length != count)
+            _cachedRenderData = new BuildingRenderData[count];
 
-        double terrainHeight = 0;
-
-        // 2. Cesium 3D Tileset 지형으로부터 해당 위경도의 최정밀 고도(Heigt) 샘플링 대기
-        if (terrainTileset != null)
+        int stride = Marshal.SizeOf(typeof(BuildingRenderData));
+        for (int i = 0; i < count; i++)
         {
-            double3[] positions = new double3[] { new double3(lon, lat, 0) };
-            System.Threading.Tasks.Task<CesiumSampleHeightResult> task
-                = terrainTileset.SampleHeightMostDetailed(positions);
-            yield return new WaitUntil(() => task.IsCompleted);
-
-            if (task.Result.sampleSuccess[0])
-                terrainHeight = task.Result.longitudeLatitudeHeightPositions[0].z;
+            IntPtr itemPtr = new IntPtr(ptr.ToInt64() + (i * stride));
+            _cachedRenderData[i] = Marshal.PtrToStructure<BuildingRenderData>(itemPtr);
         }
+    }
+    #endregion
 
-        // 3. 앵커 좌표에 정확한 해발고도 반영
-        anchor.longitudeLatitudeHeight = new double3(lon, lat, terrainHeight);
-
-        // 4. 컴포넌트 구조 체크 후 데이터 동기화
-        BuildingObject bObj = obj.GetComponent<BuildingObject>();
-        if (bObj != null && bObj.data != null)
+    void OnDestroy()
+    {
+        if (renderBuffer != null)
         {
-            // bObj.data.terrainAltitude = (float)terrainHeight;
+            renderBuffer.Release();
         }
-
-        yield return null;
-
-        // 5. 고도 배치가 완전히 끝나면 숨겨두었던 메쉬를 화면에 렌더링
-        if (obj != null)
-            obj.GetComponent<MeshRenderer>().enabled = true;
     }
 }

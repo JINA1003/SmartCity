@@ -3,17 +3,18 @@ using UnityEngine;
 
 public class BuildingData
 {
-    public int id;
-    public int districtId;
-    public DistrictType districtType;
-    public BuildingType buildingType;
-
     public double lat;
     public double lon;
-
+    public DistrictType districtType;
+    public BuildingType buildingType;
+    
     public float height;
+    public float reuducationValue;
 
     public List<Vector2> polygon;
+    public int id;
+    public int districtId;
+    public bool isBlackout = false;
 
     public int floors;
     public string name;

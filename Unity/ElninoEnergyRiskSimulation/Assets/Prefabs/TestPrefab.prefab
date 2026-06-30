@@ -55,9 +55,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 321874242400305823}
-  - component: {fileID: 4503288507644655149}
+  - component: {fileID: 2116474168996002242}
   m_Layer: 0
-  m_Name: CityManager
+  m_Name: BuildingManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -78,7 +78,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 4180507456290223588}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &4503288507644655149
+--- !u!114 &2116474168996002242
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -89,10 +89,11 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c4ae0dc313c1b214a89185f7ee6c3faf, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: SmartCity.Scripts::CityManager
+  m_EditorClassIdentifier: SmartCity.Scripts::BuildingManager
+  districtManager: {fileID: 0}
   terrainTileset: {fileID: 0}
   cesiumGeoreference: {fileID: 0}
-  blackoutMaterial: {fileID: 0}
+  buildingMaterial: {fileID: 0}
 --- !u!1 &1143553010424704365
 GameObject:
   m_ObjectHideFlags: 0
@@ -132,7 +133,6 @@ Transform:
   - {fileID: 590020554035043372}
   - {fileID: 2414258775001061889}
   - {fileID: 321874242400305823}
-  - {fileID: 8638821275525511231}
   - {fileID: 8016649418106814581}
   - {fileID: 230282641741865420}
   m_Father: {fileID: 0}
@@ -459,56 +459,6 @@ MonoBehaviour:
   lineHalfWidth: 0.65
   lineColor: {r: 1, g: 0, b: 0, a: 1}
   selectedFillColor: {r: 0.72, g: 0.72, b: 0.72, a: 0.62}
---- !u!1 &5815138363958773388
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 8638821275525511231}
-  - component: {fileID: 6821020023835149250}
-  m_Layer: 0
-  m_Name: BuildingUsageColorManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &8638821275525511231
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5815138363958773388}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.2197876, y: -15, z: 8.517578}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 4180507456290223588}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &6821020023835149250
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5815138363958773388}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d10693f56d59c4c36977576581ac0db2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: SmartCity.Scripts::BuildingUsageColorManager
-  districtManager: {fileID: 6712415921854460043}
-  dataManager: {fileID: 1710315119800515962}
-  buildingUsageMaterial: {fileID: 2100000, guid: 3ea5b46cfa5ee41d3aeb163cb7760735, type: 2}
-  districtChunkNamePrefix: District_Chunk_
-  expectedDistrictCount: 25
-  stableFrameCount: 60
 --- !u!1 &7565144512346115843
 GameObject:
   m_ObjectHideFlags: 0
@@ -649,6 +599,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DistrictManager
   dataManager: {fileID: 1710315119800515962}
+  buildingManager: {fileID: 0}
 --- !u!1 &8626113785183535837
 GameObject:
   m_ObjectHideFlags: 0
