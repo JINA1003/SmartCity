@@ -5,6 +5,8 @@
         "XCharts.Runtime",
         "Unity.TextMeshPro",
         "CesiumForUnity",
+        "Nova",
+        "Nova.UIControls",
         "Unity.Mathematics",
         "Unity.RenderPipelines.Universal.Runtime"
     ],
