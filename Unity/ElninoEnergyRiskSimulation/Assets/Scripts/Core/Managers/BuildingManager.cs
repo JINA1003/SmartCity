@@ -1,5 +1,4 @@
 using CesiumForUnity;
-using Codice.CM.Client.Differences.Graphic;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -220,26 +219,26 @@ public class BuildingManager : MonoBehaviour
         yield return new WaitForSeconds(2.0f);
         Debug.Log("[CityManager] Tileset 준비 완료. 구역별 메쉬 생성 시작...");
         // 지연 후 호출
-        //foreach (DistrictType district in Enum.GetValues(typeof(DistrictType)))
-        //{
-        //    if (district == DistrictType.None) continue;
+        foreach (DistrictType district in Enum.GetValues(typeof(DistrictType)))
+        {
+            if (district == DistrictType.None) continue;
 
-        //    int districtId = (int)district;
-        //    Debug.Log($"[CityManager] 구역 {districtId} 메쉬 생성 시작...");
+            int districtId = (int)district;
+            Debug.Log($"[CityManager] 구역 {districtId} 메쉬 생성 시작...");
 
-        //    var spawnTask = SpawnDistrictChunkAsync(districtId);
-        //    yield return new WaitUntil(() => spawnTask.IsCompleted);
-        //    break; // 한 번에 하나씩 처리
-        //}
-        var spawnTask = SpawnDistrictChunkAsync(11680);
-        yield return new WaitUntil(() => spawnTask.IsCompleted);
+            var spawnTask = SpawnDistrictChunkAsync(districtId);
+            yield return new WaitUntil(() => spawnTask.IsCompleted);
+            // break; // 한 번에 하나씩 처리
+        }
+        //var spawnTask = SpawnDistrictChunkAsync(11680);
+        //yield return new WaitUntil(() => spawnTask.IsCompleted);
         Debug.Log("[CityManager] 모든 구역의 메쉬 생성이 완료되었습니다!");
     }
 
     #region DataLoad
     private void LoadDistrictBinaryFast(int districtId)
     {
-        TextAsset binFile = Resources.Load<TextAsset>($"Districts/District_{districtId}");
+        TextAsset binFile = Resources.Load<TextAsset>($"Districts/{districtId}/District");
         if (binFile == null)
         {
             Debug.Log($"[CityManager] 구역 {districtId} 바이너리 파일을 Resources에서 찾을 수 없음.");
@@ -380,14 +379,14 @@ public class BuildingManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Resources/Districts/Meshes/ 에 사전 베이크된 .mesh 파일이 있으면
+    /// Resources/Districts/{districtId}/Meshes/ 에 사전 베이크된 .mesh 파일이 있으면
     /// 해당 파일로 GameObject 를 조립하고 true 를 반환한다.
     /// 마커 파일 bytes[0] 에 베이킹 시 사용한 tileN 이 저장되어 있다.
     /// </summary>
     private bool TrySpawnFromBakedMeshes(int districtId)
     {
         // 마커 파일 확인 — bytes[0] = 베이킹 시 tileN
-        TextAsset marker = Resources.Load<TextAsset>($"Districts/Meshes/{districtId}_baked");
+        TextAsset marker = Resources.Load<TextAsset>($"Districts/{districtId}/Meshes/baked");
         if (marker == null) return false;
 
         int tileN = marker.bytes[0];
@@ -410,11 +409,11 @@ public class BuildingManager : MonoBehaviour
         {
             for (int tx = 0; tx < tileN; tx++)
             {
-                Mesh lod0 = Resources.Load<Mesh>($"Districts/Meshes/{districtId}_{tx}_{ty}_LOD0");
+                Mesh lod0 = Resources.Load<Mesh>($"Districts/{districtId}/Meshes/{tx}_{ty}_LOD0");
                 if (lod0 == null) continue; // 해당 타일에 건물 없으면 스킵
 
-                Mesh lod1 = Resources.Load<Mesh>($"Districts/Meshes/{districtId}_{tx}_{ty}_LOD1");
-                Mesh lod2 = Resources.Load<Mesh>($"Districts/Meshes/{districtId}_{tx}_{ty}_LOD2");
+                Mesh lod1 = Resources.Load<Mesh>($"Districts/{districtId}/Meshes/{tx}_{ty}_LOD1");
+                Mesh lod2 = Resources.Load<Mesh>($"Districts/{districtId}/Meshes/{tx}_{ty}_LOD2");
 
                 GameObject tileRoot = new GameObject($"Tile_{tx}_{ty}");
                 tileRoot.transform.SetParent(chunkRoot.transform, false);

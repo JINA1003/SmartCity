@@ -6,7 +6,8 @@
         "Unity.TextMeshPro",
         "CesiumForUnity",
         "Unity.Mathematics",
-        "Unity.RenderPipelines.Universal.Runtime"
+        "Unity.RenderPipelines.Universal.Runtime",
+        "Whinarn.UnityMeshSimplifier.Runtime"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

@@ -8,7 +8,7 @@ using UnityEngine;
 
 /// <summary>
 /// Cesium 지형 높이를 모든 구의 건물에 대해 사전 계산하고
-/// Resources/Districts/TerrainHeights_{districtId}.bytes 로 저장하는 에디터 도구.
+/// Resources/Districts/{districtId}/TerrainHeights.bytes 로 저장하는 에디터 도구.
 ///
 /// 사용법:
 ///   1. 씬을 플레이 모드로 실행 (Cesium 지형 타일이 로드된 상태)
@@ -43,7 +43,7 @@ public class BakeTerrainHeightsWindow : EditorWindow
         EditorGUILayout.HelpBox(
             "플레이 모드에서 Cesium 지형의 건물별 높이를 미리 계산해 파일로 저장합니다.\n" +
             "한 번만 실행하면 이후부터 BuildingManager가 Cesium 샘플링 없이 바로 메시를 생성합니다.\n\n" +
-            "출력: Resources/Districts/TerrainHeights_{districtId}.bytes",
+            "출력: Resources/Districts/{districtId}/TerrainHeights.bytes",
             MessageType.Info);
 
         EditorGUILayout.Space(4);
@@ -105,8 +105,7 @@ public class BakeTerrainHeightsWindow : EditorWindow
         DistrictType[] allDistricts = (DistrictType[])Enum.GetValues(typeof(DistrictType));
         _total = allDistricts.Length - 1; // DistrictType.None 제외
 
-        string outputDir = Path.Combine(Application.dataPath, "Resources", "Districts");
-        Directory.CreateDirectory(outputDir);
+        string districtsBaseDir = Path.Combine(Application.dataPath, "Resources", "Districts");
 
         foreach (DistrictType district in allDistricts)
         {
@@ -155,7 +154,9 @@ public class BakeTerrainHeightsWindow : EditorWindow
             byte[] raw = new byte[heights.Length * sizeof(float)];
             Buffer.BlockCopy(heights, 0, raw, 0, raw.Length);
 
-            string filePath = Path.Combine(outputDir, $"TerrainHeights_{districtId}.bytes");
+            string districtDir = Path.Combine(districtsBaseDir, $"{districtId}");
+            Directory.CreateDirectory(districtDir);
+            string filePath = Path.Combine(districtDir, "TerrainHeights.bytes");
             File.WriteAllBytes(filePath, raw);
 
             Debug.Log($"[TerrainBaker] {district} ({districtId}) 완료 — {heights.Length:N0}개 건물 저장 ({raw.Length / 1024} KB)");
@@ -174,6 +175,6 @@ public class BakeTerrainHeightsWindow : EditorWindow
         _isBaking = false;
         Repaint();
 
-        Debug.Log("[TerrainBaker] 지형 높이 사전 계산 전체 완료. Resources/Districts/ 폴더를 확인하세요.");
+        Debug.Log("[TerrainBaker] 지형 높이 사전 계산 전체 완료. Resources/Districts/{districtId}/ 폴더를 확인하세요.");
     }
 }

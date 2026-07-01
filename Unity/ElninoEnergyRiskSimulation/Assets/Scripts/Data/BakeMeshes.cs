@@ -1,9 +1,11 @@
 using System;
 using System.Collections;
 using System.IO;
+using System.Threading.Tasks;
 using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
+using UnityMeshSimplifier;
 
 /// <summary>
 /// 구역 메시를 타일 분할 + LOD 포함해서 .mesh 에셋으로 사전 계산하는 에디터 도구.
@@ -13,7 +15,7 @@ using UnityEngine;
 ///   2. 플레이 모드 실행
 ///   3. Tools > Bake District Meshes 열기
 ///   4. 씬에서 자동 탐색 → 메시 굽기 시작
-///   5. 완료 후 Assets/Resources/Districts/Meshes/ 에 .mesh 파일 생성됨
+///   5. 완료 후 Assets/Resources/Districts/{districtId}/Meshes/ 에 .mesh 파일 생성됨
 ///
 /// 런타임에서는 C++ DLL 호출 없이 Resources.Load<Mesh>() 로만 로드된다.
 /// </summary>
@@ -30,7 +32,7 @@ public class BakeMeshesWindow : EditorWindow
     private float _lod1Quality = 0.25f;
     private float _lod2Quality = 0.05f;
 
-    private const string AssetOutputDir = "Assets/Resources/Districts/Meshes";
+    private const string AssetBaseDir = "Assets/Resources/Districts";
 
     [MenuItem("Tools/Bake District Meshes")]
     static void ShowWindow() =>
@@ -45,7 +47,7 @@ public class BakeMeshesWindow : EditorWindow
             "각 구의 건물 메시를 타일 분할 + LOD 포함해 .mesh 에셋으로 미리 저장합니다.\n" +
             "한 번만 실행하면 런타임에서 C++ DLL 호출 없이 즉시 로드됩니다.\n\n" +
             "⚠ 'Tools > Bake Terrain Heights' 가 먼저 완료되어야 합니다.\n\n" +
-            $"출력 경로: {AssetOutputDir}/{{districtId}}_{{tx}}_{{ty}}_LOD{{0~2}}.mesh",
+            $"출력 경로: {AssetBaseDir}/{{districtId}}/Meshes/{{tx}}_{{ty}}_LOD{{0~2}}.mesh",
             MessageType.Info);
 
         EditorGUILayout.Space(4);
@@ -104,91 +106,116 @@ public class BakeMeshesWindow : EditorWindow
         DistrictType[] allDistricts = (DistrictType[])Enum.GetValues(typeof(DistrictType));
         _total = allDistricts.Length - 1; // DistrictType.None 제외
 
-        // 출력 폴더 생성
-        string sysDir = Path.Combine(Application.dataPath, "Resources", "Districts", "Meshes");
-        Directory.CreateDirectory(sysDir);
+        // 출력 루트 폴더 (구별 서브폴더는 루프 안에서 생성)
+        string sysBaseDir = Path.Combine(Application.dataPath, "Resources", "Districts");
 
-        foreach (DistrictType district in allDistricts)
+        // 에셋 임포트를 마지막에 한 번에 처리 (CreateAsset 호출마다 reimport 방지)
+        AssetDatabase.StartAssetEditing();
+        try
         {
-            if (district == DistrictType.None) continue;
-
-            int districtId = (int)district;
-
-            // ── 1. 사전 계산된 지형 높이 로드 ─────────────────────────
-            _status = $"[{district}] 지형 높이 로드 중...";
-            Repaint();
-            yield return null;
-
-            TextAsset heightFile = Resources.Load<TextAsset>($"Districts/TerrainHeights_{districtId}");
-            if (heightFile == null)
+            foreach (DistrictType district in allDistricts)
             {
-                Debug.LogWarning($"[MeshBaker] {district}: TerrainHeights_{districtId}.bytes 없음 — " +
-                                 "'Tools > Bake Terrain Heights' 를 먼저 실행하세요. 건너뜁니다.");
-                _progress++;
-                yield return null;
-                continue;
-            }
+                if (district == DistrictType.None) continue;
 
-            float[] heights = new float[heightFile.bytes.Length / sizeof(float)];
-            Buffer.BlockCopy(heightFile.bytes, 0, heights, 0, heightFile.bytes.Length);
+                int districtId = (int)district;
 
-            // ── 2. C++ → Unity Mesh 빌드 ──────────────────────────────
-            _status = $"[{district}] C++ 메시 빌드 중...";
-            Repaint();
-            yield return null;
-
-            Mesh fullMesh = _buildingManager.BuildAndGetDistrictMesh(districtId, heights);
-            if (fullMesh == null)
-            {
-                Debug.LogWarning($"[MeshBaker] {district}: 메시 빌드 결과 없음 — 건너뜁니다.");
-                _progress++;
-                yield return null;
-                continue;
-            }
-
-            // ── 3. 타일 분할 ──────────────────────────────────────────
-            _status = $"[{district}] 타일 분할 중 ({_tileN}×{_tileN})...";
-            Repaint();
-            yield return null;
-
-            double3[] positions   = _buildingManager.GetBuildingPositionsForBaking(districtId);
-            int       bufferStart = _buildingManager.GetDistrictBufferStart(districtId);
-
-            var tiles = MeshTileBuilder.SplitIntoTiles(fullMesh, positions, bufferStart, _tileN);
-
-            // fullMesh 는 타일로 쪼갰으므로 해제 (에셋으로 저장하지 않음)
-            UnityEngine.Object.DestroyImmediate(fullMesh);
-
-            // ── 4. 타일별 LOD 생성 & .mesh 에셋 저장 ──────────────────
-            for (int i = 0; i < tiles.Count; i++)
-            {
-                var (tileMesh, tx, ty) = tiles[i];
-
-                _status = $"[{district}] 타일 ({tx},{ty}) LOD 생성 및 저장 중... ({i + 1}/{tiles.Count})";
+                // ── 1. 사전 계산된 지형 높이 로드 ─────────────────────────
+                _status = $"[{district}] 지형 높이 로드 중...";
                 Repaint();
+                yield return null;
 
-                // LOD0 — 원본 타일 메시
-                SaveMeshAsset(tileMesh, districtId, tx, ty, 0);
+                // 구별 메시 출력 폴더 생성
+                Directory.CreateDirectory(Path.Combine(sysBaseDir, $"{districtId}", "Meshes"));
 
-                // LOD1 — 삼각형 lod1Quality 비율 유지
-                Mesh lod1 = MeshTileBuilder.GenerateLODMesh(tileMesh, _lod1Quality);
-                SaveMeshAsset(lod1, districtId, tx, ty, 1);
+                TextAsset heightFile = Resources.Load<TextAsset>($"Districts/{districtId}/TerrainHeights");
+                if (heightFile == null)
+                {
+                    Debug.LogWarning($"[MeshBaker] {district}: TerrainHeights_{districtId}.bytes 없음 — " +
+                                     "'Tools > Bake Terrain Heights' 를 먼저 실행하세요. 건너뜁니다.");
+                    _progress++;
+                    yield return null;
+                    continue;
+                }
 
-                // LOD2 — 삼각형 lod2Quality 비율 유지
-                Mesh lod2 = MeshTileBuilder.GenerateLODMesh(tileMesh, _lod2Quality);
-                SaveMeshAsset(lod2, districtId, tx, ty, 2);
+                float[] heights = new float[heightFile.bytes.Length / sizeof(float)];
+                Buffer.BlockCopy(heightFile.bytes, 0, heights, 0, heightFile.bytes.Length);
 
-                yield return null; // 프레임 양보 (UI 갱신)
+                // ── 2. C++ → Unity Mesh 빌드 ──────────────────────────────
+                _status = $"[{district}] C++ 메시 빌드 중...";
+                Repaint();
+                yield return null;
+
+                Mesh fullMesh = _buildingManager.BuildAndGetDistrictMesh(districtId, heights);
+                if (fullMesh == null)
+                {
+                    Debug.LogWarning($"[MeshBaker] {district}: 메시 빌드 결과 없음 — 건너뜁니다.");
+                    _progress++;
+                    yield return null;
+                    continue;
+                }
+
+                // ── 3. 타일 분할 ──────────────────────────────────────────
+                _status = $"[{district}] 타일 분할 중 ({_tileN}×{_tileN})...";
+                Repaint();
+                yield return null;
+
+                double3[] positions   = _buildingManager.GetBuildingPositionsForBaking(districtId);
+                int       bufferStart = _buildingManager.GetDistrictBufferStart(districtId);
+
+                var tiles = MeshTileBuilder.SplitIntoTiles(fullMesh, positions, bufferStart, _tileN);
+
+                // fullMesh 는 타일로 쪼갰으므로 해제 (에셋으로 저장하지 않음)
+                UnityEngine.Object.DestroyImmediate(fullMesh);
+
+                // ── 4. 타일별 LOD 생성 & .mesh 에셋 저장 ──────────────────
+                for (int i = 0; i < tiles.Count; i++)
+                {
+                    var (tileMesh, tx, ty) = tiles[i];
+
+                    _status = $"[{district}] 타일 ({tx},{ty}) LOD 생성 및 저장 중... ({i + 1}/{tiles.Count})";
+                    Repaint();
+
+                    string meshDir = $"{AssetBaseDir}/{districtId}/Meshes";
+
+                    // LOD0 — 원본 타일 메시
+                    SaveMeshAsset(tileMesh, meshDir, tx, ty, 0);
+
+                    // LOD1, LOD2 — 메인 스레드에서 Initialize 후 백그라운드에서 병렬 계산
+                    var s1 = new MeshSimplifier();
+                    s1.Initialize(tileMesh);
+                    var s2 = new MeshSimplifier();
+                    s2.Initialize(tileMesh);
+
+                    var simplifyTask = Task.WhenAll(
+                        Task.Run(() => s1.SimplifyMesh(Mathf.Clamp01(_lod1Quality))),
+                        Task.Run(() => s2.SimplifyMesh(Mathf.Clamp01(_lod2Quality)))
+                    );
+                    yield return new WaitUntil(() => simplifyTask.IsCompleted);
+
+                    Mesh lod1 = s1.ToMesh(); lod1.RecalculateBounds();
+                    Mesh lod2 = s2.ToMesh(); lod2.RecalculateBounds();
+                    SaveMeshAsset(lod1, meshDir, tx, ty, 1);
+                    SaveMeshAsset(lod2, meshDir, tx, ty, 2);
+
+                    yield return null; // 프레임 양보 (UI 갱신)
+                }
+
+                // 마커 파일 저장 — bytes[0] = tileN (런타임 TrySpawnFromBakedMeshes에서 읽음)
+                SaveMarkerFile(districtId, (byte)_tileN);
+
+                Debug.Log($"[MeshBaker] {district} ({districtId}) 완료 — {tiles.Count}개 타일 × 3 LOD 저장");
+                _status = $"[{district}] 완료 ({tiles.Count}개 타일)";
+                _progress++;
+                Repaint();
+                yield return null;
             }
-
-            Debug.Log($"[MeshBaker] {district} ({districtId}) 완료 — {tiles.Count}개 타일 × 3 LOD 저장");
-            _status = $"[{district}] 완료 ({tiles.Count}개 타일)";
-            _progress++;
-            Repaint();
-            yield return null;
+        }
+        finally
+        {
+            // 예외 발생 시에도 반드시 해제 (미해제 시 에디터 임포트 파이프라인 잠김)
+            AssetDatabase.StopAssetEditing();
         }
 
-        // Unity 에셋 DB 갱신
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
 
@@ -197,8 +224,23 @@ public class BakeMeshesWindow : EditorWindow
         Repaint();
 
         Debug.Log("[MeshBaker] 메시 사전 계산 완료. " +
-                  "Assets/Resources/Districts/Meshes/ 폴더를 확인하세요.\n" +
+                  "Assets/Resources/Districts/{districtId}/Meshes/ 폴더를 확인하세요.\n" +
                   "이제 런타임에서 C++ DLL 없이 즉시 로드됩니다.");
+    }
+
+    /// <summary>
+    /// 런타임이 tileN 을 알 수 있도록 마커 .bytes 파일을 저장한다.
+    /// bytes[0] = tileN
+    /// </summary>
+    private static void SaveMarkerFile(int districtId, byte tileN)
+    {
+        string assetPath = $"{AssetBaseDir}/{districtId}/Meshes/baked.bytes";
+        string sysPath   = Path.Combine(
+            Application.dataPath, "Resources", "Districts",
+            $"{districtId}", "Meshes", "baked.bytes");
+
+        File.WriteAllBytes(sysPath, new[] { tileN });
+        AssetDatabase.ImportAsset(assetPath);
     }
 
     /// <summary>
@@ -207,9 +249,9 @@ public class BakeMeshesWindow : EditorWindow
     /// CreateAsset 호출 이후 mesh 소유권은 AssetDatabase 로 넘어가므로
     /// 호출자는 이후 해당 mesh 를 DestroyImmediate 해서는 안 된다.
     /// </summary>
-    private static void SaveMeshAsset(Mesh mesh, int districtId, int tx, int ty, int lodLevel)
+    private static void SaveMeshAsset(Mesh mesh, string meshDir, int tx, int ty, int lodLevel)
     {
-        string path = $"{AssetOutputDir}/{districtId}_{tx}_{ty}_LOD{lodLevel}.mesh";
+        string path = $"{meshDir}/{tx}_{ty}_LOD{lodLevel}.mesh";
 
         if (AssetDatabase.LoadAssetAtPath<Mesh>(path) != null)
             AssetDatabase.DeleteAsset(path);

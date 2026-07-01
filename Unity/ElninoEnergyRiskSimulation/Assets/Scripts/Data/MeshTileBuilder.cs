@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Rendering;
-// using UnityMeshSimplifier;
+using UnityMeshSimplifier;  
 
 /// <summary>
 /// 구역 메시를 공간 타일로 분할하고 LOD 메시를 생성하는 유틸리티.
@@ -158,12 +158,12 @@ public static class MeshTileBuilder
     /// <param name="quality">유지할 삼각형 비율 (0~1, 예: 0.25 → 삼각형 25%만 유지)</param>
     public static Mesh GenerateLODMesh(Mesh source, float quality)
     {
-        //var simplifier = new MeshSimplifier();
-        //simplifier.Initialize(source);
-        //simplifier.SimplifyMesh(Mathf.Clamp01(quality));
+        var simplifier = new MeshSimplifier();
+        simplifier.Initialize(source);
+        simplifier.SimplifyMesh(Mathf.Clamp01(quality));
 
-        //Mesh lod = simplifier.ToMesh();
-        //lod.RecalculateBounds();
-        //return lod;
+        Mesh lod = simplifier.ToMesh();
+        lod.RecalculateBounds();
+        return lod;
     }
 }

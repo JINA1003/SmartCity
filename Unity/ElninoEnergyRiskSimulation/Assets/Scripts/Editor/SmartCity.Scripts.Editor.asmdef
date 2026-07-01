@@ -3,8 +3,7 @@
     "rootNamespace": "",
     "references": [
         "SmartCity.Scripts",
-        "UnityEditor.UI",
-        "Whinarn.UnityMeshSimplifier.Runtime"
+        "UnityEditor.UI"
     ],
     "includePlatforms": [
         "Editor"
