@@ -409,38 +409,7 @@ def blackout_simulation():
         "districts_order":    districts_order,
     })
 
-## --------- 추가 ------------
-@app.get("/weather/current")
-def weather_current():
-    """
-    실시간 서울 기상 데이터.
-    GET /weather/current
-    GET /weather/current?stn=108
-    """
-    try:
-        stn = int(request.args.get("stn", 108))
-    except ValueError:
-        return jsonify({"error": "stn은 숫자여야 합니다."}), 400
-
-    try:
-        from python.loader.current_weather_loader import load_current_weather
-
-        weather = load_current_weather()
-
-        return jsonify({
-            "status": "ok",
-            "weather": weather
-        })
-
-    except Exception as e:
-        return jsonify({
-            "status": "error",
-            "message": str(e)
-        }), 500
-
 
 if __name__ == "__main__":
     port = int(os.getenv("FLASK_PORT", 5001))
     app.run(host="0.0.0.0", port=port, debug=True)
-
-
