@@ -467,7 +467,7 @@ reduction_need_draft = 용도정규화사용률 × 공급위험도
 ### 1) 기후 변수 특성 분석
 
 <p align="center">
-  <img src="data/output/chart1.png" width="700">
+  <img src="data/img/chart1.png" width="700">
 </p>
 
 - 평균기온: 0~30℃, 여름철 데이터 집중
@@ -477,7 +477,7 @@ reduction_need_draft = 용도정규화사용률 × 공급위험도
 ### 2) 연도별 CDD · HDD · THI 변화
 
 <p align="center">
-  <img src="data/output/chart2.png" width="900">
+  <img src="data/img/chart2.png" width="900">
 </p>
 
 - CDD 장기 증가 → 냉방 수요 지속 증가
@@ -487,7 +487,7 @@ reduction_need_draft = 용도정규화사용률 × 공급위험도
 ### 3) 자치구별 CDD / HDD
 
 <p align="center">
-  <img src="data/output/chart3.png" width="900">
+  <img src="data/img/chart3.png" width="900">
 </p>
 
 - CDD 높은 구: 강남·송파·광진 (도심 열섬)
@@ -496,7 +496,7 @@ reduction_need_draft = 용도정규화사용률 × 공급위험도
 ### 4) 연도·월별 전력수요 및 공급예비율
 
 <p align="center">
-  <img src="data/output/chart4.png" width="900">
+  <img src="data/img/chart4.png" width="900">
 </p>
 
 - 7~8월 수요 최고 + 예비율 최저 → 전력 취약 시기
@@ -504,7 +504,7 @@ reduction_need_draft = 용도정규화사용률 × 공급위험도
 ### 5) 자치구별 전력 수요 분포
 
 <p align="center">
-  <img src="data/output/chart5.png" width="500">
+  <img src="data/img/chart5.png" width="500">
 </p>
 
 - 강남 > 서초 > 송파 > 영등포 순
@@ -512,7 +512,7 @@ reduction_need_draft = 용도정규화사용률 × 공급위험도
 ### 6) ENSO ONI 장기 변동
 
 <p align="center">
-  <img src="data/output/chart6.png" width="700">
+  <img src="data/img/chart6.png" width="700">
 </p>
 
 - ONI 자체는 장기 추세 없이 주기적 변동
@@ -520,7 +520,7 @@ reduction_need_draft = 용도정규화사용률 × 공급위험도
 ### 7) 전력사용량 ↔ 기후 변수 상관
 
 <p align="center">
-  <img src="data/output/chart7.png" width="900">
+  <img src="data/img/chart7.png" width="900">
 </p>
 
 - CDD가 전력수요와 가장 높은 상관 (r=0.46)
