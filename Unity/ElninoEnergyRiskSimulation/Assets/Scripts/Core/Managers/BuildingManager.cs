@@ -80,12 +80,8 @@ public class BuildingManager : MonoBehaviour
     private Coroutine blackoutCoroutine;
 
     [Header("LOD 전환 설정")]
-    [Tooltip("LOD0→LOD1 전환 화면 비율 (화면 높이 대비 오브젝트 크기)")]
-    [SerializeField] private float lod0ScreenSize = 0.05f;
-    [Tooltip("LOD1→LOD2 전환 화면 비율")]
-    [SerializeField] private float lod1ScreenSize = 0.01f;
-    [Tooltip("LOD2→컬링 전환 화면 비율 (이 크기 이하에서는 렌더링 안 함)")]
-    [SerializeField] private float lod2ScreenSize = 0.001f;
+    [Tooltip("컬링 전환 화면 비율 (이 크기 이하에서는 렌더링 안 함)")]
+    [SerializeField] private float lodCullScreenSize = 0.001f;
 
     public void FlushBufferToGPU()
     {
@@ -228,7 +224,7 @@ public class BuildingManager : MonoBehaviour
 
             var spawnTask = SpawnDistrictChunkAsync(districtId);
             yield return new WaitUntil(() => spawnTask.IsCompleted);
-            // break; // 한 번에 하나씩 처리
+            break; // 한 번에 하나씩 처리
         }
         //var spawnTask = SpawnDistrictChunkAsync(11680);
         //yield return new WaitUntil(() => spawnTask.IsCompleted);
@@ -412,33 +408,13 @@ public class BuildingManager : MonoBehaviour
                 Mesh lod0 = Resources.Load<Mesh>($"Districts/{districtId}/Meshes/{tx}_{ty}_LOD0");
                 if (lod0 == null) continue; // 해당 타일에 건물 없으면 스킵
 
-                Mesh lod1 = Resources.Load<Mesh>($"Districts/{districtId}/Meshes/{tx}_{ty}_LOD1");
-                Mesh lod2 = Resources.Load<Mesh>($"Districts/{districtId}/Meshes/{tx}_{ty}_LOD2");
-
                 GameObject tileRoot = new GameObject($"Tile_{tx}_{ty}");
                 tileRoot.transform.SetParent(chunkRoot.transform, false);
 
                 Renderer r0 = CreateLODChild(tileRoot, lod0, "LOD0");
 
-                LOD[] lods;
-                if (lod1 != null && lod2 != null)
-                {
-                    Renderer r1 = CreateLODChild(tileRoot, lod1, "LOD1");
-                    Renderer r2 = CreateLODChild(tileRoot, lod2, "LOD2");
-                    lods = new[]
-                    {
-                        new LOD(lod0ScreenSize, new[] { r0 }),
-                        new LOD(lod1ScreenSize, new[] { r1 }),
-                        new LOD(lod2ScreenSize, new[] { r2 }),
-                    };
-                }
-                else
-                {
-                    lods = new[] { new LOD(lod0ScreenSize, new[] { r0 }) };
-                }
-
                 LODGroup lodGroup = tileRoot.AddComponent<LODGroup>();
-                lodGroup.SetLODs(lods);
+                lodGroup.SetLODs(new[] { new LOD(lodCullScreenSize, new[] { r0 }) });
                 lodGroup.RecalculateBounds();
             }
         }

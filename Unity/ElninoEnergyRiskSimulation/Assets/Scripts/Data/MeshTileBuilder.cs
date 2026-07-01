@@ -3,14 +3,9 @@ using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityMeshSimplifier;  
 
 /// <summary>
-/// 구역 메시를 공간 타일로 분할하고 LOD 메시를 생성하는 유틸리티.
-///
-/// 흐름:
-///   1. SplitIntoTiles() — 전체 구역 메시를 N×N 격자 타일로 분할
-///   2. GenerateLODMesh() — 각 타일 메시를 품질별로 단순화해 LOD 버전 생성
+/// 구역 메시를 공간 타일로 분할하는 유틸리티.
 /// </summary>
 public static class MeshTileBuilder
 {
@@ -150,20 +145,4 @@ public static class MeshTileBuilder
         return newLocal;
     }
 
-    /// <summary>
-    /// 메시를 지정한 품질 비율로 단순화한 LOD 메시를 생성한다.
-    /// UnityMeshSimplifier 패키지 사용.
-    /// </summary>
-    /// <param name="source">원본 메시</param>
-    /// <param name="quality">유지할 삼각형 비율 (0~1, 예: 0.25 → 삼각형 25%만 유지)</param>
-    public static Mesh GenerateLODMesh(Mesh source, float quality)
-    {
-        var simplifier = new MeshSimplifier();
-        simplifier.Initialize(source);
-        simplifier.SimplifyMesh(Mathf.Clamp01(quality));
-
-        Mesh lod = simplifier.ToMesh();
-        lod.RecalculateBounds();
-        return lod;
-    }
 }

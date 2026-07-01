@@ -1,11 +1,9 @@
 using System;
 using System.Collections;
 using System.IO;
-using System.Threading.Tasks;
 using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
-using UnityMeshSimplifier;
 
 /// <summary>
 /// 구역 메시를 타일 분할 + LOD 포함해서 .mesh 에셋으로 사전 계산하는 에디터 도구.
@@ -28,9 +26,7 @@ public class BakeMeshesWindow : EditorWindow
     private int    _total;
 
     // 베이킹 파라미터 (BuildingManager Inspector 값과 일치시킬 것)
-    private int   _tileN       = 3;
-    private float _lod1Quality = 0.25f;
-    private float _lod2Quality = 0.05f;
+    private int _tileN = 3;
 
     private const string AssetBaseDir = "Assets/Resources/Districts";
 
@@ -64,9 +60,7 @@ public class BakeMeshesWindow : EditorWindow
         EditorGUILayout.LabelField("베이킹 설정", EditorStyles.boldLabel);
         EditorGUILayout.HelpBox("아래 값은 BuildingManager Inspector의 '서브청크 & LOD 설정' 값과 동일하게 맞추세요.", MessageType.None);
 
-        _tileN       = EditorGUILayout.IntField(new GUIContent("타일 분할 (N×N)", "구역 메시를 N×N 격자로 분할"), _tileN);
-        _lod1Quality = EditorGUILayout.Slider(new GUIContent("LOD1 품질", "삼각형 유지 비율 (0.25 = 25%)"), _lod1Quality, 0.01f, 1f);
-        _lod2Quality = EditorGUILayout.Slider(new GUIContent("LOD2 품질", "삼각형 유지 비율 (0.05 = 5%)"), _lod2Quality, 0.01f, 1f);
+        _tileN = EditorGUILayout.IntField(new GUIContent("타일 분할 (N×N)", "구역 메시를 N×N 격자로 분할"), _tileN);
 
         EditorGUILayout.Space(4);
 
@@ -180,22 +174,6 @@ public class BakeMeshesWindow : EditorWindow
                     // LOD0 — 원본 타일 메시
                     SaveMeshAsset(tileMesh, meshDir, tx, ty, 0);
 
-                    // LOD1, LOD2 — 메인 스레드에서 Initialize 후 백그라운드에서 병렬 계산
-                    var s1 = new MeshSimplifier();
-                    s1.Initialize(tileMesh);
-                    var s2 = new MeshSimplifier();
-                    s2.Initialize(tileMesh);
-
-                    var simplifyTask = Task.WhenAll(
-                        Task.Run(() => s1.SimplifyMesh(Mathf.Clamp01(_lod1Quality))),
-                        Task.Run(() => s2.SimplifyMesh(Mathf.Clamp01(_lod2Quality)))
-                    );
-                    yield return new WaitUntil(() => simplifyTask.IsCompleted);
-
-                    Mesh lod1 = s1.ToMesh(); lod1.RecalculateBounds();
-                    Mesh lod2 = s2.ToMesh(); lod2.RecalculateBounds();
-                    SaveMeshAsset(lod1, meshDir, tx, ty, 1);
-                    SaveMeshAsset(lod2, meshDir, tx, ty, 2);
 
                     yield return null; // 프레임 양보 (UI 갱신)
                 }
