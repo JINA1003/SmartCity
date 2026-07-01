@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -7,13 +6,17 @@ using UnityEngine.UI;
 
 public class UIController : MonoBehaviour
 {
-    [Header("UI Elements")]
-    [SerializeField] private TMP_Dropdown yearDropdown;
-    [SerializeField] private TMP_Dropdown monthDropdown;
-    [SerializeField] private GameObject oniSliderPanel; // Panel_ONI_Scroll 전체
+    [Header("Date Picker")]
+    [SerializeField] private SimulationDatePicker datePicker;
+
+    [Header("ONI Slider")]
+    [SerializeField] private GameObject oniSliderPanel;
     [SerializeField] private Slider oniSlider;
     [SerializeField] private TMP_Text oniTypeText;  // 중립 / 라니냐 / 엘니뇨
     [SerializeField] private TMP_Text oniNumText;   // 0.0
+
+    [Header("Simulation")]
+    [SerializeField] private GameObject simulationStartButton;
 
     // 연월 드롭다운 변경 → /oni && /predict/oni_range 호출 트리거
     public event Action<string, string> OnDateSelected;
@@ -24,22 +27,136 @@ public class UIController : MonoBehaviour
     // 슬라이더 버튼 뗄 때 → /predict 재호출 트리거 (ONI 값 전달)
     public event Action<float> OnOniSliderReleased;
 
+    // ONI 패널 표시 여부 변경
+    public event Action<bool> OnOniPanelVisibilityChanged;
+
+    public bool IsOniPanelVisible { get; private set; }
+
+    // SimulationDatePicker는 카드/팝업에서 고른 값만 알려주고(OnYearPicked/OnMonthPicked),
+    // 연+월이 모두 채워졌는지 판단해 확정하는 것은 UIController가 담당한다.
+    private int? _year;
+    private int? _month;
+    private bool _sliderWired;
+
     private void Awake()
     {
-        BuildDropdownOptions();
+        ResolveReferences();
 
-        // 옵션 세팅 후 리스너 등록 — Awake에서 AddListener하면 BuildDropdownOptions의
-        // value 변경이 onValueChanged를 트리거하지 않음 (리스너 없는 상태에서 설정)
-        yearDropdown.onValueChanged.AddListener(_ => NotifyDateSelected());
-        monthDropdown.onValueChanged.AddListener(_ => NotifyDateSelected());
+        if (datePicker != null)
+        {
+            datePicker.OnYearPicked += HandleYearPicked;
+            datePicker.OnMonthPicked += HandleMonthPicked;
+        }
 
-        // 슬라이더: 드래그 중 ONI 타입/수치 실시간 표시 + 차트 수직선 이벤트
-        oniSlider.onValueChanged.AddListener(v => { UpdateOniDisplay(v); OnOniValueChanged?.Invoke(v); });
+        EnsureSliderWired();
+        EnsureSimulationStartButton();
+    }
 
-        var trigger = oniSlider.gameObject.AddComponent<EventTrigger>();
+    private void ResolveReferences()
+    {
+        if (datePicker == null)
+            datePicker = FindFirstObjectByType<SimulationDatePicker>();
+
+        if (oniSliderPanel == null)
+            oniSliderPanel = FindUiObject("Panel_ONI_Adjust");
+
+        if (oniSlider == null)
+        {
+            GameObject sliderPanel = FindUiObject("Panel_ONI_Slider");
+            if (sliderPanel != null)
+                oniSlider = sliderPanel.GetComponentInChildren<Slider>(true);
+        }
+
+        if (oniNumText == null)
+        {
+            GameObject sliderPanel = FindUiObject("Panel_ONI_Slider");
+            if (sliderPanel != null)
+            {
+                foreach (TMP_Text text in sliderPanel.GetComponentsInChildren<TMP_Text>(true))
+                {
+                    if (text.name.Contains("Num"))
+                    {
+                        oniNumText = text;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (oniTypeText == null)
+        {
+            GameObject sliderPanel = FindUiObject("Panel_ONI_Slider");
+            if (sliderPanel != null)
+            {
+                foreach (TMP_Text text in sliderPanel.GetComponentsInChildren<TMP_Text>(true))
+                {
+                    if (text.name.Contains("Type") || text.name.Contains("Label"))
+                    {
+                        oniTypeText = text;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    private void EnsureSliderWired()
+    {
+        if (_sliderWired || oniSlider == null)
+            return;
+
+        oniSlider.onValueChanged.AddListener(v =>
+        {
+            UpdateOniDisplay(v);
+            OnOniValueChanged?.Invoke(v);
+        });
+
+        var trigger = oniSlider.gameObject.GetComponent<EventTrigger>();
+        if (trigger == null)
+            trigger = oniSlider.gameObject.AddComponent<EventTrigger>();
+
+        for (int i = trigger.triggers.Count - 1; i >= 0; i--)
+        {
+            if (trigger.triggers[i].eventID == EventTriggerType.PointerUp)
+                trigger.triggers.RemoveAt(i);
+        }
+
         var entry = new EventTrigger.Entry { eventID = EventTriggerType.PointerUp };
         entry.callback.AddListener(_ => OnOniSliderReleased?.Invoke(oniSlider.value));
         trigger.triggers.Add(entry);
+        _sliderWired = true;
+    }
+
+    private void EnsureSimulationStartButton()
+    {
+        if (simulationStartButton == null)
+            simulationStartButton = FindUiObject("Btn_BlakcoutSimulation");
+
+        if (simulationStartButton != null &&
+            simulationStartButton.GetComponent<RollingBlackoutStartButton>() == null)
+        {
+            simulationStartButton.AddComponent<RollingBlackoutStartButton>();
+        }
+    }
+
+    private static GameObject FindUiObject(string objectName)
+    {
+        foreach (Transform target in FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            if (target.name == objectName)
+                return target.gameObject;
+        }
+
+        return null;
+    }
+
+    private void OnDestroy()
+    {
+        if (datePicker != null)
+        {
+            datePicker.OnYearPicked -= HandleYearPicked;
+            datePicker.OnMonthPicked -= HandleMonthPicked;
+        }
     }
 
     private void Start()
@@ -53,60 +170,74 @@ public class UIController : MonoBehaviour
     // DataManager에서 /oni 응답 후 호출 — 슬라이더 값 설정 및 활성화
     public void InitSlider(float oniValue, float min = -2.5f, float max = 2.5f)
     {
-        oniSlider.minValue = min;
-        oniSlider.maxValue = max;
-        oniSlider.value    = oniValue;
-        UpdateOniDisplay(oniValue);
+        ResolveReferences();
+        EnsureSliderWired();
+
+        if (oniSlider != null)
+        {
+            oniSlider.minValue = min;
+            oniSlider.maxValue = max;
+            oniSlider.value = oniValue;
+            UpdateOniDisplay(oniValue);
+        }
+
         SetSliderActive(true);
+        datePicker?.SetStatusLoaded(true);
     }
 
     private void UpdateOniDisplay(float value)
     {
-        if (oniNumText  != null) oniNumText.text  = value.ToString("F1");
-        if (oniTypeText != null) oniTypeText.text  = OniToType(value);
+        if (oniNumText != null) oniNumText.text = value.ToString("F1");
+        if (oniTypeText != null) oniTypeText.text = OniToType(value);
     }
 
     private static string OniToType(float v)
     {
         if (v <= -0.5f) return "라니냐";
-        if (v >=  0.5f) return "엘니뇨";
+        if (v >= 0.5f) return "엘니뇨";
         return "중립";
     }
 
-    public string GetSelectedYear()  => yearDropdown.options[yearDropdown.value].text;
-    public string GetSelectedMonth() => monthDropdown.options[monthDropdown.value].text;
+    public string GetSelectedYear() => _year?.ToString();
+    public string GetSelectedMonth() => _month?.ToString();
     public float GetCurrentOni() => oniSlider != null ? oniSlider.value : 0f;
 
-    private void NotifyDateSelected()
+    private void HandleYearPicked(int year)
     {
-        // placeholder(index=0) 상태면 API 호출 안 함
-        if (yearDropdown.value == 0 || monthDropdown.value == 0) return;
+        _year = year;
+        TryCommit();
+    }
+
+    private void HandleMonthPicked(int month)
+    {
+        _month = month;
+        TryCommit();
+    }
+
+    private void TryCommit()
+    {
+        if (!_year.HasValue || !_month.HasValue) return;
 
         SetSliderActive(false);
-        OnDateSelected?.Invoke(GetSelectedYear(), GetSelectedMonth());
+        OnDateSelected?.Invoke(_year.Value.ToString(), _month.Value.ToString());
     }
 
     private void SetSliderActive(bool active)
     {
+        IsOniPanelVisible = active;
+
         if (oniSliderPanel != null)
+        {
             oniSliderPanel.SetActive(active);
-        else
+            if (active)
+                oniSliderPanel.transform.SetAsLastSibling();
+        }
+        else if (oniSlider != null)
             oniSlider.gameObject.SetActive(active);
-        oniSlider.interactable = active;
-    }
 
-    private void BuildDropdownOptions()
-    {
-        yearDropdown.ClearOptions();
-        var years = new List<string> { "연도 선택" };
-        for (int y = 2005; y <= 2040; y++) years.Add(y.ToString());
-        yearDropdown.AddOptions(years);
-        yearDropdown.value = 0;
+        if (oniSlider != null)
+            oniSlider.interactable = active;
 
-        monthDropdown.ClearOptions();
-        var months = new List<string> { "월 선택" };
-        for (int m = 1; m <= 12; m++) months.Add(m.ToString());
-        monthDropdown.AddOptions(months);
-        monthDropdown.value = 0;
+        OnOniPanelVisibilityChanged?.Invoke(active);
     }
 }

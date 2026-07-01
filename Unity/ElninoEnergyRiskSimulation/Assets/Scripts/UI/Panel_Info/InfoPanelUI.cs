@@ -1,149 +1,280 @@
+using System.Collections.Generic;
+using Newtonsoft.Json.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class InfoPanelUI : MonoBehaviour
 {
-    [Header("상단 정보 패널")]
-    public GameObject Panel_Info;              // 켜고 끌 상단 인포 패널 루트 오브젝트
+    [Header("HUD")]
+    public GameObject Panel_HUD_Info;
+    public GameObject Panel_HUD_Status;
+    public TMP_Text Text_Date_Info;
+    public TMP_Text Text_Temperature_Info;
+    public TMP_Text Text_Emergency_Value;
+    public Image Img_Emergency_Dot;
 
-    public TMP_Text Text_Date_Info;            // 선택한 예측 연월 표시
-    public TMP_Text Text_Temperature_Info;     // predicted.asos_temp, 서울 전체 평균 기온 표시
-    public TMP_Text Text_Emergency;            // 경보 라벨 제목 텍스트
-    public TMP_Text Text_Emergency_Value;      // 경보 단계 값(정상/관심/주의/경계/심각)
-    public Image Img_Emergency_Dot;            // 경보 단계에 따라 색이 바뀌는 상태 점
-    public TMP_Text Text_Info_ONIType;         // ONI 상태(엘니뇨/라니냐/중립)
-    public TMP_Text Text_Info_ONINum;          // ONI 수치
+    [Header("데이터")]
+    [SerializeField] private DataManager dataManager;
+    [SerializeField] private UIController uiController;
 
-    private string cachedDateText;             // 같은 값 반복 갱신 방지용 날짜 캐시
-    private string cachedTemperatureText;      // 같은 값 반복 갱신 방지용 기온 캐시
-    private string cachedEmergencyStage;       // 같은 값 반복 갱신 방지용 경보 단계 캐시
-    private string cachedOniType;              // 같은 값 반복 갱신 방지용 ONI 상태 캐시
-    private string cachedOniValueText;         // 같은 값 반복 갱신 방지용 ONI 수치 캐시
+    private bool _hasPredictContext;
+    private PowerGridData _latestPowerData;
+    private readonly List<OniRangeData> _oniRangeEntries = new();
+    private string cachedTemperatureText;
+    private string cachedEmergencyStage;
+    private int _currentStageLevel = -1;
 
     private void Awake()
     {
-        ResolveReferences();                   // 씬 시작 시 인스펙터 연결 누락을 보정
+        if (dataManager == null)
+            dataManager = FindFirstObjectByType<DataManager>();
+        if (uiController == null)
+            uiController = FindFirstObjectByType<UIController>();
+
+        ResolveReferences();
+        ApplyReserveStage(ReserveRateStagePalette.DefaultReserveRate, force: true);
     }
 
-    // 날짜 데이터가 들어오면 인포 패널을 켜고 상단 정보를 갱신합니다.
-    public void SetInfo(string dateText, string temperatureText, string emergencyStage, string oniType, string oniValueText)
+    private void OnEnable()
     {
-        ResolveReferences();                   // 런타임 생성/프리팹 연결 누락에 대비
-        Show();                                // 데이터가 들어왔으니 상단 패널 표시
-
-        if (string.IsNullOrEmpty(emergencyStage))
-            emergencyStage = "정상";           // API 값이 비어 있으면 안전 기본값 사용
-
-        if (cachedDateText == dateText &&
-            cachedTemperatureText == temperatureText &&
-            cachedEmergencyStage == emergencyStage &&
-            cachedOniType == oniType &&
-            cachedOniValueText == oniValueText)
+        if (dataManager != null)
         {
-            return;                            // 화면 값이 같으면 불필요한 텍스트 갱신 생략
+            dataManager.OnCurrentDataUpdated += HandleCurrentDataUpdated;
+            dataManager.OnPowerDataUpdated += HandlePowerDataUpdated;
+            dataManager.OnDistrictDataUpdated += HandleDistrictDataUpdated;
+            dataManager.OniRangeDataUpdated += HandleOniRangeDataUpdated;
         }
 
-        cachedDateText = dateText;             // 최신 날짜 캐시
-        cachedTemperatureText = temperatureText; // 최신 기온 캐시
-        cachedEmergencyStage = emergencyStage; // 최신 경보 단계 캐시
-        cachedOniType = oniType;               // 최신 ONI 상태 캐시
-        cachedOniValueText = oniValueText;     // 최신 ONI 수치 캐시
+        if (uiController != null)
+            uiController.OnOniValueChanged += HandleOniValueChanged;
+    }
 
-        if (Text_Date_Info != null) Text_Date_Info.text = dateText;                       // 연월 표시
-        if (Text_Temperature_Info != null) Text_Temperature_Info.text = temperatureText;   // 서울 전체 기온 표시
-        if (Text_Emergency_Value != null) Text_Emergency_Value.text = emergencyStage;      // 경보 단계 표시
-        if (Text_Info_ONIType != null) Text_Info_ONIType.text = oniType;                   // ONI 상태 표시
-        if (Text_Info_ONINum != null) Text_Info_ONINum.text = oniValueText;                // ONI 수치 표시
+    private void OnDisable()
+    {
+        if (dataManager != null)
+        {
+            dataManager.OnCurrentDataUpdated -= HandleCurrentDataUpdated;
+            dataManager.OnPowerDataUpdated -= HandlePowerDataUpdated;
+            dataManager.OnDistrictDataUpdated -= HandleDistrictDataUpdated;
+            dataManager.OniRangeDataUpdated -= HandleOniRangeDataUpdated;
+        }
+
+        if (uiController != null)
+            uiController.OnOniValueChanged -= HandleOniValueChanged;
+    }
+
+    private void HandleCurrentDataUpdated(JObject weather)
+    {
+        if (_hasPredictContext || weather == null)
+            return;
+
+        if (weather["temperature"] == null)
+            return;
+
+        if (float.TryParse(weather["temperature"].ToString(), out float temperature))
+            SetTemperatureText(temperature);
+    }
+
+    private void HandlePowerDataUpdated(PowerGridData data)
+    {
+        if (data == null)
+            return;
+
+        _hasPredictContext = true;
+        _latestPowerData = data;
+
+        if (Text_Date_Info != null)
+            Text_Date_Info.text = $"{data.year}년 {data.month}월";
+
+        ApplyReserveStage(data.reserveRate, force: true);
+    }
+
+    private void HandleOniRangeDataUpdated(List<OniRangeData> data)
+    {
+        _oniRangeEntries.Clear();
+
+        if (data == null || data.Count == 0)
+        {
+            if (!_hasPredictContext)
+                ApplyReserveStage(ReserveRateStagePalette.DefaultReserveRate);
+            return;
+        }
+
+        _oniRangeEntries.AddRange(data);
+
+        float oni = uiController != null ? uiController.GetCurrentOni() : 0f;
+        ApplyReserveStage(GetClosestOniEntry(oni)?.reserveRate ?? ReserveRateStagePalette.DefaultReserveRate);
+    }
+
+    private void HandleOniValueChanged(float oniValue)
+    {
+        if (_oniRangeEntries.Count == 0)
+            return;
+
+        ApplyReserveStage(GetClosestOniEntry(oniValue)?.reserveRate ?? ReserveRateStagePalette.DefaultReserveRate);
+    }
+
+    private void HandleDistrictDataUpdated(DistrictData data)
+    {
+        if (_latestPowerData == null || data.districtType != DistrictType.JONGNO)
+            return;
+
+        SetTemperatureText(data.temperature);
+    }
+
+    private void ApplyReserveStage(float reserveRate, bool force = false)
+    {
+        int level = ReserveRateStagePalette.ToLevel(reserveRate);
+        if (!force && level == _currentStageLevel)
+            return;
+
+        _currentStageLevel = level;
+        string stageTitle = ReserveRateStagePalette.GetStageTitle(level);
+        Color stageColor = ReserveRateStagePalette.GetSegmentColor(level);
+
+        if (cachedEmergencyStage == stageTitle)
+            return;
+
+        cachedEmergencyStage = stageTitle;
+
+        if (Text_Emergency_Value != null)
+        {
+            Text_Emergency_Value.text = stageTitle;
+            Text_Emergency_Value.color = stageColor;
+        }
 
         if (Img_Emergency_Dot != null)
-            Img_Emergency_Dot.color = GetStageColor(emergencyStage); // 경보 단계에 맞는 점 색상 적용
+            Img_Emergency_Dot.color = stageColor;
     }
 
-    // 게임 시작 직후에는 날짜 선택 전이므로 인포 패널을 숨깁니다.
-    public void Hide()
+    private void SetTemperatureText(float temperature)
     {
-        ResolveReferences();                   // Panel_Info 연결 누락 보정
+        string temperatureText = FormatCurrentTemperature(temperature);
 
-        if (Panel_Info != null)
-            Panel_Info.SetActive(false);       // 상단 인포 패널 숨김
+        if (cachedTemperatureText == temperatureText)
+            return;
+
+        cachedTemperatureText = temperatureText;
+
+        if (Text_Temperature_Info != null)
+            Text_Temperature_Info.text = temperatureText;
     }
 
-    private void Show()
+    private static string FormatCurrentTemperature(float temperature)
     {
-        if (Panel_Info != null)
-            Panel_Info.SetActive(true);        // 상단 인포 패널 표시
+        return $"현재 기온  {temperature:0.0}°C";
     }
 
-    // 인스펙터 연결이 비어 있어도 Panel_Info 오브젝트를 찾아서 사용합니다.
-    private void ResolveReferences()
+    private OniRangeData GetClosestOniEntry(float oniValue)
     {
-        if (Panel_Info == null)
-            Panel_Info = FindPanelObject();    // 현재 오브젝트/부모에서 Panel_Info 루트 찾기
+        OniRangeData closest = null;
+        float minDistance = float.MaxValue;
 
-        if (Text_Date_Info == null) Text_Date_Info = FindText("Text_Date_Info");                       // 날짜 텍스트 자동 연결
-        if (Text_Temperature_Info == null) Text_Temperature_Info = FindText("Text_Temperature_Info");   // 기온 텍스트 자동 연결
-        if (Text_Emergency == null) Text_Emergency = FindText("Text_Emergency");                       // 경보 제목 텍스트 자동 연결
-        if (Text_Emergency_Value == null) Text_Emergency_Value = FindText("Text_Emergency_Value");     // 경보 값 텍스트 자동 연결
-        if (Text_Info_ONIType == null) Text_Info_ONIType = FindText("Text_Info_ONIType");              // ONI 상태 텍스트 자동 연결
-        if (Text_Info_ONINum == null) Text_Info_ONINum = FindText("Text_Info_ONINum");                 // ONI 수치 텍스트 자동 연결
-        if (Img_Emergency_Dot == null) Img_Emergency_Dot = FindImage("Img_Emergency_Dot");             // 경보 점 이미지 자동 연결
-    }
-
-    private GameObject FindPanelObject()
-    {
-        Transform current = transform;         // 현재 오브젝트부터 부모 방향으로 검색
-        while (current != null)
+        foreach (OniRangeData data in _oniRangeEntries)
         {
-            if (current.name == "Panel_Info")
-                return current.gameObject;     // Panel_Info를 찾으면 루트로 사용
-
-            current = current.parent;          // 못 찾으면 한 단계 위 부모 검사
+            float distance = Mathf.Abs(data.oni - oniValue);
+            if (distance < minDistance)
+            {
+                minDistance = distance;
+                closest = data;
+            }
         }
 
-        return gameObject;                     // 끝까지 못 찾으면 스크립트가 붙은 오브젝트 사용
+        return closest;
     }
 
-    private TMP_Text FindText(string objectName)
+    private void ResolveReferences()
     {
-        TMP_Text[] texts = Panel_Info != null
-            ? Panel_Info.GetComponentsInChildren<TMP_Text>(true) // 비활성 자식까지 포함해서 패널 내부 검색
-            : GetComponentsInChildren<TMP_Text>(true);           // 패널이 없으면 현재 오브젝트 기준 검색
+        if (Panel_HUD_Info == null)
+            Panel_HUD_Info = FindChildPanel("Panel_HUD_Info");
 
+        if (Panel_HUD_Status == null)
+            Panel_HUD_Status = FindChildPanel("Panel_HUD_Status");
+
+        GameObject searchRoot = GetSearchRoot();
+
+        if (Text_Date_Info == null) Text_Date_Info = FindText(searchRoot, "Text_Date_Info");
+        if (Text_Temperature_Info == null) Text_Temperature_Info = FindText(searchRoot, "Text_Temperature_Info");
+        if (Text_Emergency_Value == null) Text_Emergency_Value = FindText(searchRoot, "Text_Emergency_Value");
+
+        if (Img_Emergency_Dot == null)
+        {
+            Img_Emergency_Dot = FindImage(searchRoot, "Img_Emergency_Dot");
+            if (Img_Emergency_Dot == null)
+                Img_Emergency_Dot = FindImage(searchRoot, "Dot");
+        }
+    }
+
+    private GameObject GetSearchRoot()
+    {
+        if (Panel_HUD_Info != null)
+            return Panel_HUD_Info;
+
+        Transform current = transform;
+        while (current != null)
+        {
+            if (current.name == "HUD_Header")
+                return current.gameObject;
+
+            current = current.parent;
+        }
+
+        return gameObject;
+    }
+
+    private GameObject FindChildPanel(string panelName)
+    {
+        Transform current = transform;
+        while (current != null)
+        {
+            Transform found = current.Find(panelName);
+            if (found != null)
+                return found.gameObject;
+
+            if (current.name == panelName)
+                return current.gameObject;
+
+            current = current.parent;
+        }
+
+        Transform[] transforms = GetComponentsInChildren<Transform>(true);
+        foreach (Transform target in transforms)
+        {
+            if (target.name == panelName)
+                return target.gameObject;
+        }
+
+        return null;
+    }
+
+    private static TMP_Text FindText(GameObject searchRoot, string objectName)
+    {
+        if (searchRoot == null)
+            return null;
+
+        TMP_Text[] texts = searchRoot.GetComponentsInChildren<TMP_Text>(true);
         foreach (TMP_Text text in texts)
         {
             if (text.gameObject.name == objectName)
-                return text;                    // 이름이 일치하는 TMP 텍스트 반환
+                return text;
         }
 
-        return null;                            // 못 찾으면 인스펙터 수동 연결에 맡김
+        return null;
     }
 
-    private Image FindImage(string objectName)
+    private static Image FindImage(GameObject searchRoot, string objectName)
     {
-        Image[] images = Panel_Info != null
-            ? Panel_Info.GetComponentsInChildren<Image>(true) // 비활성 자식까지 포함해서 패널 내부 검색
-            : GetComponentsInChildren<Image>(true);           // 패널이 없으면 현재 오브젝트 기준 검색
+        if (searchRoot == null)
+            return null;
 
+        Image[] images = searchRoot.GetComponentsInChildren<Image>(true);
         foreach (Image image in images)
         {
             if (image.gameObject.name == objectName)
-                return image;                   // 이름이 일치하는 Image 반환
+                return image;
         }
 
-        return null;                            // 못 찾으면 인스펙터 수동 연결에 맡김
-    }
-
-    // 경보 단계에 맞춰 상단 상태 점 색상을 정합니다.
-    private Color32 GetStageColor(string emergencyStage)
-    {
-        switch (emergencyStage)
-        {
-            case "관심": return new Color32(91, 173, 255, 255);
-            case "주의": return new Color32(255, 242, 0, 255);
-            case "경계": return new Color32(255, 157, 0, 255);
-            case "심각": return new Color32(255, 2, 2, 255);
-            default: return new Color32(19, 204, 53, 255);
-        }
+        return null;
     }
 }
