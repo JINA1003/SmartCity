@@ -18,10 +18,13 @@ public class InfoPanelUI : MonoBehaviour
     [Header("데이터")]
     [SerializeField] private DataManager dataManager;
     [SerializeField] private UIController uiController;
+    [SerializeField] private MinimapManager minimapManager;
 
     private bool _hasPredictContext;
     private PowerGridData _latestPowerData;
     private readonly List<OniRangeData> _oniRangeEntries = new();
+    private readonly Dictionary<DistrictType, float> _districtTemperatures = new();
+    private DistrictType _selectedDistrict = DistrictType.JONGNO;
     private string cachedTemperatureText;
     private string cachedEmergencyStage;
     private int _currentStageLevel = -1;
@@ -32,6 +35,8 @@ public class InfoPanelUI : MonoBehaviour
             dataManager = FindFirstObjectByType<DataManager>();
         if (uiController == null)
             uiController = FindFirstObjectByType<UIController>();
+        if (minimapManager == null)
+            minimapManager = FindFirstObjectByType<MinimapManager>();
 
         ResolveReferences();
         ApplyReserveStage(ReserveRateStagePalette.DefaultReserveRate, force: true);
@@ -50,6 +55,9 @@ public class InfoPanelUI : MonoBehaviour
 
         if (uiController != null)
             uiController.OnOniValueChanged += HandleOniValueChanged;
+
+        if (minimapManager != null)
+            minimapManager.OnDistrictSelected += HandleDistrictSelected;
     }
 
     private void OnDisable()
@@ -64,6 +72,9 @@ public class InfoPanelUI : MonoBehaviour
 
         if (uiController != null)
             uiController.OnOniValueChanged -= HandleOniValueChanged;
+
+        if (minimapManager != null)
+            minimapManager.OnDistrictSelected -= HandleDistrictSelected;
     }
 
     private void HandleCurrentDataUpdated(JObject weather)
@@ -77,7 +88,7 @@ public class InfoPanelUI : MonoBehaviour
             return;
 
         if (float.TryParse(weather["temperature"].ToString(), out float temperature))
-            SetTemperatureText(temperature);
+            SetRealtimeTemperature(temperature);
     }
 
     private void HandlePowerDataUpdated(PowerGridData data)
@@ -87,11 +98,14 @@ public class InfoPanelUI : MonoBehaviour
 
         _hasPredictContext = true;
         _latestPowerData = data;
+        _selectedDistrict = DistrictType.JONGNO;
+        _districtTemperatures.Clear();
 
         if (Text_Date_Info != null)
             Text_Date_Info.text = $"{data.year}년 {data.month}월";
 
         ApplyReserveStage(data.reserveRate, force: true);
+        RefreshSimulationTemperatureDisplay();
     }
 
     private void HandleOniRangeDataUpdated(List<OniRangeData> data)
@@ -109,6 +123,9 @@ public class InfoPanelUI : MonoBehaviour
 
         float oni = uiController != null ? uiController.GetCurrentOni() : 0f;
         ApplyReserveStage(GetClosestOniEntry(oni)?.reserveRate ?? ReserveRateStagePalette.DefaultReserveRate);
+
+        if (_hasPredictContext)
+            RefreshSimulationTemperatureFromOniRange(oni);
     }
 
     private void HandleOniValueChanged(float oniValue)
@@ -117,14 +134,29 @@ public class InfoPanelUI : MonoBehaviour
             return;
 
         ApplyReserveStage(GetClosestOniEntry(oniValue)?.reserveRate ?? ReserveRateStagePalette.DefaultReserveRate);
+
+        if (_hasPredictContext)
+            RefreshSimulationTemperatureFromOniRange(oniValue);
+    }
+
+    private void HandleDistrictSelected(DistrictType districtType)
+    {
+        if (!_hasPredictContext)
+            return;
+
+        _selectedDistrict = districtType;
+        RefreshSimulationTemperatureDisplay();
     }
 
     private void HandleDistrictDataUpdated(DistrictData data)
     {
-        if (_latestPowerData == null || data.districtType != DistrictType.JONGNO)
+        if (!_hasPredictContext || data == null)
             return;
 
-        SetTemperatureText(data.temperature);
+        _districtTemperatures[data.districtType] = data.temperature;
+
+        if (data.districtType == _selectedDistrict)
+            SetSimulationTemperature(data.districtType, data.temperature);
     }
 
     private void ApplyReserveStage(float reserveRate, bool force = false)
@@ -152,10 +184,53 @@ public class InfoPanelUI : MonoBehaviour
             Img_Emergency_Dot.color = stageColor;
     }
 
-    private void SetTemperatureText(float temperature)
+    private void SetRealtimeTemperature(float temperature)
     {
-        string temperatureText = FormatCurrentTemperature(temperature);
+        if (_hasPredictContext)
+            return;
 
+        ApplyTemperatureText($"현재 {temperature:0.0}°C");
+    }
+
+    private void SetSimulationTemperature(DistrictType districtType, float temperature)
+    {
+        if (!_hasPredictContext || districtType != _selectedDistrict)
+            return;
+
+        string guName = DataConverter.GetDistrictName(districtType);
+        ApplyTemperatureText($"{guName} {temperature:0.0}°C");
+    }
+
+    private void RefreshSimulationTemperatureDisplay()
+    {
+        if (!_hasPredictContext)
+            return;
+
+        if (_districtTemperatures.TryGetValue(_selectedDistrict, out float temperature))
+        {
+            SetSimulationTemperature(_selectedDistrict, temperature);
+            return;
+        }
+
+        float oni = uiController != null ? uiController.GetCurrentOni() : 0f;
+        RefreshSimulationTemperatureFromOniRange(oni);
+    }
+
+    private void RefreshSimulationTemperatureFromOniRange(float oniValue)
+    {
+        OniRangeData closest = GetClosestOniEntry(oniValue);
+        if (closest?.guTemperature == null)
+            return;
+
+        if (!closest.guTemperature.TryGetValue(_selectedDistrict, out float temperature))
+            return;
+
+        _districtTemperatures[_selectedDistrict] = temperature;
+        SetSimulationTemperature(_selectedDistrict, temperature);
+    }
+
+    private void ApplyTemperatureText(string temperatureText)
+    {
         if (cachedTemperatureText == temperatureText)
             return;
 
@@ -163,11 +238,6 @@ public class InfoPanelUI : MonoBehaviour
 
         if (Text_Temperature_Info != null)
             Text_Temperature_Info.text = temperatureText;
-    }
-
-    private static string FormatCurrentTemperature(float temperature)
-    {
-        return $"현재 기온  {temperature:0.0}°C";
     }
 
     private void RefreshRealtimeDateDisplay()
