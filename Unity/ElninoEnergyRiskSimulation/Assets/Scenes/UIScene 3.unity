@@ -11401,7 +11401,7 @@ PrefabInstance:
     - target: {fileID: 7868954589717644088, guid: cfdb327df3d52497bb5ae23fbe680c64, type: 3}
       propertyPath: simulationController
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1131763331}
     - target: {fileID: 8213405522899577887, guid: cfdb327df3d52497bb5ae23fbe680c64, type: 3}
       propertyPath: innerRadius
       value: 40

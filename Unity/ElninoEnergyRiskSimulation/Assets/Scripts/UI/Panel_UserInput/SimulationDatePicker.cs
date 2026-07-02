@@ -236,7 +236,10 @@ public class SimulationDatePicker : MonoBehaviour
     private void WireEditorPopups()
     {
         if (yearPopup != null)
+        {
             WirePopupButtons(yearPopup, SelectYear);
+            ConfigurePopupScroll(yearPopup);
+        }
 
         if (monthPopup != null)
             WirePopupButtons(monthPopup, SelectMonth);
@@ -370,6 +373,7 @@ public class SimulationDatePicker : MonoBehaviour
         BringPopupToFront(yearPopup);
         yearPopup.SetActive(true);
         SetBackdropActive(true);
+        ConfigurePopupScroll(yearPopup);
         ResetScrollToTop(yearPopup);
     }
 
@@ -400,10 +404,35 @@ public class SimulationDatePicker : MonoBehaviour
         overlay.SetAsLastSibling();
     }
 
+    private static void ConfigureScrollRect(ScrollRect scroll)
+    {
+        if (scroll == null)
+            return;
+
+        scroll.horizontal = false;
+        scroll.vertical = true;
+        scroll.movementType = ScrollRect.MovementType.Clamped;
+        scroll.horizontalScrollbar = null;
+    }
+
+    private static void ConfigurePopupScroll(GameObject popup)
+    {
+        if (popup == null)
+            return;
+
+        foreach (ScrollRect scroll in popup.GetComponentsInChildren<ScrollRect>(true))
+            ConfigureScrollRect(scroll);
+    }
+
     private static void ResetScrollToTop(GameObject popup)
     {
         var scroll = popup.GetComponentInChildren<ScrollRect>(true);
         if (scroll == null) return;
+
+        ConfigureScrollRect(scroll);
+
+        if (scroll.content != null)
+            LayoutRebuilder.ForceRebuildLayoutImmediate(scroll.content);
 
         Canvas.ForceUpdateCanvases();
         scroll.velocity = Vector2.zero;
@@ -724,13 +753,10 @@ public class SimulationDatePicker : MonoBehaviour
         var scroll = scrollGo.GetComponent<ScrollRect>();
         scroll.viewport = viewport.GetComponent<RectTransform>();
         scroll.content = contentRect;
-        scroll.horizontal = false;
-        scroll.vertical = true;
-        scroll.movementType = ScrollRect.MovementType.Elastic;
-        scroll.elasticity = 0.1f;
         scroll.inertia = true;
         scroll.decelerationRate = 0.135f;
         scroll.scrollSensitivity = scrollSensitivity;
+        ConfigureScrollRect(scroll);
 
         if (showScrollbar)
         {
