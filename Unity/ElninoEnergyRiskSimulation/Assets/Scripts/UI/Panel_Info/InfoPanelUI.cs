@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 using TMPro;
@@ -34,6 +35,7 @@ public class InfoPanelUI : MonoBehaviour
 
         ResolveReferences();
         ApplyReserveStage(ReserveRateStagePalette.DefaultReserveRate, force: true);
+        RefreshRealtimeDateDisplay();
     }
 
     private void OnEnable()
@@ -68,6 +70,8 @@ public class InfoPanelUI : MonoBehaviour
     {
         if (_hasPredictContext || weather == null)
             return;
+
+        RefreshRealtimeDateDisplay();
 
         if (weather["temperature"] == null)
             return;
@@ -164,6 +168,27 @@ public class InfoPanelUI : MonoBehaviour
     private static string FormatCurrentTemperature(float temperature)
     {
         return $"현재 기온  {temperature:0.0}°C";
+    }
+
+    private void RefreshRealtimeDateDisplay()
+    {
+        if (_hasPredictContext || HasSimulationDateSelected())
+            return;
+
+        if (Text_Date_Info == null)
+            return;
+
+        DateTime now = DateTime.Now;
+        Text_Date_Info.text = $"{now.Year} - {now.Month:D2}";
+    }
+
+    private bool HasSimulationDateSelected()
+    {
+        if (uiController == null)
+            return false;
+
+        return !string.IsNullOrEmpty(uiController.GetSelectedYear())
+            && !string.IsNullOrEmpty(uiController.GetSelectedMonth());
     }
 
     private OniRangeData GetClosestOniEntry(float oniValue)
